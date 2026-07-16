@@ -48,6 +48,7 @@ main{padding:14px;max-width:1400px;margin:0 auto}
 .thumb img{width:100%;height:100%;object-fit:contain}
 .thumb .noimg{color:#C9CDD3;font-size:36px;font-weight:300}
 .cat-tag{position:absolute;top:6px;left:6px;background:rgba(43,47,54,.85);color:#fff;font-size:11px;padding:2px 8px;border-radius:999px}
+.chg-tag{position:absolute;top:32px;right:6px;background:#1D4ED8;color:#fff;font-size:10px;padding:2px 6px;border-radius:999px;font-weight:700}
 .restock-tag{position:absolute;top:6px;right:6px;background:#B45309;color:#fff;font-size:11px;padding:2px 7px;border-radius:999px;font-weight:700}
 .moq-tag{position:absolute;bottom:6px;right:6px;background:var(--accent);color:#fff;font-size:10px;padding:2px 6px;border-radius:4px;font-weight:700}
 .brand-tag{font-size:10px;font-weight:600;background:rgba(255,255,255,.18);border-radius:4px;padding:1px 6px;letter-spacing:.3px}
@@ -134,6 +135,7 @@ footer{text-align:center;color:var(--ink2);font-size:12px;padding:20px 0 30px}
     <button class="chip" id="btnStats" title="统计">📊 统计</button>
     <button class="chip" id="btnRestockFilter" title="只看标了补货的商品">🛒 补货</button>
     <button class="chip" id="btnPickList" title="生成拿货单">📋 拿货单</button>
+    <button class="chip" id="btnHistory" title="最近价格改动">🕒 改动</button>
     <select id="brandSel"></select>
     <select id="sortSel">
       <option value="model">按型号排序</option>
@@ -179,7 +181,8 @@ footer{text-align:center;color:var(--ink2);font-size:12px;padding:20px 0 30px}
         <div class="field"><label>🛒 补货数量（填了进拿货单）</label><input id="fRestock" type="number" min="0" placeholder="不补货留空"></div>
       </div>
       <div class="sellgrid">
-        <div class="sg-title">各平台售价 → 净利润（扣手续费 + 包材，按大量价核算）</div>
+        <div class="sg-title">各平台售价 → 净利润（扣佣金/运费/达人 + 包材）</div>
+        <div class="sg-row" style="grid-template-columns:1fr 90px 1fr"><span class="pname">达人佣金 %</span><input id="fAff" type="number" step="0.5" min="0" placeholder="默认5"><span class="live none" style="font-size:11px">留空=平台默认</span></div>
         <div id="sellRows"></div>
       </div>
       <div class="field"><label>备注</label><textarea id="fNotes" rows="2" placeholder="供应商、颜色、注意事项…"></textarea></div>
@@ -188,6 +191,17 @@ footer{text-align:center;color:var(--ink2);font-size:12px;padding:20px 0 30px}
       <button class="btn del" id="btnDel" style="display:none">删除</button>
       <button class="btn" data-close>取消</button>
       <button class="btn save" id="btnSave">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 改动记录弹窗 -->
+<div class="mask" id="histMask">
+  <div class="modal">
+    <div class="m-head"><span>🕒 最近改动</span><button class="x" data-close>✕</button></div>
+    <div class="m-body">
+      <div style="font-size:12px;color:var(--ink2)">保存商品时自动记录价格类改动，点任意一条可打开该商品。</div>
+      <div id="histList" style="font-size:13px;line-height:2;max-height:60vh;overflow-y:auto"></div>
     </div>
   </div>
 </div>
@@ -333,7 +347,7 @@ const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
 const DEFAULT_SETTINGS={
   key:'main',
   platforms:[
-    {id:'tk',name:'TikTok',rate:17,fixed:4}
+    {id:'tk',name:'TikTok',mode:'tiered',thr:50,r1:10,f1:4,r2:6,f2:6,ship:6,aff:5}
   ],
   packaging:0.15, thermal:0.032,
   brands:['A GOLD','Kaidi','Hmaston','杂牌'],
@@ -417,14 +431,25 @@ async function migrateV2(){
 /* ================= 计算 ================= */
 const n=v=>(v===''||v==null||isNaN(+v))?null:+v;
 function diffOf(p){const s=n(p.small),b=n(p.bulk);return(s!=null&&b!=null)?s-b:null;}
+function feeParams(pf,sell,aff){
+  if(pf.mode==='tiered'){
+    const lo=sell<(pf.thr!=null?pf.thr:50);
+    return {pct:(lo?pf.r1:pf.r2)+(pf.ship||0)+(aff!=null?aff:(pf.aff||0)),
+            fixed:lo?pf.f1:pf.f2};
+  }
+  return {pct:pf.rate||0, fixed:pf.fixed||0};
+}
+function netOf(sell,cost,sticker,pf,aff){
+  const fp=feeParams(pf,sell,aff);
+  return sell*(1-fp.pct/100)-fp.fixed-cost-sticker-settings.packaging-settings.thermal;
+}
 function profitOf(p,pfId){
   const pf=settings.platforms.find(x=>x.id===pfId); if(!pf)return null;
   const sell=n(p.sellPrices&&p.sellPrices[pfId]);
   const bulk=n(p.bulk), small=n(p.small);
   const cost=bulk!=null?bulk:small;           // 大量价为空 → 用少量价
   if(sell==null||cost==null)return null;
-  const afterFee=sell*(1-pf.rate/100)-pf.fixed;
-  const net=afterFee-cost-(n(p.sticker)||0)-settings.packaging-settings.thermal;
+  const net=netOf(sell,cost,n(p.sticker)||0,pf,n(p.aff));
   return{net,margin:sell>0?net/sell:0,basis:bulk!=null?'bulk':'small'};
 }
 const fmt=v=>v==null?'—':(Math.round(v*100)/100).toFixed(2);
@@ -447,7 +472,7 @@ function renderBrandSel(){
 }
 function renderPtabs(){
   document.getElementById('ptabs').innerHTML=settings.platforms.map(pf=>
-    `<button class="ptab ${pf.id===settings.activePlatform?'on':''}" data-pf="${pf.id}">${pf.name}<span class="rate">${pf.rate}%+${pf.fixed}</span></button>`).join('');
+    `<button class="ptab ${pf.id===settings.activePlatform?'on':''}" data-pf="${pf.id}">${pf.name}<span class="rate">${pf.mode==='tiered'?pf.r1+'/'+pf.r2+'%+运'+(pf.ship||0)+'%':pf.rate+'%+'+pf.fixed}</span></button>`).join('');
 }
 function visibleProducts(){
   let list=products.filter(p=>{
@@ -486,11 +511,12 @@ function cardHTML(p){
         <span class="cat-tag">${p.category||'未分类'}</span>
         ${p.moq?`<span class="moq-tag num">起订 ${p.moq}</span>`:''}
         ${p.restock?`<span class="restock-tag num">🛒 ${p.restock}</span>`:''}
+        ${p.history&&p.history.length&&p.history[p.history.length-1].f!=='创建'&&Date.now()-p.history[p.history.length-1].t<172800000?`<span class="chg-tag">改</span>`:''}
       </div>
       <div class="band"><span>${esc(p.model)}</span>${p.brand?`<span class="brand-tag">${esc(p.brand)}</span>`:''}</div>
       <div class="body">
-        <div class="prow"><span class="lbl">大量价</span><span class="val num">${fmt(n(p.bulk))}</span></div>
-        <div class="prow"><span class="lbl">少量价</span><span class="val num ${d!=null?'':'dim'}">${fmt(n(p.small))}</span></div>
+        <div class="prow"><span class="lbl">大量价</span><span class="val num" data-qe="fBulk" title="点击直接改">${fmt(n(p.bulk))}</span></div>
+        <div class="prow"><span class="lbl">少量价</span><span class="val num ${d!=null?'':'dim'}" data-qe="fSmall" title="点击直接改">${fmt(n(p.small))}</span></div>
         <div class="prow"><span class="lbl">差额</span><span class="val num ${d!=null&&d>0?'diff-pos':''}">${d==null?'—':(d>0?'+':'')+fmt(d)}</span></div>
         <div class="sellrow">
           <div class="prow"><span class="lbl">售价</span><span class="val num">${fmt(sell)}</span></div>
@@ -546,15 +572,17 @@ function openEdit(id){
   $('fMoq').value=p&&p.moq!=null?p.moq:'';
   $('fSticker').value=p&&p.sticker!=null?p.sticker:'';
   $('fRestock').value=p&&p.restock!=null?p.restock:'';
+  window.__affInit=p&&p.aff!=null?p.aff:'';
   $('fNotes').value=p?(p.notes||''):'';
   $('sellRows').innerHTML=settings.platforms.map(pf=>{
     const v=p&&p.sellPrices&&p.sellPrices[pf.id]!=null?p.sellPrices[pf.id]:'';
-    return `<div class="sg-row"><span class="pname">${pf.name} <span style="color:var(--ink2);font-size:11px">${pf.rate}%+${pf.fixed}</span></span>
+    return `<div class="sg-row"><span class="pname">${pf.name} <span style="color:var(--ink2);font-size:11px">${pf.mode==='tiered'?'<'+(pf.thr||50)+':'+pf.r1+'%+'+pf.f1+' ≥:'+pf.r2+'%+'+pf.f2+' 运'+(pf.ship||0)+'%':pf.rate+'%+'+pf.fixed}</span></span>
       <input type="number" step="0.01" min="0" data-sell="${pf.id}" value="${v}" placeholder="售价">
       <span class="live num" data-live="${pf.id}">—</span>
       <button class="fillbtn" data-fill="${pf.id}" type="button" style="grid-column:2">按${settings.targetMargin}%利润填价</button><span></span></div>`;
   }).join('');
   setImgPreview(p&&p.img?p.img:null);
+  $('fAff').value=window.__affInit!=null?window.__affInit:'';
   updateLive();
   $('editMask').classList.add('show');
   $('fModel').focus();
@@ -579,10 +607,28 @@ function updateLive(){
     const el=document.querySelector(`[data-live="${pf.id}"]`);
     const sell=n(document.querySelector(`[data-sell="${pf.id}"]`).value);
     if(sell==null||cost==null){el.textContent='—';el.className='live num none';return;}
-    const net=sell*(1-pf.rate/100)-pf.fixed-cost-sticker-settings.packaging-settings.thermal;
+    const net=netOf(sell,cost,sticker,pf,n($('fAff').value));
     el.textContent=`${fmt(net)} · ${(net/sell*100).toFixed(1)}%`+(b==null?' (按少量价)':'');
     el.className='live num '+(net>=0?'win':'lose');
   });
+}
+const HIST_FIELDS=[['bulk','大量价'],['small','少量价'],['moq','起订量'],['sticker','贴纸'],['restock','补货'],['aff','达人%']];
+function logChanges(old,neu){
+  const h=(old&&old.history)?old.history.slice():[];
+  const t=Date.now();
+  if(!old){h.push({t,f:'创建',a:null,b:null});}
+  else{
+    for(const [k,label] of HIST_FIELDS){
+      const a=old[k]!=null?old[k]:null, b=neu[k]!=null?neu[k]:null;
+      if(a!==b)h.push({t,f:label,a,b});
+    }
+    const ops=old.sellPrices||{}, nps=neu.sellPrices||{};
+    for(const pf of settings.platforms){
+      const a=ops[pf.id]!=null?ops[pf.id]:null, b=nps[pf.id]!=null?nps[pf.id]:null;
+      if(a!==b)h.push({t,f:'售价·'+pf.name,a,b});
+    }
+  }
+  return h.slice(-20);
 }
 async function saveEdit(){
   const model=$('fModel').value.trim();
@@ -593,11 +639,12 @@ async function saveEdit(){
   const p={
     id:old?old.id:uid(), model, category:$('fCat').value, brand:$('fBrand').value,
     bulk:n($('fBulk').value), small:n($('fSmall').value),
-    moq:n($('fMoq').value), sticker:n($('fSticker').value), restock:n($('fRestock').value),
+    moq:n($('fMoq').value), sticker:n($('fSticker').value), restock:n($('fRestock').value), aff:n($('fAff').value),
     sellPrices, notes:$('fNotes').value.trim(),
     img:currentImgBlob(), imgUrl:old?old.imgUrl:null, imgSyncedAt:old?old.imgSyncedAt:null,
     updatedAt:Date.now()
   };
+  p.history=logChanges(old,p);
   await idbPut('products',p);
   if(urlCache.has(p.id)){URL.revokeObjectURL(urlCache.get(p.id));urlCache.delete(p.id);}
   if(old)Object.assign(old,p);else products.push(p);
@@ -635,6 +682,25 @@ $('imgBox').addEventListener('drop',e=>{
 
 /* ================= 设置弹窗 ================= */
 function pfRowHTML(pf){
+  if(pf.mode==='tiered')return `<div class="pf-row-t" data-pfid="${pf.id}" data-tiered="1" style="border:1px dashed var(--line);border-radius:8px;padding:8px;display:flex;flex-direction:column;gap:6px">
+       <div style="display:flex;gap:6px;align-items:center">
+         <input value="${esc(pf.name)}" data-k="name" style="flex:1;border:1px solid var(--line);border-radius:6px;padding:6px 8px;font-weight:700">
+         <button class="pfx" data-delpf="${pf.id}" title="删除平台">✕</button>
+       </div>
+       <div class="pf-hd" style="grid-template-columns:1fr 1fr 1fr"><span>档位阈值 R$</span><span>运费计划 %</span><span>默认达人 %</span></div>
+       <div class="pf-row" style="grid-template-columns:1fr 1fr 1fr">
+         <input type="number" step="1" value="${pf.thr}" data-k="thr">
+         <input type="number" step="0.5" value="${pf.ship}" data-k="ship">
+         <input type="number" step="0.5" value="${pf.aff}" data-k="aff">
+       </div>
+       <div class="pf-hd" style="grid-template-columns:1fr 1fr 1fr 1fr"><span>&lt;阈值 佣金%</span><span>&lt;阈值 固定</span><span>≥阈值 佣金%</span><span>≥阈值 固定</span></div>
+       <div class="pf-row" style="grid-template-columns:1fr 1fr 1fr 1fr">
+         <input type="number" step="0.5" value="${pf.r1}" data-k="r1">
+         <input type="number" step="0.5" value="${pf.f1}" data-k="f1">
+         <input type="number" step="0.5" value="${pf.r2}" data-k="r2">
+         <input type="number" step="0.5" value="${pf.f2}" data-k="f2">
+       </div>
+     </div>`;
   return `<div class="pf-row" data-pfid="${pf.id}">
        <input value="${esc(pf.name)}" data-k="name">
        <input type="number" step="0.1" min="0" value="${pf.rate}" data-k="rate">
@@ -690,17 +756,20 @@ $('catList').addEventListener('click',e=>{
   renderCatList();
 });
 async function saveSettings(){
-  const rows=[...document.querySelectorAll('#pfRows .pf-row')];
+  const rows=[...document.querySelectorAll('#pfRows > [data-pfid]')];
   if(!rows.length){alert('至少保留一个平台');return;}
   const newPfs=[];
   rows.forEach(row=>{
     const old=settings.platforms.find(x=>x.id===row.dataset.pfid);
-    newPfs.push({
-      id:row.dataset.pfid,
-      name:row.querySelector('[data-k=name]').value.trim()||(old?old.name:'平台'),
-      rate:+row.querySelector('[data-k=rate]').value||0,
-      fixed:+row.querySelector('[data-k=fixed]').value||0
-    });
+    const g=k=>{const el=row.querySelector('[data-k='+k+']');return el?+el.value||0:0;};
+    const name=row.querySelector('[data-k=name]').value.trim()||(old?old.name:'平台');
+    if(row.dataset.tiered){
+      newPfs.push({id:row.dataset.pfid,name,mode:'tiered',
+        thr:g('thr'),ship:g('ship'),aff:g('aff'),
+        r1:g('r1'),f1:g('f1'),r2:g('r2'),f2:g('f2')});
+    }else{
+      newPfs.push({id:row.dataset.pfid,name,rate:g('rate'),fixed:g('fixed')});
+    }
   });
   settings.platforms=newPfs;
   if(!settings.platforms.some(p=>p.id===settings.activePlatform))
@@ -801,6 +870,36 @@ function buildPickList(){
   out+='\n合计: '+totalQty+' 件, 约 R$ '+total.toFixed(2);
   return out;
 }
+function fmtHV(v){return v==null?'空':(''+v);}
+function renderHistory(){
+  const all=[];
+  for(const p of products){
+    if(!p.history)continue;
+    for(const h of p.history){
+      if(h.f==='创建')continue;
+      all.push({...h,model:p.model,id:p.id});
+    }
+  }
+  all.sort((a,b)=>b.t-a.t);
+  const top=all.slice(0,120);
+  if(!top.length){$('histList').innerHTML='<div class="empty">还没有改动记录<br>改价保存后会自动出现在这里</div>';return;}
+  let out='',lastDay='';
+  for(const h of top){
+    const d=new Date(h.t);
+    const day=d.toLocaleDateString();
+    if(day!==lastDay){out+=`<div style="font-weight:800;margin-top:6px">${day}</div>`;lastDay=day;}
+    const hh=String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+    out+=`<div data-hid="${h.id}" style="cursor:pointer;border-bottom:1px dashed var(--line);padding:2px 0">
+      <span style="color:var(--ink2)">${hh}</span> <b>${esc(h.model)}</b> ${esc(h.f)}：
+      <span class="num">${fmtHV(h.a)} → <b style="color:var(--accent-dark)">${fmtHV(h.b)}</b></span></div>`;
+  }
+  $('histList').innerHTML=out;
+}
+$('btnHistory').addEventListener('click',()=>{renderHistory();$('histMask').classList.add('show');});
+$('histList').addEventListener('click',e=>{
+  const id=e.target.closest('[data-hid]')?.dataset.hid;
+  if(id){closeMasks();openEdit(id);}
+});
 $('btnStats').addEventListener('click',()=>{statsOn=!statsOn;$('btnStats').classList.toggle('on',statsOn);renderStats();});
 $('btnRestockFilter').addEventListener('click',()=>{restockOnly=!restockOnly;$('btnRestockFilter').classList.toggle('on',restockOnly);render();});
 $('btnPickList').addEventListener('click',()=>{$('pickText').value=buildPickList();$('pickMask').classList.add('show');});
@@ -844,7 +943,10 @@ document.getElementById('ptabs').addEventListener('click',e=>{
   settings.activePlatform=t.dataset.pf;idbPut('settings',settings);render();
 });
 $('grid').addEventListener('click',e=>{
-  const c=e.target.closest('.card');if(c)openEdit(c.dataset.id);
+  const c=e.target.closest('.card');if(!c)return;
+  const qe=e.target.dataset.qe;
+  openEdit(c.dataset.id);
+  if(qe)setTimeout(()=>{const el=$(qe);el.focus();el.select();},60);
 });
 let _qTimer;
 $('q').addEventListener('input',e=>{
@@ -870,7 +972,7 @@ $('btnAddPf').addEventListener('click',()=>{
 $('pfRows').addEventListener('click',e=>{
   const id=e.target.dataset.delpf;if(!id)return;
   if($('pfRows').children.length<=1){alert('至少保留一个平台');return;}
-  e.target.closest('.pf-row').remove();
+  e.target.closest('[data-pfid]').remove();
 });
 /* 型号匹配：先精确（去空格大写），再模糊（去横杠），模糊仅在唯一时生效 */
 function buildModelIndex(list){
@@ -983,6 +1085,7 @@ $('btnBatchGo').addEventListener('click',async()=>{
   for(const r of rows){
     const ex=idx.get(r.model);
     if(ex){
+      const before={...ex,sellPrices:{...(ex.sellPrices||{})}};
       if(r.brand!=null)ex.brand=r.brand;
       if(r.category!=null)ex.category=r.category;
       if(r.bulk!=null)ex.bulk=r.bulk;
@@ -991,6 +1094,7 @@ $('btnBatchGo').addEventListener('click',async()=>{
       if(r.sell!=null)ex.sellPrices={...(ex.sellPrices||{}),[settings.activePlatform]:r.sell};
       if(r.notes!=null)ex.notes=r.notes;
       ex.updatedAt=Date.now();
+      ex.history=logChanges(before,ex);
       await idbPut('products',ex);updated++;
       cloudPushOne(ex);
     }else{
@@ -1138,7 +1242,7 @@ $('btnImport').addEventListener('click',()=>$('importFile').click());
 $('importFile').addEventListener('change',e=>{if(e.target.files[0])importJSON(e.target.files[0]);e.target.value='';});
 document.querySelectorAll('[data-close]').forEach(b=>b.addEventListener('click',closeMasks));
 document.querySelectorAll('.mask').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)closeMasks();}));
-['fBulk','fSmall','fSticker'].forEach(id=>$(id).addEventListener('input',updateLive));
+['fBulk','fSmall','fSticker','fAff'].forEach(id=>$(id).addEventListener('input',updateLive));
 $('sellRows').addEventListener('input',updateLive);
 $('sellRows').addEventListener('click',e=>{
   const pfId=e.target.dataset.fill;if(!pfId)return;
@@ -1147,10 +1251,21 @@ $('sellRows').addEventListener('click',e=>{
   if(b==null)b=n($('fSmall').value);   // 回退少量价
   if(b==null){alert('先填大量价或少量价才能反算售价');return;}
   const sticker=n($('fSticker').value)||0;
-  const m=settings.targetMargin/100, r=pf.rate/100;
-  if(m+r>=0.95){alert('目标利润率+佣金过高，无法反算');return;}
-  // sell*(1-r)-fixed-b-sticker-pack-thermal = m*sell
-  const sell=(pf.fixed+b+sticker+settings.packaging+settings.thermal)/(1-r-m);
+  const m=settings.targetMargin/100;
+  const base=b+sticker+settings.packaging+settings.thermal;
+  const aff=n($('fAff').value);
+  function solve(rate,fixed){const den=1-rate/100-m;return den>0.03?(fixed+base)/den:null;}
+  let sell;
+  if(pf.mode==='tiered'){
+    const extra=(pf.ship||0)+(aff!=null?aff:(pf.aff||0));
+    const s1=solve(pf.r1+extra,pf.f1), s2=solve(pf.r2+extra,pf.f2);
+    const thr=pf.thr!=null?pf.thr:50;
+    const v1=s1!=null&&s1<thr?s1:null, v2=s2!=null&&s2>=thr?s2:null;
+    sell=v1!=null&&v2!=null?Math.min(v1,v2):(v1!=null?v1:(v2!=null?v2:s2));
+  }else{
+    sell=solve(pf.rate,pf.fixed);
+  }
+  if(sell==null){alert('目标利润率+费率过高，无法反算');return;}
   const el=document.querySelector(`[data-sell="${pfId}"]`);
   el.value=(Math.ceil(sell*10)/10).toFixed(2);
   updateLive();
@@ -1275,6 +1390,30 @@ function bootLog(msg,isErr){
       }
     }
     settings.seedVersion=5;
+  }
+  /* v6：TikTok 升级为 2026-07-15 分档费率；合并 CB14-2/CB142 重复；补 CB143 大量价 */
+  if((settings.seedVersion||0)<6){
+    const tk=settings.platforms.find(x=>x.id==='tk');
+    if(tk&&!tk.mode){
+      Object.assign(tk,{mode:'tiered',thr:50,r1:10,f1:4,r2:6,f2:6,ship:6,aff:5});
+      delete tk.rate; delete tk.fixed;
+    }
+    const idx6=buildModelIndex(products);
+    const a=products.find(p=>(p.model||'').toUpperCase()==='CB14-2');
+    const b=products.find(p=>(p.model||'').toUpperCase()==='CB142');
+    if(a&&b&&a!==b){
+      if(a.bulk==null&&b.bulk!=null)a.bulk=b.bulk;
+      if(a.moq==null&&b.moq!=null)a.moq=b.moq;
+      if(!a.notes&&b.notes)a.notes=b.notes;
+      if(!a.img&&!a.imgUrl&&b.img)a.img=b.img;
+      a.updatedAt=Date.now();
+      await idbPut('products',a);
+      await idbDel('products',b.id);
+      products=products.filter(x=>x.id!==b.id);
+    }
+    const c143=idx6.get('CB143');
+    if(c143&&c143.bulk==null){c143.bulk=3.24;c143.updatedAt=Date.now();await idbPut('products',c143);}
+    settings.seedVersion=6;
   }
   await idbPut('settings',settings);
   bootLog('4/4 渲染…');
