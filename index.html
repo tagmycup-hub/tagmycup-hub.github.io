@@ -189,6 +189,7 @@ footer{text-align:center;color:var(--ink2);font-size:12px;padding:20px 0 30px}
     </div>
     <div class="m-foot">
       <button class="btn del" id="btnDel" style="display:none">删除</button>
+      <button class="btn" id="btnCopy" style="display:none;flex:0 0 auto;padding:10px 14px" title="以此商品为模板新建">⧉ 复制</button>
       <button class="btn" data-close>取消</button>
       <button class="btn save" id="btnSave">保存</button>
     </div>
@@ -283,9 +284,10 @@ KD-800	Kaidi	3.10	12"></textarea></div>
       <div class="set-sec">
         <h4>云同步（Supabase，手机电脑数据互通）</h4>
         <div class="field"><label>Project URL（如 https://xxxx.supabase.co）</label><input id="sbUrl" placeholder="留空 = 不启用云同步"></div>
-        <div class="field"><label>anon public key</label><input id="sbKey" placeholder="设置页 → API Keys → anon public"></div>
+        <div class="field"><label>密钥（publishable key，sb_publishable_… 或旧版 anon key）</label><input id="sbKey" placeholder="Project Settings → API Keys"></div>
         <label style="display:flex;align-items:center;gap:6px;font-size:13px"><input type="checkbox" id="sbAuto" style="width:auto">保存/删除商品时自动同步到云端</label>
         <div class="f-row">
+          <button class="btn" id="btnTest">测试连接</button>
           <button class="btn" id="btnPush">全量上传到云端</button>
           <button class="btn" id="btnPull">从云端下载合并</button>
         </div>
@@ -563,6 +565,7 @@ function openEdit(id){
   const p=id?products.find(x=>x.id===id):null;
   $('mTitle').textContent=p?'编辑商品':'新增商品';
   $('btnDel').style.display=p?'':'none';
+  $('btnCopy').style.display=p?'':'none';
   $('fModel').value=p?p.model:'';
   $('fCat').innerHTML=settings.categories.map(c=>`<option ${p&&p.category===c?'selected':''}>${c}</option>`).join('');
   $('fBrand').innerHTML=['<option value="">（无）</option>',...settings.brands.map(b=>`<option ${p&&p.brand===b?'selected':''}>${b}</option>`)].join('');
@@ -964,6 +967,19 @@ $('btnAdd').addEventListener('click',()=>openEdit(null));
 $('btnSet').addEventListener('click',openSettings);
 $('btnSave').addEventListener('click',saveEdit);
 $('btnDel').addEventListener('click',delEdit);
+$('btnCopy').addEventListener('click',()=>{
+  const src=editingId?products.find(x=>x.id===editingId):null;
+  if(!src)return;
+  // 转为"新增"模式：保留所有已填字段，型号加后缀待改
+  editingId=null;
+  pendingImg=src.img||null;            // 图片一并复制，可再替换
+  $('mTitle').textContent='新增商品（复制自 '+src.model+'）';
+  $('btnDel').style.display='none';
+  $('btnCopy').style.display='none';
+  $('fModel').value=src.model+'-2';
+  $('fRestock').value='';               // 补货标记不复制
+  const el=$('fModel'); el.focus(); el.select();
+});
 $('btnSetSave').addEventListener('click',saveSettings);
 $('btnAddPf').addEventListener('click',()=>{
   const id='pf'+uid().slice(-5);
@@ -1136,7 +1152,9 @@ $('batchImgFile').addEventListener('change',async e=>{
 /* ============ 云同步 Supabase ============ */
 function cloudReady(){return settings.cloud&&settings.cloud.url&&settings.cloud.key;}
 function sbHeaders(json){
-  const h={'apikey':settings.cloud.key,'Authorization':'Bearer '+settings.cloud.key};
+  const k=settings.cloud.key||'';
+  const h={'apikey':k};
+  if(k.startsWith('eyJ'))h['Authorization']='Bearer '+k;   // 旧版 anon JWT
   if(json)h['Content-Type']='application/json';
   return h;
 }
@@ -1213,6 +1231,27 @@ async function cloudPullMerge(){
     sbStatus(`✔ 云端 ${rows.length} 件：新增 ${added}，更新 ${updated2}`);
   }catch(err){sbStatus('✕ '+err.message);}
 }
+async function cloudTest(){
+  const url=settings.cloud.url, key=settings.cloud.key;
+  if(!url||!key){sbStatus('✕ 请先填写 Project URL 和 密钥');return;}
+  if(!/^https:\/\/[a-z0-9-]+\.supabase\.co$/i.test(url)){
+    sbStatus('✕ URL 格式应为 https://xxxxx.supabase.co（不要带斜杠或路径）');return;}
+  sbStatus('测试中…');
+  try{
+    const r=await fetch(url+'/rest/v1/products?select=id&limit=1',{headers:sbHeaders(true)});
+    if(r.status===401||r.status===403){sbStatus('✕ 密钥无效或被拒绝（401/403）：请确认复制的是 publishable / anon key');return;}
+    if(r.status===404){sbStatus('✕ 找不到 products 表：请先在 SQL Editor 运行 云端配置.sql');return;}
+    if(!r.ok){sbStatus('✕ 数据库返回 '+r.status);return;}
+    const rows=await r.json();
+    let msg='✔ 数据库连接正常（云端现有记录读取成功）';
+    try{
+      const s=await fetch(url+'/storage/v1/bucket/imgs',{headers:sbHeaders(true)});
+      msg+= s.ok?' ｜ ✔ 图片桶 imgs 就绪':' ｜ ⚠ 图片桶 imgs 未创建（Storage 里新建一个名为 imgs 的 Public 桶）';
+    }catch{ msg+=' ｜ ⚠ 图片桶状态未知'; }
+    sbStatus(msg);
+  }catch(err){ sbStatus('✕ 无法连接：'+err.message+'（检查网址是否正确、网络是否可用）'); }
+}
+$('btnTest').addEventListener('click',()=>{saveSettingsSilent();cloudTest();});
 $('btnPush').addEventListener('click',()=>{saveSettingsSilent();cloudPushAll();});
 $('btnPull').addEventListener('click',()=>{saveSettingsSilent();cloudPullMerge();});
 function saveSettingsSilent(){
