@@ -257,6 +257,40 @@ main{padding:14px;max-width:1400px;margin:0 auto}
 .sw.on::after{content:"✓";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
   color:#fff;font-size:15px;font-weight:800;text-shadow:0 1px 3px rgba(0,0,0,.4)}
 
+/* 图片放大查看 */
+#lightbox{position:fixed;inset:0;z-index:300;background:rgba(8,11,16,.94);display:none;
+  flex-direction:column;align-items:center;justify-content:center;
+  animation:lbin .18s ease}
+#lightbox.show{display:flex}
+@keyframes lbin{from{opacity:0}to{opacity:1}}
+.lb-stage{flex:1;width:100%;display:flex;align-items:center;justify-content:center;
+  overflow:hidden;touch-action:none;cursor:grab}
+.lb-stage.drag{cursor:grabbing}
+#lbImg{max-width:94vw;max-height:78vh;object-fit:contain;user-select:none;-webkit-user-drag:none;
+  transition:transform .16s cubic-bezier(.2,.7,.3,1);background:#fff;border-radius:8px;
+  box-shadow:0 24px 60px rgba(0,0,0,.6)}
+#lbImg.moving{transition:none}
+.lb-x{position:absolute;top:14px;right:16px;width:40px;height:40px;border-radius:50%;
+  background:rgba(255,255,255,.14);border:none;color:#fff;font-size:19px;line-height:1;z-index:2}
+.lb-x:hover{background:rgba(255,255,255,.26)}
+.lb-tools{position:absolute;bottom:calc(20px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);
+  display:flex;align-items:center;gap:4px;background:rgba(255,255,255,.13);backdrop-filter:blur(10px);
+  border-radius:999px;padding:5px 8px;z-index:2}
+.lb-tools button{background:none;border:none;color:#fff;font-size:17px;font-weight:700;
+  width:36px;height:34px;border-radius:999px;line-height:1}
+.lb-tools button[data-lb=fit]{width:auto;padding:0 13px;font-size:13px;font-weight:600}
+.lb-tools button:hover{background:rgba(255,255,255,.2)}
+.lb-tools #lbZoom{color:#fff;font-size:12.5px;min-width:46px;text-align:center;
+  font-variant-numeric:tabular-nums;opacity:.9}
+.lb-cap{position:absolute;top:16px;left:18px;color:#fff;font-size:14px;font-weight:650;
+  background:rgba(255,255,255,.13);backdrop-filter:blur(10px);padding:6px 13px;border-radius:999px}
+/* 卡片图片可点开 */
+.thumb img{cursor:zoom-in}
+.imgbox img{cursor:zoom-in}
+.imgbox .zoomhint{position:absolute;bottom:6px;left:6px;background:rgba(0,0,0,.55);color:#fff;
+  font-size:11px;padding:3px 8px;border-radius:6px;display:none;pointer-events:none}
+.imgbox.has .zoomhint{display:block}
+
 /* Toast */
 #toasts{position:fixed;left:50%;transform:translateX(-50%);bottom:22px;z-index:300;
   display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none;width:max-content;max-width:92vw}
@@ -428,6 +462,8 @@ kbd{background:var(--bg-2);border:1px solid var(--line-2);border-bottom-width:2p
     <span id="syncDot" class="deskonly" title="云同步状态"><i></i><b id="syncTxt">—</b></span>
     <button class="sync-chip deskonly" id="syncChip" title="点击上传改动"><span class="dot"></span><span id="syncTxt">已同步</span></button>
     <button class="icon-btn" id="btnTheme" title="切换亮色 / 暗色">🌙</button>
+    <a class="icon-btn deskonly" id="lnkEditor" href="Edito.html" title="贴图合成">🖼 贴图合成</a>
+    <a class="icon-btn deskonly" id="lnkDiag" href="Diagnostic.html" title="销量分析">📈 销量分析</a>
     <button class="icon-btn" id="btnSet">⚙</button>
   </div>
   <div class="hd-row2" id="catChips"></div>
@@ -460,6 +496,17 @@ kbd{background:var(--bg-2);border:1px solid var(--line-2);border-bottom-width:2p
   <div class="sk"><div class="sk-img"></div><div class="sk-l w1"></div><div class="sk-l w2"></div><div class="sk-l w3"></div></div>
 </div></div>
 <pre id="printArea"></pre></main>
+<div id="lightbox">
+  <button class="lb-x" id="lbClose" title="关闭 (Esc)">✕</button>
+  <div class="lb-tools">
+    <button data-lb="out" title="缩小 (-)">−</button>
+    <span id="lbZoom">100%</span>
+    <button data-lb="in" title="放大 (+)">＋</button>
+    <button data-lb="fit" title="适应窗口 (0)">适应</button>
+  </div>
+  <div class="lb-stage" id="lbStage"><img id="lbImg" alt=""></div>
+  <div class="lb-cap" id="lbCap"></div>
+</div>
 <div id="toasts"></div>
 <nav id="mobileBar">
   <button data-mb="filter"><span>🔎</span>筛选</button>
@@ -500,6 +547,7 @@ kbd{background:var(--bg-2);border:1px solid var(--line-2);border-bottom-width:2p
       <div class="imgbox" id="imgBox">
         <span class="hint" id="imgHint">点击上传图片<br>或直接 Ctrl+V 粘贴截图</span>
         <img id="imgPrev" style="display:none">
+        <span class="zoomhint">🔍 点图放大</span>
         <button class="rm" id="imgRm">移除</button>
         <input type="file" id="imgFile" accept="image/*" hidden>
       </div>
@@ -957,7 +1005,7 @@ function openEdit(id){
       <span class="live num" data-live="${pf.id}">—</span>
       <button class="fillbtn" data-fill="${pf.id}" type="button" style="grid-column:2">按${settings.targetMargin}%利润填价</button><span></span></div>`;
   }).join('');
-  setImgPreview(p&&p.img?p.img:null);
+  setImgPreview(p?(p.img||p.imgUrl||null):null);
   $('fAff').value=window.__affInit!=null?window.__affInit:'';
   updateLive();
   $('editMask').classList.add('show');
@@ -998,10 +1046,13 @@ async function shrinkImage(file,max,quality){
     return (out&&out.size<file.size)?out:file;
   }catch(err){ console.warn('压缩失败，用原图',err); return file; }
 }
-function setImgPreview(blob){
+function setImgPreview(src){
   const box=$('imgBox'),img=$('imgPrev'),hint=$('imgHint');
   const old=img.dataset.tmp;if(old){URL.revokeObjectURL(old);delete img.dataset.tmp;}
-  if(blob){const u=URL.createObjectURL(blob);img.src=u;img.dataset.tmp=u;img.style.display='';hint.style.display='none';box.classList.add('has');}
+  let u=null;
+  if(src instanceof Blob){ u=URL.createObjectURL(src); img.dataset.tmp=u; }
+  else if(typeof src==='string'&&src){ u=src; }
+  if(u){img.src=u;img.style.display='';hint.style.display='none';box.classList.add('has');}
   else{img.style.display='none';img.src='';hint.style.display='';box.classList.remove('has');}
 }
 function currentImgBlob(){
@@ -1398,6 +1449,8 @@ function openSheet(kind){
       <button data-sact="push">☁ 上传改动</button>
       <button data-sact="pull">⬇ 下载云端</button>
       <button data-sact="csv">📄 导出 CSV</button>
+      <button data-sact="editor">🖼 贴图合成</button>
+      <button data-sact="diag">📈 销量分析</button>
       <button data-sact="keys">⌨️ 快捷键</button>
     </div>`;
   }
@@ -1434,7 +1487,110 @@ $('sheetBody').addEventListener('click',async e=>{
   else if(a==='push'){openSettings();cloudPushAll(false);}
   else if(a==='pull'){openSettings();cloudPullMerge();}
   else if(a==='csv')exportCSV();
+  else if(a==='editor')location.href='Edito.html';
+  else if(a==='diag')location.href='Diagnostic.html';
   else if(a==='keys')showShortcuts();
+});
+
+/* ============ 图片放大查看 ============ */
+let _lb={scale:1,x:0,y:0,url:null};
+function openLightbox(src,caption){
+  if(!src)return;
+  const box=$('lightbox'), img=$('lbImg');
+  if(_lb.url){URL.revokeObjectURL(_lb.url);_lb.url=null;}
+  if(src instanceof Blob){_lb.url=URL.createObjectURL(src);img.src=_lb.url;}
+  else img.src=src;
+  $('lbCap').textContent=caption||'';
+  $('lbCap').style.display=caption?'':'none';
+  _lb.scale=1;_lb.x=0;_lb.y=0;applyLb();
+  box.classList.add('show');
+  document.body.style.overflow='hidden';
+}
+function closeLightbox(){
+  $('lightbox').classList.remove('show');
+  document.body.style.overflow='';
+  if(_lb.url){URL.revokeObjectURL(_lb.url);_lb.url=null;}
+  $('lbImg').src='';
+}
+function applyLb(){
+  const img=$('lbImg');
+  img.style.transform=`translate(${_lb.x}px,${_lb.y}px) scale(${_lb.scale})`;
+  $('lbZoom').textContent=Math.round(_lb.scale*100)+'%';
+}
+function zoomLb(f,cx,cy){
+  const s=Math.min(6,Math.max(0.5,_lb.scale*f));
+  if(cx!=null){ // 以指针为中心缩放
+    const r=$('lbImg').getBoundingClientRect();
+    const ox=cx-(r.left+r.width/2), oy=cy-(r.top+r.height/2);
+    const k=s/_lb.scale-1;
+    _lb.x-=ox*k; _lb.y-=oy*k;
+  }
+  _lb.scale=s;
+  if(s<=1){_lb.x=0;_lb.y=0;}
+  applyLb();
+}
+$('lbClose').addEventListener('click',closeLightbox);
+$('lightbox').addEventListener('click',e=>{ if(e.target.id==='lightbox'||e.target.id==='lbStage')closeLightbox(); });
+$('lightbox').querySelector('.lb-tools').addEventListener('click',e=>{
+  const a=e.target.closest('[data-lb]')?.dataset.lb; if(!a)return;
+  if(a==='in')zoomLb(1.35);
+  else if(a==='out')zoomLb(1/1.35);
+  else {_lb.scale=1;_lb.x=0;_lb.y=0;applyLb();}
+});
+// 滚轮缩放
+$('lbStage').addEventListener('wheel',e=>{
+  e.preventDefault(); zoomLb(e.deltaY<0?1.16:1/1.16,e.clientX,e.clientY);
+},{passive:false});
+// 双击切换
+$('lbImg').addEventListener('dblclick',e=>{
+  if(_lb.scale>1){_lb.scale=1;_lb.x=0;_lb.y=0;applyLb();}
+  else zoomLb(2.4,e.clientX,e.clientY);
+});
+// 拖动（鼠标）
+let _drag=null;
+$('lbStage').addEventListener('mousedown',e=>{
+  if(_lb.scale<=1)return;
+  _drag={sx:e.clientX,sy:e.clientY,ox:_lb.x,oy:_lb.y};
+  $('lbStage').classList.add('drag'); $('lbImg').classList.add('moving'); e.preventDefault();
+});
+window.addEventListener('mousemove',e=>{
+  if(!_drag)return; _lb.x=_drag.ox+(e.clientX-_drag.sx); _lb.y=_drag.oy+(e.clientY-_drag.sy); applyLb();
+});
+window.addEventListener('mouseup',()=>{
+  if(!_drag)return; _drag=null; $('lbStage').classList.remove('drag'); $('lbImg').classList.remove('moving');
+});
+// 手机：双指缩放 + 单指拖动
+let _pinch=null,_pan=null;
+$('lbStage').addEventListener('touchstart',e=>{
+  if(e.touches.length===2){
+    const [a,b]=e.touches;
+    _pinch={d:Math.hypot(a.clientX-b.clientX,a.clientY-b.clientY),s:_lb.scale};
+    _pan=null; $('lbImg').classList.add('moving');
+  }else if(e.touches.length===1&&_lb.scale>1){
+    _pan={sx:e.touches[0].clientX,sy:e.touches[0].clientY,ox:_lb.x,oy:_lb.y};
+    $('lbImg').classList.add('moving');
+  }
+},{passive:true});
+$('lbStage').addEventListener('touchmove',e=>{
+  if(_pinch&&e.touches.length===2){
+    const [a,b]=e.touches;
+    const d=Math.hypot(a.clientX-b.clientX,a.clientY-b.clientY);
+    _lb.scale=Math.min(6,Math.max(0.5,_pinch.s*(d/_pinch.d)));
+    if(_lb.scale<=1){_lb.x=0;_lb.y=0;}
+    applyLb(); e.preventDefault();
+  }else if(_pan&&e.touches.length===1){
+    _lb.x=_pan.ox+(e.touches[0].clientX-_pan.sx);
+    _lb.y=_pan.oy+(e.touches[0].clientY-_pan.sy);
+    applyLb(); e.preventDefault();
+  }
+},{passive:false});
+$('lbStage').addEventListener('touchend',()=>{_pinch=null;_pan=null;$('lbImg').classList.remove('moving');},{passive:true});
+// 编辑框里点图放大
+$('imgPrev').addEventListener('click',e=>{
+  e.stopPropagation();
+  const cur=currentImgBlob();
+  const p=editingId?products.find(x=>x.id===editingId):null;
+  openLightbox(cur||(p&&p.imgUrl)||$('imgPrev').src, $('fModel').value||'');
 });
 
 /* ============ 批量选择 ============ */
@@ -1503,6 +1659,13 @@ $('grid').addEventListener('touchstart',e=>{
 
 /* ============ 快捷键 ============ */
 document.addEventListener('keydown',e=>{
+  if($('lightbox').classList.contains('show')){
+    if(e.key==='Escape'){e.preventDefault();closeLightbox();}
+    else if(e.key==='+'||e.key==='='){e.preventDefault();zoomLb(1.35);}
+    else if(e.key==='-'||e.key==='_'){e.preventDefault();zoomLb(1/1.35);}
+    else if(e.key==='0'){e.preventDefault();_lb.scale=1;_lb.x=0;_lb.y=0;applyLb();}
+    return;
+  }
   const typing=/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName);
   const modalOpen=[...document.querySelectorAll('.mask')].some(m=>m.classList.contains('show'));
   if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='s'&&$('editMask').classList.contains('show')){
@@ -1679,6 +1842,10 @@ document.getElementById('ptabs').addEventListener('click',e=>{
 $('grid').addEventListener('click',e=>{
   const c=e.target.closest('.card');if(!c)return;
   if(selMode){toggleSel(c.dataset.id);return;}
+  if(e.target.tagName==='IMG'&&e.target.closest('.thumb')){
+    const p=products.find(x=>x.id===c.dataset.id);
+    if(p){openLightbox(p.img||p.imgUrl||e.target.src, p.model);return;}
+  }
   if(e.ctrlKey||e.metaKey){setSelMode(true);toggleSel(c.dataset.id);return;}
   const qe=e.target.dataset.qe;
   openEdit(c.dataset.id);
