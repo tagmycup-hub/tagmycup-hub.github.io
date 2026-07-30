@@ -1,0 +1,2211 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EcoFlasky TOP30 产品快速诊断器</title>
+
+  <!-- Tailwind CSS (Play CDN) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    // 抑制 Tailwind Play CDN 的生产环境警告（个人工具，非生产部署）
+    const _warn = console.warn;
+    console.warn = function (msg) {
+      if (typeof msg === "string" && msg.includes("cdn.tailwindcss.com")) return;
+      _warn.apply(console, arguments);
+    };
+  </script>
+
+  <!-- React 18 + ReactDOM (UMD) -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+
+  <!-- SheetJS (xlsx) 解析 Excel -->
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
+
+  <style>
+    body { font-family: 'Inter', system-ui, -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif; -webkit-font-smoothing: antialiased; }
+    #loading { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; background: #f8fafc; color: #64748b; font-size: 14px; z-index: 50; }
+    .tabular-nums { font-variant-numeric: tabular-nums; }
+  </style>
+</head>
+<body class="bg-slate-50">
+  <div id="loading">正在加载诊断器…</div>
+  <div id="root"></div>
+
+  <!-- 纯 JavaScript（JSX 已预编译，无需 Babel，秒开） -->
+  <script>
+"use strict";
+// ══════════════════════════════════════════════════════════════
+//  图标库：内联 SVG 组件，模拟 lucide-react 的 API
+//  用法与 lucide 一致：<Package size={16} className="..." />
+// ══════════════════════════════════════════════════════════════
+const {
+  useState,
+  useCallback,
+  useMemo
+} = React;
+function makeIcon(paths) {
+  return function Icon({
+    size = 24,
+    className = "",
+    ...props
+  }) {
+    return /*#__PURE__*/React.createElement("svg", {
+      xmlns: "http://www.w3.org/2000/svg",
+      width: size,
+      height: size,
+      viewBox: "0 0 24 24",
+      fill: "none",
+      stroke: "currentColor",
+      strokeWidth: "2",
+      strokeLinecap: "round",
+      strokeLinejoin: "round",
+      className: className,
+      ...props
+    }, paths.map((d, i) => {
+      if (typeof d === "string") return /*#__PURE__*/React.createElement("path", {
+        key: i,
+        d: d
+      });
+      const {
+        tag,
+        ...attr
+      } = d;
+      if (tag === "circle") return /*#__PURE__*/React.createElement("circle", {
+        key: i,
+        ...attr
+      });
+      if (tag === "line") return /*#__PURE__*/React.createElement("line", {
+        key: i,
+        ...attr
+      });
+      if (tag === "rect") return /*#__PURE__*/React.createElement("rect", {
+        key: i,
+        ...attr
+      });
+      if (tag === "polyline") return /*#__PURE__*/React.createElement("polyline", {
+        key: i,
+        ...attr
+      });
+      if (tag === "polygon") return /*#__PURE__*/React.createElement("polygon", {
+        key: i,
+        ...attr
+      });
+      return /*#__PURE__*/React.createElement("path", {
+        key: i,
+        d: attr.d
+      });
+    }));
+  };
+}
+
+// 各图标的 SVG path（取自 lucide 图标集）
+const Upload = makeIcon(["M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4", {
+  tag: "polyline",
+  points: "17 8 12 3 7 8"
+}, {
+  tag: "line",
+  x1: "12",
+  y1: "3",
+  x2: "12",
+  y2: "15"
+}]);
+const FileSpreadsheet = makeIcon(["M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z", "M14 2v4a2 2 0 0 0 2 2h4", "M8 13h2", "M14 13h2", "M8 17h2", "M14 17h2"]);
+const TrendingUp = makeIcon([{
+  tag: "polyline",
+  points: "22 7 13.5 15.5 8.5 10.5 2 17"
+}, {
+  tag: "polyline",
+  points: "16 7 22 7 22 13"
+}]);
+const Eye = makeIcon(["M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z", {
+  tag: "circle",
+  cx: "12",
+  cy: "12",
+  r: "3"
+}]);
+const MousePointer = makeIcon(["m3 3 7.07 16.97 2.51-7.39 7.39-2.51L3 3z", "m13 13 6 6"]);
+const ShoppingBag = makeIcon(["M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z", "M3 6h18", "M16 10a4 4 0 0 1-8 0"]);
+const Search = makeIcon([{
+  tag: "circle",
+  cx: "11",
+  cy: "11",
+  r: "8"
+}, "m21 21-4.3-4.3"]);
+const Filter = makeIcon([{
+  tag: "polygon",
+  points: "22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"
+}]);
+const Copy = makeIcon([{
+  tag: "rect",
+  x: "9",
+  y: "9",
+  width: "13",
+  height: "13",
+  rx: "2",
+  ry: "2"
+}, "M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"]);
+const CheckCheck = makeIcon(["M18 6 7 17l-5-5", "m22 10-7.5 7.5L13 16"]);
+const ChevronUp = makeIcon([{
+  tag: "polyline",
+  points: "18 15 12 9 6 15"
+}]);
+const ChevronDown = makeIcon([{
+  tag: "polyline",
+  points: "6 9 12 15 18 9"
+}]);
+const ChevronRight = makeIcon([{
+  tag: "polyline",
+  points: "9 18 15 12 9 6"
+}]);
+const BarChart2 = makeIcon([{
+  tag: "line",
+  x1: "18",
+  y1: "20",
+  x2: "18",
+  y2: "10"
+}, {
+  tag: "line",
+  x1: "12",
+  y1: "20",
+  x2: "12",
+  y2: "4"
+}, {
+  tag: "line",
+  x1: "6",
+  y1: "20",
+  x2: "6",
+  y2: "14"
+}]);
+const Zap = makeIcon([{
+  tag: "polygon",
+  points: "13 2 3 14 12 14 11 22 21 10 12 10 13 2"
+}]);
+const AlertTriangle = makeIcon(["m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z", {
+  tag: "line",
+  x1: "12",
+  y1: "9",
+  x2: "12",
+  y2: "13"
+}, {
+  tag: "line",
+  x1: "12",
+  y1: "17",
+  x2: "12.01",
+  y2: "17"
+}]);
+const Target = makeIcon([{
+  tag: "circle",
+  cx: "12",
+  cy: "12",
+  r: "10"
+}, {
+  tag: "circle",
+  cx: "12",
+  cy: "12",
+  r: "6"
+}, {
+  tag: "circle",
+  cx: "12",
+  cy: "12",
+  r: "2"
+}]);
+const Layers = makeIcon([{
+  tag: "polygon",
+  points: "12 2 2 7 12 12 22 7 12 2"
+}, {
+  tag: "polyline",
+  points: "2 17 12 22 22 17"
+}, {
+  tag: "polyline",
+  points: "2 12 12 17 22 12"
+}]);
+const RefreshCw = makeIcon(["M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8", "M21 3v5h-5", "M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16", "M8 16H3v5"]);
+const Package = makeIcon(["m7.5 4.27 9 5.15", "M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z", {
+  tag: "polyline",
+  points: "3.29 7 12 12 20.71 7"
+}, {
+  tag: "line",
+  x1: "12",
+  y1: "22",
+  x2: "12",
+  y2: "12"
+}]);
+const Info = makeIcon([{
+  tag: "circle",
+  cx: "12",
+  cy: "12",
+  r: "10"
+}, {
+  tag: "line",
+  x1: "12",
+  y1: "16",
+  x2: "12",
+  y2: "12"
+}, {
+  tag: "line",
+  x1: "12",
+  y1: "8",
+  x2: "12.01",
+  y2: "8"
+}]);
+const X = makeIcon([{
+  tag: "line",
+  x1: "18",
+  y1: "6",
+  x2: "6",
+  y2: "18"
+}, {
+  tag: "line",
+  x1: "6",
+  y1: "6",
+  x2: "18",
+  y2: "18"
+}]);
+const Tag = makeIcon(["M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z", {
+  tag: "circle",
+  cx: "7.5",
+  cy: "7.5",
+  r: ".5",
+  fill: "currentColor"
+}]);
+
+// ─────────────────────────────────────────────────────────────
+// 工具：去掉葡语重音，统一比较
+// ─────────────────────────────────────────────────────────────
+function removeAccents(str) {
+  return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+}
+
+// ─────────────────────────────────────────────────────────────
+// 工具：巴西格式百分比 → 数字
+// ─────────────────────────────────────────────────────────────
+function normalizePercent(val) {
+  if (val === null || val === undefined || val === "-" || val === "") return null;
+  if (typeof val === "number") return val < 1 && val > 0 ? val * 100 : val;
+  const s = String(val).trim().replace("%", "").replace(",", ".");
+  const n = parseFloat(s);
+  return isNaN(n) ? null : n;
+}
+
+// ─────────────────────────────────────────────────────────────
+// 工具：巴西格式整数 → 数字（区分千分符和小数点）
+// ─────────────────────────────────────────────────────────────
+function normalizeNumber(val) {
+  if (val === null || val === undefined || val === "-" || val === "") return null;
+  if (typeof val === "number") return val;
+  let s = String(val).trim();
+  if (s.includes(",") && s.includes(".")) {
+    s = s.replace(/\./g, "").replace(",", ".");
+  } else if (s.includes(",") && !s.includes(".")) {
+    s = s.replace(",", ".");
+  } else if (s.includes(".") && !s.includes(",")) {
+    const parts = s.split(".");
+    if (parts.length === 2 && parts[1].length === 3) s = s.replace(".", "");
+  }
+  const n = parseFloat(s);
+  return isNaN(n) ? null : n;
+}
+
+// ─────────────────────────────────────────────────────────────
+// 字段识别：去重音后模糊匹配
+// ─────────────────────────────────────────────────────────────
+function detectColumns(headers) {
+  const map = {};
+  const log = {};
+  const rules = {
+    itemId: ["id do item", "item id", "id item"],
+    // ★ Status column — used to filter out deleted products
+    statusItem: ["status atual do item"],
+    produto: ["produto", "product name", "nome do produto", "nome produto"],
+    impressoes: ["impressao do produto", "impressoes de produto", "impressao produto", "impressoes produto"],
+    cliques: ["cliques por produto", "clicks por produto", "cliques produto"],
+    ctr: ["ctr"],
+    taxaConversao: ["taxa de conversao de pedido (pedido realizado)", "taxa de conversao de pedidos", "taxa de conversao (pedido realizado)", "taxa de conversao pedido realizado", "taxa conversao pedido realizado"],
+    // ⚠️ 不能用 "pedido realizado" 或 "pedidos"——这些词出现在销售额/转化率等列名里
+    pedidos: ["pedido feito", "pedidos feitos"],
+    variacaoId: ["id da variacao", "id variacao", "variacao id"],
+    // ★ SKU da Variação (col 6): e.g. "R-600ml-Nossa Senhora-SB" — used as display title
+    skuVariacaoTitle: ["sku da variacao"],
+    // SKU Principle (col 7): separate field, not used for title
+    skuPrincipal: ["sku principle", "sku principal"]
+  };
+  headers.forEach((h, i) => {
+    if (!h) return;
+    const norm = removeAccents(String(h));
+    for (const [field, candidates] of Object.entries(rules)) {
+      if (map[field] !== undefined) continue;
+      if (candidates.some(c => norm.includes(c))) {
+        map[field] = i;
+        log[field] = {
+          colIndex: i,
+          originalHeader: h
+        };
+      }
+    }
+  });
+
+  // CTR 精确匹配兜底
+  if (map.ctr === undefined) {
+    const idx = headers.findIndex(h => h && removeAccents(String(h)) === "ctr");
+    if (idx !== -1) {
+      map.ctr = idx;
+      log.ctr = {
+        colIndex: idx,
+        originalHeader: headers[idx]
+      };
+    }
+  }
+  return {
+    map,
+    log
+  };
+}
+
+// ─────────────────────────────────────────────────────────────
+// 判断是否是变体行（非主商品行）
+// ─────────────────────────────────────────────────────────────
+function isVariantRow(row, colMap) {
+  if (colMap.variacaoId !== undefined) {
+    const v = String(row[colMap.variacaoId] || "").trim();
+    return v !== "-" && v !== "" && v !== "null" && /^\d{5,}$/.test(v);
+  }
+  const imp = colMap.impressoes !== undefined ? String(row[colMap.impressoes] || "").trim() : "";
+  const cli = colMap.cliques !== undefined ? String(row[colMap.cliques] || "").trim() : "";
+  const ctr = colMap.ctr !== undefined ? String(row[colMap.ctr] || "").trim() : "";
+  return imp === "-" && cli === "-" && ctr === "-";
+}
+
+// ─────────────────────────────────────────────────────────────
+// 解析 Excel → TOP30 产品（含第一个 SKU）
+// ─────────────────────────────────────────────────────────────
+function parseExcelFile(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      try {
+        const data = new Uint8Array(e.target.result);
+        const wb = XLSX.read(data, {
+          type: "array"
+        });
+        const targetName = wb.SheetNames.find(n => removeAccents(n).includes("melhor desempenho")) || wb.SheetNames.find(n => removeAccents(n).includes("produto")) || wb.SheetNames[0];
+        const ws = wb.Sheets[targetName];
+        const rows = XLSX.utils.sheet_to_json(ws, {
+          header: 1,
+          defval: null
+        });
+        if (rows.length < 2) throw new Error(`Sheet「${targetName}」数据为空`);
+        const headers = rows[0].map(h => h ? String(h) : "");
+        const {
+          map: colMap,
+          log: colLog
+        } = detectColumns(headers);
+        const missing = [];
+        if (colMap.produto === undefined) missing.push("商品名称（Produto）");
+        if (colMap.pedidos === undefined) missing.push("订单数（Pedido Feito）");
+        if (colMap.impressoes === undefined) missing.push("曝光（Impressão do Produto）");
+        if (missing.length > 0) {
+          throw new Error(`以下必要列未识别到：${missing.join("、")}。\n` + `当前识别到的所有列名：\n${headers.filter(Boolean).join(" | ")}`);
+        }
+
+        // 需要过滤掉的商品状态（已删除/下架/审核中）
+        const SKIP_STATUSES = new Set(["excluido", "nao listado", "em revisao"]);
+        const productMap = new Map(); // itemId → product data
+        const firstSkuMap = new Map(); // itemId → first SKU da Variação string
+
+        for (let i = 1; i < rows.length; i++) {
+          const row = rows[i];
+          if (!row || row.every(v => v === null || v === "")) continue;
+          const nome = String(row[colMap.produto] || "").trim();
+          if (!nome) continue;
+
+          // ★ 过滤已删除商品（Excluído / Não Listado / Em Revisão）
+          if (colMap.statusItem !== undefined) {
+            const status = removeAccents(String(row[colMap.statusItem] || ""));
+            if (SKIP_STATUSES.has(status)) continue;
+          }
+          const itemId = colMap.itemId !== undefined ? String(row[colMap.itemId] || "").trim() || `row_${i}` : `row_${i}`;
+
+          // ★ 收集变体行的第一个 SKU da Variação（col 6，如 "R-600ml-Nossa Senhora-SB"）
+          const isVariant = isVariantRow(row, colMap);
+          if (isVariant) {
+            if (!firstSkuMap.has(itemId) && colMap.skuVariacaoTitle !== undefined) {
+              const sku = String(row[colMap.skuVariacaoTitle] || "").trim();
+              if (sku && sku !== "-" && sku !== "null") {
+                firstSkuMap.set(itemId, sku);
+              }
+            }
+            continue; // 变体行不作为主产品
+          }
+          const impressoes = normalizeNumber(colMap.impressoes !== undefined ? row[colMap.impressoes] : null);
+          const cliques = normalizeNumber(colMap.cliques !== undefined ? row[colMap.cliques] : null);
+          const ctr = normalizePercent(colMap.ctr !== undefined ? row[colMap.ctr] : null);
+          const taxa = normalizePercent(colMap.taxaConversao !== undefined ? row[colMap.taxaConversao] : null);
+          const pedidos = normalizeNumber(colMap.pedidos !== undefined ? row[colMap.pedidos] : null);
+          if (impressoes === null && cliques === null && pedidos === null) continue;
+          const hasCore = impressoes !== null && cliques !== null && pedidos !== null;
+          const hasFullData = hasCore && ctr !== null && taxa !== null;
+          const existing = productMap.get(itemId);
+          if (!existing) {
+            productMap.set(itemId, {
+              itemId,
+              nome,
+              impressoes,
+              cliques,
+              ctr,
+              taxaConversao: taxa,
+              pedidos,
+              hasFullData,
+              hasCore
+            });
+          } else if (hasFullData && !existing.hasFullData) {
+            productMap.set(itemId, {
+              itemId,
+              nome,
+              impressoes,
+              cliques,
+              ctr,
+              taxaConversao: taxa,
+              pedidos,
+              hasFullData,
+              hasCore
+            });
+          }
+        }
+
+        // 把 firstSku 合并到 product 对象
+        for (const [itemId, product] of productMap.entries()) {
+          product.firstSku = firstSkuMap.get(itemId) || null;
+        }
+        let products = Array.from(productMap.values()).filter(p => p.hasFullData);
+        if (products.length < 5) {
+          products = Array.from(productMap.values()).filter(p => p.hasCore);
+        }
+        if (products.length === 0) throw new Error("没有找到有效产品数据，请检查 Excel 格式");
+        products.sort((a, b) => {
+          if ((b.pedidos || 0) !== (a.pedidos || 0)) return (b.pedidos || 0) - (a.pedidos || 0);
+          if ((b.taxaConversao || 0) !== (a.taxaConversao || 0)) return (b.taxaConversao || 0) - (a.taxaConversao || 0);
+          return (b.cliques || 0) - (a.cliques || 0);
+        });
+
+        // 返回全部有效产品（后续在 App 里按不同维度各取 30）
+        resolve({
+          products,
+          sheetName: targetName,
+          colMap,
+          colLog,
+          headers,
+          allSheets: wb.SheetNames
+        });
+      } catch (err) {
+        reject(err);
+      }
+    };
+    reader.onerror = () => reject(new Error("文件读取失败"));
+    reader.readAsArrayBuffer(file);
+  });
+}
+
+// ─────────────────────────────────────────────────────────────
+// 百分位数
+// ─────────────────────────────────────────────────────────────
+function percentile(arr, p) {
+  if (!arr.length) return 0;
+  const sorted = [...arr].sort((a, b) => a - b);
+  const idx = p / 100 * (sorted.length - 1);
+  const lo = Math.floor(idx),
+    hi = Math.ceil(idx);
+  return lo === hi ? sorted[lo] : sorted[lo] + (sorted[hi] - sorted[lo]) * (idx - lo);
+}
+function calculateBenchmarks(products) {
+  const get = key => products.map(p => p[key]).filter(v => v !== null && v !== undefined);
+  const avg = arr => arr.reduce((s, v) => s + v, 0) / (arr.length || 1);
+  const stats = arr => ({
+    p25: percentile(arr, 25),
+    p50: percentile(arr, 50),
+    p75: percentile(arr, 75),
+    avg: avg(arr),
+    min: arr.length ? Math.min(...arr) : 0,
+    max: arr.length ? Math.max(...arr) : 0
+  });
+  return {
+    imp: stats(get("impressoes")),
+    cli: stats(get("cliques")),
+    ctr: stats(get("ctr").filter(v => v !== null)),
+    taxa: stats(get("taxaConversao").filter(v => v !== null)),
+    ped: stats(get("pedidos"))
+  };
+}
+
+// ─────────────────────────────────────────────────────────────
+// ★ 诊断核心 — 扩充了所有可能原因
+// ─────────────────────────────────────────────────────────────
+function diagnoseProduct(p, bm) {
+  const {
+    impressoes: imp,
+    cliques: cli,
+    ctr,
+    taxaConversao: taxa,
+    pedidos: ped
+  } = p;
+
+  // ── 数据不足 ──────────────────────────────────────────────
+  if (!imp || imp < 200 || !cli || cli < 10) {
+    return {
+      type: "数据不足观察型",
+      color: "gray",
+      priority: "P3",
+      conclusion: "数据积累不足，暂时无法做出稳定判断。",
+      problemLocation: "曝光/点击量太少，CTR 和转化率波动太大，不代表真实水平。",
+      quickStrategy: "先积累曝光，等点击量 > 30 后再做诊断。",
+      causes: ["产品刚上架，还在获得初始流量", "类目竞争激烈，新品未被算法推荐", "标题关键词未覆盖用户真实搜索词", "未参加任何活动或广告，曝光来源太少", "SKU 数量过少，平台降低展示权重"],
+      actions: ["暂时不要大改主图或详情页", "优先做标题关键词研究（用 Shopee 搜索栏的下拉提示找热词）", "可放入活动或做少量广告获得初始流量", "确保产品有至少 3 张图片（Shopee 推荐）", "两周后重新查看数据再做判断"],
+      nextMetric: "观察曝光是否提升到 500 以上，点击是否 > 30。",
+      recommend: {
+        push: false,
+        observe: true,
+        redoMainImage: false,
+        optimizeDetail: false,
+        pause: false
+      }
+    };
+  }
+  const taxaOk = taxa !== null;
+  const highImp = imp >= bm.imp.p75;
+  const lowImp = imp <= bm.imp.p25;
+  const highCtr = ctr !== null && (ctr >= bm.ctr.p75 || ctr > 4);
+  const lowCtr = ctr !== null && (ctr < bm.ctr.p50 || ctr < 2);
+  const highTaxa = taxaOk && taxa >= bm.taxa.p75;
+  const lowTaxa = taxaOk && (taxa < bm.taxa.p50 || taxa < 1.5);
+  const highPed = ped >= bm.ped.p75;
+  const lowPed = ped <= bm.ped.p25;
+
+  // ── 1. 爆款放大型 ─────────────────────────────────────────
+  if (highPed && (ctr === null || ctr >= bm.ctr.p50) && (!taxaOk || taxa >= bm.taxa.p50)) {
+    return {
+      type: "爆款放大型",
+      color: "emerald",
+      priority: "P2",
+      conclusion: "订单高、CTR 好、转化也稳，是当前爆款。核心任务是保护和复制，不是优化。",
+      problemLocation: "没有明显问题，当前状态健康。",
+      quickStrategy: "不要大改主图和标题，优先复制这款到新图案/新变体。",
+      causes: ["主图图案和主题对目标受众吸引力强", "标题关键词匹配了高频搜索词", "价格在当前类目有竞争力", "评价数量和评分积累到了信任门槛", "算法已给予该产品正向流量加权"],
+      actions: ["保持当前主图风格，只做小幅 A/B 测试（不要整体重做）", "检查库存是否充足，爆款断货会导致算法降权", "把这款的标题结构、图案风格复制到新款", "增加同系列图案变体（圣诞、情人节、当季节日等）", "可以加大曝光（报名活动 / 小额广告），乘胜追击", "⚠️ 注意：对爆款做大改动（换主图、大改标题）可能导致算法重置排名"],
+      nextMetric: `订单是否继续保持 P75（≥ ${bm.ped.p75.toFixed(0)} 单）以上，CTR 是否稳定。`,
+      recommend: {
+        push: true,
+        observe: false,
+        redoMainImage: false,
+        optimizeDetail: false,
+        pause: false
+      }
+    };
+  }
+
+  // ── 2. 高曝光低点击型 ─────────────────────────────────────
+  if (highImp && lowCtr || ctr !== null && ctr < 2) {
+    return {
+      type: "高曝光低点击型",
+      color: "amber",
+      priority: "P1",
+      conclusion: "这个产品不是没流量，而是流量没有被接住。平台给了曝光，但用户划过去了。",
+      problemLocation: "曝光 → 点击 这一步掉得比较明显。",
+      quickStrategy: "优先重做主图，不要先改详情页。",
+      causes: ["【主图】产品主体太小，在缩略图里看不清楚（Shopee 官方要求产品占图面积 > 50%）", "【主图】图片比例是 1:1，没有升级到 3:4（Shopee 已推荐 3:4，展示面积更大）", "【主图】背景过于花哨，干扰了视觉焦点（推荐用白色或浅色背景）", "【主图】印花图案在缩略图里模糊不清，无法吸引目标受众", "【主图】加了过多文字浮层，遮挡了产品", "【标题】关键词靠后，在搜索结果里显示被截断，用户看不到核心卖点", "【标题】标题与用户实际搜索词不匹配，导致曝光人群精准度低", "【价格】在搜索列表页价格看起来不够有竞争力（旁边竞品更低）", "【价格】没有显示优惠券标签，旁边商品有「cupom」标识显得更划算", "【评价】评价数量太少或没有评价，用户不敢点进来", "【类目】商品类目设置有误，被展示给了不精准的受众"],
+      actions: ["主图：杯子主体放大到画面 70% 以上", "主图：把比例改为 3:4（建议尺寸 750×1000px 或 1000×1333px）", "主图：使用白色或浅灰背景，减少干扰", "主图：印花图案要占据画面中心，清晰可辨", "主图：去掉大部分文字浮层，只保留最核心的一句话（如容量）", "标题：把最重要关键词放在前 30 个字（如「Garrafa Térmica Estampada」）", "标题：使用 Shopee 搜索框自动补全词找热门关键词", "价格：对比同类竞品定价，评估是否需要调整", "促销：设置一个小额优惠券，让搜索结果页出现「cupom」标签"],
+      nextMetric: `CTR 是否从 ${ctr?.toFixed(2) || "?"}% 提升到 TOP30 中位数 ${bm.ctr.p50.toFixed(2)}% 以上。`,
+      recommend: {
+        push: false,
+        observe: false,
+        redoMainImage: true,
+        optimizeDetail: false,
+        pause: false
+      }
+    };
+  }
+
+  // ── 3. 高点击低转化型 ─────────────────────────────────────
+  if (highCtr && lowTaxa) {
+    return {
+      type: "高点击低转化型",
+      color: "orange",
+      priority: "P1",
+      conclusion: "主图能吸引人，但进入商品页后没有说服顾客下单。",
+      problemLocation: "点击 → 下单 这一步掉得比较明显，产品页承接有问题。",
+      quickStrategy: "优先优化详情页和价格，不要换主图（主图是好的）。",
+      causes: ["【详情图】只有主图，缺少使用场景图、细节图、尺寸参考图", "【详情图】没有视频（Shopee 算法优先推荐有视频的商品，15-30 秒即可）", "【描述】材质、容量、防漏、保温时长等关键参数没有写清楚", "【描述】用大段文字，没有用列表/bullet point，读起来费力", "【评价】评价太少（< 10 条），或评价里没有买家晒图", "【评价】有差评未处理，影响买家信心", "【价格】比同类竞品高，但没有展示出差异化价值", "【变体】变体命名混乱（如「Rosa(600ml),Sem Base」看起来复杂），让用户困惑", "【运费】没有参加 Frete Grátis 计划，旁边竞品有免运优势", "【标题承诺】标题/主图暗示的卖点，详情页没有兑现（如主图看起来有礼盒，实际没有）", "【页面完整性】商品属性（Atributos）填写不完整，算法降低推荐权重"],
+      actions: ["在第 2-3 张图加上真实使用场景（如人在喝水、放在包里、健身房使用）", "录制 15-30 秒产品视频（展示印花正反面 + 倒水不漏 + 拧盖细节）", "详情页加上容量直观对比（如手持 600ml 的照片），让用户感受大小", "把材质、保温时长、防漏说明做成图文形式（不要纯文字）", "描述改用 bullet points，每条 1-2 行，简洁易读", "检查变体命名，改成「Rosa · 600ml」「Branco · 800ml」这类简洁格式", "设置优惠券或参加 Frete Grátis 计划，降低决策门槛", "主动给前几个买家发消息请求晒图评价（合规操作）"],
+      nextMetric: `转化率是否从 ${taxa?.toFixed(2) || "?"}% 提升到 TOP30 中位数 ${bm.taxa.p50.toFixed(2)}% 以上。`,
+      recommend: {
+        push: false,
+        observe: false,
+        redoMainImage: false,
+        optimizeDetail: true,
+        pause: false
+      }
+    };
+  }
+
+  // ── 4. 低曝光高转化型 ─────────────────────────────────────
+  if (lowImp && highTaxa && ped > 1) {
+    return {
+      type: "低曝光高转化型",
+      color: "sky",
+      priority: "P2",
+      conclusion: "隐藏潜力款：转化很好，但流量太少，问题在曝光不足而非产品本身。",
+      problemLocation: "自然曝光远低于 TOP30 P25（${bm.imp.p25.toFixed(0)}），限制了销量上限。",
+      quickStrategy: "增加曝光来源，产品本身不需要大改。",
+      causes: ["标题关键词覆盖不够广，只匹配到少数搜索词", "没有参加任何平台活动，缺少活动流量加持", "产品刚上架，历史销量和评价太少，算法推荐权重低", "属于细分需求图案，搜索量本身就有限", "类目竞争激烈，有大量广告商品压低自然位置", "没有开广告或广告预算不足，错过付费流量", "在店铺页面里展示位置靠后，错过了店内流量"],
+      actions: ["报名下一个平台大促活动（11.11、12.12 等），获取活动流量", "做小额广告测试（每天 R$5-10），观察 CTR 和转化表现", "在店铺首页和精选推荐里给这款更好的展示位置", "扩充标题关键词覆盖（增加颜色/用途/节日等关键词变体）", "完善所有 Atributos（商品属性），提升算法推荐权重", "在社媒/社群分享这款，带来站外流量测试"],
+      nextMetric: `曝光是否提升到 TOP30 中位数（≥ ${bm.imp.p50.toFixed(0)}），订单是否随之增加。`,
+      recommend: {
+        push: true,
+        observe: false,
+        redoMainImage: false,
+        optimizeDetail: false,
+        pause: false
+      }
+    };
+  }
+
+  // ── 5. 高曝光高点击低订单型 ──────────────────────────────
+  if (imp >= bm.imp.p50 && cli >= bm.cli.p50 && lowPed && lowTaxa) {
+    return {
+      type: "高曝光高点击低订单型",
+      color: "red",
+      priority: "P1",
+      conclusion: "曝光和点击都有，但订单没起来——产品页、价格或购买理由有明显问题。",
+      problemLocation: "点击进来了但没下单，问题出在产品页/价格/信任感。",
+      quickStrategy: "优先检查价格竞争力和详情页，短期观察，不要盲目加大推广。",
+      causes: ["【价格】在同类商品中价格明显偏高，用户比价后选择了竞品", "【评价】评价数量少或评分低（< 4.5），影响信任度", "【评价】有负面评价未处理，对新访客有劝退效果", "【详情图】详情页内容太少或太简陋，无法打消购买顾虑", "【变体】变体设置混乱，用户找不到想要的规格", "【库存】部分热门变体显示缺货，用户放弃购买", "【运费】运费太高（相比参加 Frete Grátis 的竞品），增加了购买成本", "【标题与实际不符】标题/主图展示了礼盒包装、赠品等，实际没有", "【发货时间】处理时间（tempo de processamento）太长，用户不愿等", "【视频缺失】详情页无视频，竞品有，信任感差距明显", "【售后担忧】没有退换货保障说明，用户对高风险消费犹豫"],
+      actions: ["对比 TOP5 竞品的价格、主图、评价数量，找出差距", "查看评价里的差评内容，针对性优化产品描述", "设置一个 5-10% 的优惠券，降低购买决策门槛", "检查所有变体的库存，补充缺货变体", "在详情页加入「30 天退换货」或「满意保障」说明", "录制 15-30 秒视频（重点展示印花清晰度和产品质感）", "检查并缩短处理时间（目标：1 天内发货）", "⚠️ 不要增加广告预算，先解决转化问题再放大流量"],
+      nextMetric: "转化率是否从当前水平有所回升，差评是否减少。",
+      recommend: {
+        push: false,
+        observe: true,
+        redoMainImage: false,
+        optimizeDetail: true,
+        pause: false
+      }
+    };
+  }
+
+  // ── 6. 低效款 ────────────────────────────────────────────
+  if (ctr !== null && ctr < bm.ctr.p25 && (!taxaOk || taxa < bm.taxa.p25) && lowPed) {
+    return {
+      type: "低效款",
+      color: "rose",
+      priority: "P4",
+      conclusion: "CTR 和转化率均低于 TOP30 P25，既不能吸引点击也不能成交，需要系统性重做。",
+      problemLocation: "曝光 → 点击 和 点击 → 下单 两个环节都有问题。",
+      quickStrategy: "不建议投广告。先重做主图和标题，给 30 天观察期。",
+      causes: ["【图案选题】选择了小众/冷门图案，目标受众太窄", "【图案执行】印花图案本身质量不高，清晰度或设计感不足", "【主图质量】拍照角度、光线、背景都不理想，整体视觉差", "【标题】充斥无效词，关键词选择错误（如用英语关键词但客群是葡语用户）", "【价格错误】定价策略有问题，既不便宜也不高端", "【产品本身】同类竞品质量更好或价格更低，难以差异化", "【评价空白】完全没有评价，新用户无法建立信任", "【描述稀薄】详情页信息不全，购买理由不充分", "【季节错误】图案主题过时或不合当前季节（如圣诞款在 2 月销售）"],
+      actions: ["分析竞品，找当前销量好的图案风格参考", "先重做主图（比例 3:4，产品占 70%，白色背景）", "重写标题（结构：类目词 + 图案主题 + 材质 + 容量 + 使用场景）", "如果重做后 30 天 CTR 还是低于 2%，考虑换图案重新上架", "如果是季节性图案，下架后保存，对应节日前 4-6 周重新上架", "⚠️ 不建议给这款投广告，先解决根本问题"],
+      nextMetric: "重做主图和标题后 30 天，CTR 是否提升到 2% 以上。",
+      recommend: {
+        push: false,
+        observe: false,
+        redoMainImage: true,
+        optimizeDetail: false,
+        pause: true
+      }
+    };
+  }
+
+  // ── 7. 稳定可优化型 ──────────────────────────────────────
+  if (ped >= bm.ped.p50 && (ctr === null || ctr >= bm.ctr.p50) && taxaOk && taxa < bm.taxa.p50) {
+    return {
+      type: "稳定可优化型",
+      color: "violet",
+      priority: "P2",
+      conclusion: "订单有、CTR 不差，但转化率略低。属于可精细化的稳定款，挖掘空间不小。",
+      problemLocation: "转化率略低于 TOP30 中位数，是限制订单更高的主要瓶颈。",
+      quickStrategy: "优化详情页转化，增加评价引导，可测试小优惠。",
+      causes: ["详情图数量够但质量一般，缺少强有力的「为什么选我」的场景图", "没有产品视频，竞品有，转化效果有差距", "评价数量还不够多，或评价里缺少买家晒图", "变体命名稍显混乱，增加了选择难度", "没有组合推荐，错过了「顺便多买一个」的机会", "没有小额优惠券，缺少最后一公里的促单工具"],
+      actions: ["在第 2-4 张图加强场景展示（健身房、办公桌、户外使用等）", "录制简短视频（15-30 秒，重点展示印花细节和产品质感）", "主动引导已购买用户评价（可以在包裹里放一张精美的感谢卡）", "设置一个 5-8% 小额优惠券，降低最后决策门槛", "做组合推荐（在描述里提到同系列款式），增加连带销售", "完善所有变体的图片（每个变体都要有对应的图片）"],
+      nextMetric: `转化率是否提升到 TOP30 中位数 ${bm.taxa.p50.toFixed(2)}% 以上。`,
+      recommend: {
+        push: false,
+        observe: false,
+        redoMainImage: false,
+        optimizeDetail: true,
+        pause: false
+      }
+    };
+  }
+
+  // ── 8. 默认：潜力观察款 ──────────────────────────────────
+  return {
+    type: "潜力观察款",
+    color: "indigo",
+    priority: "P3",
+    conclusion: "指标表现中等，没有明显短板，需要继续观察积累数据。",
+    problemLocation: "暂时无法确定主要问题，整体表现在 TOP30 中等水平。",
+    quickStrategy: "维持现状，继续积累数据，一个月后再做精准判断。",
+    causes: ["产品上架时间不长，算法权重还在积累", "指标接近 TOP30 平均水平，尚无明显优势或劣势", "可能受季节性影响（节日前后表现会有波动）"],
+    actions: ["保持当前设置，不要大改", "可以小幅优化标题（用 Shopee 搜索栏自动补全找热词）", "完善所有商品属性（Atributos），提升搜索可见度", "观察竞品动态，是否有可参考的优化方向", "一个月后重新诊断"],
+    nextMetric: `CTR 是否达到 TOP30 中位数（${bm.ctr.p50?.toFixed(2)}%），转化率是否达到 ${bm.taxa.p50?.toFixed(2)}%。`,
+    recommend: {
+      push: false,
+      observe: true,
+      redoMainImage: false,
+      optimizeDetail: false,
+      pause: false
+    }
+  };
+}
+
+// ─────────────────────────────────────────────────────────────
+// 整体总结
+// ─────────────────────────────────────────────────────────────
+function generateOverallSummary(diagnosed) {
+  const counts = {};
+  diagnosed.forEach(p => {
+    counts[p.diagnosis.type] = (counts[p.diagnosis.type] || 0) + 1;
+  });
+  const totalPed = diagnosed.reduce((s, p) => s + (p.pedidos || 0), 0);
+  const avgCtr = diagnosed.reduce((s, p) => s + (p.ctr || 0), 0) / diagnosed.length;
+  const avgTaxa = diagnosed.reduce((s, p) => s + (p.taxaConversao || 0), 0) / diagnosed.length;
+  const p1Count = diagnosed.filter(p => p.diagnosis.priority === "P1").length;
+  const mainProblem = (counts["高曝光低点击型"] || 0) >= (counts["高点击低转化型"] || 0) ? "主图/标题点击吸引力" : (counts["高点击低转化型"] || 0) >= (counts["低曝光高转化型"] || 0) ? "商品页转化承接" : "流量曝光不足";
+  let s = `本月 TOP${diagnosed.length} 整体分析：\n`;
+  Object.entries(counts).sort((a, b) => b[1] - a[1]).forEach(([type, count]) => {
+    s += `  · ${type}：${count} 个\n`;
+  });
+  s += `\n整体来看，当前最大问题更偏向于【${mainProblem}】。`;
+  s += `\nTOP${diagnosed.length} 合计订单 ${totalPed} 单，平均 CTR ${avgCtr.toFixed(2)}%，平均转化率 ${avgTaxa.toFixed(2)}%。`;
+  s += `\n本月有 ${p1Count} 个 P1 产品需要马上处理，下个月应集中优先解决这些，不要平均优化所有产品。`;
+  return s;
+}
+
+// ─────────────────────────────────────────────────────────────
+// ChatGPT 复盘文本
+// ─────────────────────────────────────────────────────────────
+function generateChatGPTReviewText(diagnosed) {
+  const groups = {};
+  diagnosed.forEach(p => {
+    const t = p.diagnosis.type;
+    if (!groups[t]) groups[t] = [];
+    // ★ 优先显示 SKU，否则用商品名前 40 字
+    const label = p.firstSku || p.nome.substring(0, 40) + (p.nome.length > 40 ? "..." : "");
+    groups[t].push(label);
+  });
+  let text = `这是店铺近 30 天 TOP${diagnosed.length} 产品数据诊断结果。请基于以下产品分类，帮我制定下个月的主图、详情页、标题和推广优化顺序：\n\n`;
+  Object.entries(groups).forEach(([type, names]) => {
+    text += `【${type}】\n${names.map(n => "  - " + n).join("\n")}\n\n`;
+  });
+  text += `请只基于 Impressões de Produto、Cliques Por Produto、CTR、Taxa de Conversão de Pedidos、Pedidos 分析，不要使用其他指标。`;
+  return text;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ██  库存补货分析引擎（使用与 TOP30 相同的已解析 rows）  ██
+// ═══════════════════════════════════════════════════════════════
+
+// 颜色同义词归一化
+const COLOR_SYNONYMS = {
+  rosa: "rosa",
+  pink: "rosa",
+  branco: "branco",
+  white: "branco",
+  preto: "preto",
+  black: "preto",
+  "preto fosco": "preto",
+  azul: "azul",
+  blue: "azul",
+  "azul claro": "azul claro",
+  "azul clara": "azul claro",
+  "claro": "azul claro",
+  "azul marinho": "azul marinho",
+  marinho: "azul marinho",
+  navy: "azul marinho",
+  "azul royal": "azul royal",
+  royal: "azul royal",
+  vermelho: "vermelho",
+  red: "vermelho",
+  verde: "verde",
+  green: "verde",
+  amarelo: "amarelo",
+  yellow: "amarelo",
+  prata: "prata",
+  silver: "prata",
+  cinza: "cinza",
+  grey: "cinza",
+  gray: "cinza",
+  lilás: "lilás",
+  lilas: "lilás",
+  purple: "roxo",
+  roxo: "roxo",
+  laranja: "laranja",
+  orange: "laranja",
+  bege: "bege",
+  beige: "bege",
+  coral: "coral"
+};
+
+// ─────────────────────────────────────────────────────────────
+// 已知颜色白名单（小写）— 不在此列表里的提取结果视为"主题名"
+// ─────────────────────────────────────────────────────────────
+const KNOWN_COLORS = new Set(["rosa", "pink", "branco", "white", "preto", "black", "azul", "azul claro", "azul clara", "azul marinho", "azul royal", "azul escuro", "azul céu", "azul ceu", "aul céu",
+// typos/shades
+"azul boston", "azul turquesa", "vermelho", "red", "verde", "green", "amarelo", "yellow", "dourado", "gold", "prata", "silver", "cinza", "grey", "gray", "lilás", "lilas", "roxo", "purple", "laranja", "orange", "coral", "bege", "beige", "tiffany", "vinho", "bordo", "turquesa"]);
+
+// SKU 前缀 → 标准颜色（处理主题名变体，如 "Seleção Brasileira - 500ml"）
+const SKU_PREFIX_COLORS = {
+  r: "Rosa",
+  rosa: "Rosa",
+  pink: "Rosa",
+  b: "Branco",
+  branco: "Branco",
+  p: "Preto",
+  preto: "Preto",
+  am: "Azul Marinho",
+  ac: "Azul Claro",
+  ar: "Azul Royal",
+  ae: "Azul Escuro",
+  az: "Azul",
+  azul: "Azul",
+  v: "Vermelho",
+  vm: "Vermelho",
+  vermelho: "Vermelho",
+  vd: "Verde",
+  verde: "Verde",
+  a: "Amarelo",
+  amarelo: "Amarelo",
+  d: "Dourado",
+  c: "Cinza",
+  cinza: "Cinza",
+  pr: "Prata",
+  prata: "Prata",
+  li: "Lilás",
+  lilas: "Lilás",
+  la: "Laranja",
+  laranja: "Laranja",
+  be: "Bege",
+  bege: "Bege",
+  co: "Coral",
+  t: "Tiffany"
+};
+
+// ─────────────────────────────────────────────────────────────
+// 从 Nome da Variação + SKU da Variação 提取颜色和容量
+//
+// 实际存在的格式：
+//   "Rosa(600ml),Sem Base"            → Rosa, 600ml
+//   "Rosa - 500ml - BTS"              → Rosa, 500ml
+//   "Seleção Brasileira - 500ml - BTS"→ NOT a color → use SKU prefix "AM" → Azul Marinho
+//   "♒ Aquário ♒ - 800ml"            → NOT a color → use SKU prefix "P"  → Preto
+//   "Azul Claro(Com nome)"            → Azul Claro, cap from SKU
+//   "Preto"                           → Preto, cap from SKU
+// ─────────────────────────────────────────────────────────────
+function extractFromVariantName(varNome, skuCode) {
+  const raw = (varNome || "").trim();
+  const sku = (skuCode || "").trim();
+
+  // ── 1. 提取容量 ──────────────────────────────────────────
+  const capFromNome = raw.match(/\b(\d{3,4})\s*(?:ml|oz)\b/i);
+  const capFromSku = sku.match(/[-](\d{3,4})(?:ml)?(?=[-])/i);
+  const capacity = capFromNome ? capFromNome[1] + "ml" : capFromSku ? capFromSku[1] + "ml" : null;
+
+  // ── 2. 提取候选颜色文字（把容量及其后全部截掉）──────────
+  let colorRaw = raw.replace(/\s*[-–]\s*\d{3,4}\s*(?:ml|oz)?\b.*/i, "").replace(/[-]\d{3,4}\s*(?:ml|oz)?\b.*/i, "").replace(/\(\d{3,4}\s*(?:ml|oz)?\).*/i, "").replace(/\([^)]*\).*/i, "").replace(/,.*/i, "").trim().replace(/[-–\s]+$/, "").trim();
+
+  // 归一化同义词
+  const normalized = COLOR_SYNONYMS[colorRaw.toLowerCase()] || colorRaw;
+
+  // ── 3. 白名单验证：不是已知颜色 → 用 SKU 前缀 ──────────
+  const isKnownColor = KNOWN_COLORS.has(normalized.toLowerCase());
+  if (!isKnownColor) {
+    // 从 SKU 第一段（如 "AM", "AC", "R", "P"）查颜色
+    const prefix = sku.split(/[-\s]/)[0].toLowerCase().trim();
+    const fromPrefix = SKU_PREFIX_COLORS[prefix] || null;
+    return {
+      color: fromPrefix,
+      capacity
+    };
+  }
+  return {
+    color: normalized || null,
+    capacity
+  };
+}
+
+// ─────────────────────────────────────────────────────────────
+// 识别库存相关列（与产品诊断共用同一批 headers）
+// ─────────────────────────────────────────────────────────────
+function detectInventoryColumns(headers) {
+  const map = {};
+  const rules = {
+    variacaoId: ["id da variacao"],
+    variacaoNome: ["nome da variacao"],
+    skuVariacao: ["sku da variacao"],
+    skuPrinciple: ["sku principle", "sku principal"],
+    unitsPago: ["unidades (pedido pago)"],
+    unitsFeito: ["unidades (pedido realizado)"],
+    pedidoPago: ["produto pago"],
+    pedidoFeito: ["pedido feito"]
+  };
+  headers.forEach((h, i) => {
+    if (!h) return;
+    const norm = removeAccents(String(h));
+    for (const [field, candidates] of Object.entries(rules)) {
+      if (map[field] !== undefined) continue;
+      if (candidates.some(c => norm === removeAccents(c) || norm.includes(removeAccents(c)))) {
+        map[field] = i;
+      }
+    }
+  });
+  return map;
+}
+
+// ─────────────────────────────────────────────────────────────
+// 核心：从已解析的 rows 构建库存数据
+// 返回：按容量分组，每组内按颜色分组，颜色内列出各 SKU
+// ─────────────────────────────────────────────────────────────
+function buildInventoryData(rows, headers) {
+  const colMap = detectInventoryColumns(headers);
+
+  // 销量列优先级：付款单位 > 已实现单位 > 付款订单 > 已实现订单
+  const salesCol = colMap.unitsPago ?? colMap.unitsFeito ?? colMap.pedidoPago ?? colMap.pedidoFeito;
+  if (salesCol === undefined || colMap.variacaoNome === undefined) {
+    return null; // 数据不足，不展示库存栏
+  }
+
+  // capacity → color → { totalSales, skus: [{sku, varNome, sales}] }
+  const capMap = new Map();
+  let totalSales = 0;
+  let variantCount = 0;
+  for (let i = 1; i < rows.length; i++) {
+    const row = rows[i];
+    if (!row || row.every(v => v === null || v === "")) continue;
+
+    // 只处理变体行
+    const varId = colMap.variacaoId !== undefined ? String(row[colMap.variacaoId] || "").trim() : "";
+    if (!/^\d{5,}$/.test(varId)) continue;
+    const varNome = String(row[colMap.variacaoNome] || "").trim();
+    const skuRaw = colMap.skuVariacao !== undefined ? String(row[colMap.skuVariacao] || "").trim() : "";
+    const sku = skuRaw && skuRaw !== "-" ? skuRaw : varNome;
+    const sales = normalizeNumber(row[salesCol]) ?? 0;
+    variantCount++;
+    const {
+      color,
+      capacity
+    } = extractFromVariantName(varNome, skuRaw);
+    const capKey = capacity || "outros";
+    const colorKey = color || "outros";
+    totalSales += sales;
+    if (!capMap.has(capKey)) capMap.set(capKey, new Map());
+    const colorGroup = capMap.get(capKey);
+    if (!colorGroup.has(colorKey)) colorGroup.set(colorKey, {
+      totalSales: 0,
+      skus: []
+    });
+    const cg = colorGroup.get(colorKey);
+    cg.totalSales += sales;
+    cg.skus.push({
+      sku,
+      varNome,
+      sales
+    });
+  }
+  if (variantCount === 0) return null;
+
+  // 定义容量展示顺序（常见 → 其他）
+  const CAP_ORDER = ["420ml", "500ml", "600ml", "800ml", "1000ml", "1200ml", "1500ml", "outros"];
+  const sortedCaps = Array.from(capMap.keys()).sort((a, b) => {
+    const ia = CAP_ORDER.indexOf(a),
+      ib = CAP_ORDER.indexOf(b);
+    if (ia !== -1 && ib !== -1) return ia - ib;
+    if (ia !== -1) return -1;
+    if (ib !== -1) return 1;
+    return a.localeCompare(b);
+  });
+  const capacitySections = sortedCaps.map(cap => {
+    const colorGroup = capMap.get(cap);
+    const capTotal = Array.from(colorGroup.values()).reduce((s, c) => s + c.totalSales, 0);
+    const colors = Array.from(colorGroup.entries()).map(([colorKey, {
+      totalSales: cs,
+      skus
+    }]) => {
+      const pct = capTotal > 0 ? cs / capTotal * 100 : 0;
+      const tier = pct >= 35 ? "主力色" : pct >= 15 ? "核心色" : pct >= 5 ? "普通色" : "滞销色";
+      return {
+        color: colorKey,
+        totalSales: cs,
+        pct,
+        dailyAvg: cs / 30,
+        tier,
+        skus: skus.sort((a, b) => b.sales - a.sales)
+      };
+    }).sort((a, b) => b.totalSales - a.totalSales);
+    return {
+      capacity: cap,
+      totalSales: capTotal,
+      colors
+    };
+  });
+  return {
+    capacitySections,
+    totalSales,
+    variantCount,
+    salesColName: headers[salesCol]
+  };
+}
+
+// 补货建议
+function getRestockAdvice(tier, dailyAvg) {
+  const monthly = Math.round(dailyAvg * 30);
+  const safety = Math.round(dailyAvg * 45);
+  switch (tier) {
+    case "主力色":
+      return `🔥 大量补货 — 月消耗约 ${monthly} 个，建议保持 ${safety} 个安全库存（45天）`;
+    case "核心色":
+      return `✅ 稳定补货 — 月消耗约 ${monthly} 个，保持 30 天库存约 ${monthly} 个`;
+    case "普通色":
+      return `📦 少量补货 — 月消耗约 ${monthly} 个，按需补 15-20 天量`;
+    case "滞销色":
+      return `⚠️ 暂停补货 — 月消耗极少，先清现有库存`;
+    default:
+      return "数据量不足，观察中";
+  }
+}
+const TIER_STYLE = {
+  "主力色": {
+    bg: "bg-red-100",
+    text: "text-red-700",
+    border: "border-red-300",
+    dot: "bg-red-500",
+    hdr: "bg-red-500"
+  },
+  "核心色": {
+    bg: "bg-amber-100",
+    text: "text-amber-700",
+    border: "border-amber-300",
+    dot: "bg-amber-500",
+    hdr: "bg-amber-500"
+  },
+  "普通色": {
+    bg: "bg-blue-100",
+    text: "text-blue-700",
+    border: "border-blue-300",
+    dot: "bg-blue-500",
+    hdr: "bg-blue-500"
+  },
+  "滞销色": {
+    bg: "bg-slate-100",
+    text: "text-slate-500",
+    border: "border-slate-300",
+    dot: "bg-slate-300",
+    hdr: "bg-slate-400"
+  }
+};
+
+// ─────────────────────────────────────────────────────────────
+// 颜色配置（产品诊断用）
+// ─────────────────────────────────────────────────────────────
+const COLOR = {
+  emerald: {
+    bg: "bg-emerald-50",
+    border: "border-emerald-300",
+    badge: "bg-emerald-100 text-emerald-800",
+    hdr: "bg-emerald-500"
+  },
+  amber: {
+    bg: "bg-amber-50",
+    border: "border-amber-300",
+    badge: "bg-amber-100 text-amber-800",
+    hdr: "bg-amber-500"
+  },
+  orange: {
+    bg: "bg-orange-50",
+    border: "border-orange-300",
+    badge: "bg-orange-100 text-orange-800",
+    hdr: "bg-orange-500"
+  },
+  sky: {
+    bg: "bg-sky-50",
+    border: "border-sky-300",
+    badge: "bg-sky-100 text-sky-800",
+    hdr: "bg-sky-500"
+  },
+  red: {
+    bg: "bg-red-50",
+    border: "border-red-300",
+    badge: "bg-red-100 text-red-800",
+    hdr: "bg-red-500"
+  },
+  rose: {
+    bg: "bg-rose-50",
+    border: "border-rose-300",
+    badge: "bg-rose-100 text-rose-800",
+    hdr: "bg-rose-500"
+  },
+  violet: {
+    bg: "bg-violet-50",
+    border: "border-violet-300",
+    badge: "bg-violet-100 text-violet-800",
+    hdr: "bg-violet-500"
+  },
+  indigo: {
+    bg: "bg-indigo-50",
+    border: "border-indigo-300",
+    badge: "bg-indigo-100 text-indigo-800",
+    hdr: "bg-indigo-500"
+  },
+  gray: {
+    bg: "bg-gray-50",
+    border: "border-gray-300",
+    badge: "bg-gray-100 text-gray-700",
+    hdr: "bg-gray-400"
+  }
+};
+const PRIORITY_COLOR = {
+  P1: "bg-red-100 text-red-700 border border-red-300",
+  P2: "bg-amber-100 text-amber-700 border border-amber-300",
+  P3: "bg-blue-100 text-blue-700 border border-blue-300",
+  P4: "bg-gray-100 text-gray-600 border border-gray-300"
+};
+const TYPE_EMOJI = {
+  "爆款放大型": "🚀",
+  "高曝光低点击型": "👁️",
+  "高点击低转化型": "🛒",
+  "低曝光高转化型": "💎",
+  "高曝光高点击低订单型": "🔍",
+  "低效款": "⚠️",
+  "稳定可优化型": "🔧",
+  "潜力观察款": "🌱",
+  "数据不足观察型": "📊"
+};
+
+// ─────────────────────────────────────────────────────────────
+// 工具：获取产品显示标题（优先 SKU）
+// ─────────────────────────────────────────────────────────────
+function getDisplayTitle(product) {
+  if (product.firstSku) return product.firstSku;
+  // 无 SKU 时，截取商品名前 5 个词
+  const words = product.nome.split(" ");
+  return words.slice(0, 5).join(" ") + (words.length > 5 ? "…" : "");
+}
+
+// ─────────────────────────────────────────────────────────────
+// 组件：指标基准对比小条
+// ─────────────────────────────────────────────────────────────
+function MiniBar({
+  value,
+  min,
+  max,
+  label,
+  format
+}) {
+  if (value === null || value === undefined) return null;
+  const pct = max > min ? Math.max(0, Math.min(100, (value - min) / (max - min) * 100)) : 50;
+  return /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center gap-1.5 text-xs"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "text-slate-400 w-14 shrink-0"
+  }, label), /*#__PURE__*/React.createElement("div", {
+    className: "flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "h-full bg-teal-400 rounded-full",
+    style: {
+      width: `${pct}%`
+    }
+  })), /*#__PURE__*/React.createElement("span", {
+    className: "text-slate-600 w-12 text-right shrink-0 tabular-nums"
+  }, format(value)));
+}
+
+// ─────────────────────────────────────────────────────────────
+// 组件：字段映射调试面板
+// ─────────────────────────────────────────────────────────────
+const FIELD_LABELS = {
+  itemId: "商品ID",
+  produto: "商品名",
+  impressoes: "Impressões",
+  cliques: "Cliques",
+  ctr: "CTR",
+  taxaConversao: "Taxa Conv.",
+  pedidos: "Pedidos",
+  variacaoId: "Variação ID",
+  skuPrincipal: "SKU"
+};
+function ColMapPanel({
+  colLog,
+  onClose
+}) {
+  return /*#__PURE__*/React.createElement("div", {
+    className: "bg-white border border-slate-200 rounded-2xl p-4 shadow-sm"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center justify-between mb-3"
+  }, /*#__PURE__*/React.createElement("h3", {
+    className: "font-semibold text-slate-700 text-sm flex items-center gap-1.5"
+  }, /*#__PURE__*/React.createElement(Info, {
+    size: 14,
+    className: "text-teal-500"
+  }), "字段识别结果"), /*#__PURE__*/React.createElement("button", {
+    onClick: onClose,
+    className: "text-slate-400 hover:text-slate-600"
+  }, /*#__PURE__*/React.createElement(X, {
+    size: 14
+  }))), /*#__PURE__*/React.createElement("div", {
+    className: "grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-2"
+  }, Object.keys(FIELD_LABELS).map(f => {
+    const found = colLog[f];
+    return /*#__PURE__*/React.createElement("div", {
+      key: f,
+      className: `rounded-lg p-2 text-xs border ${found ? "bg-emerald-50 border-emerald-200" : "bg-rose-50 border-rose-200"}`
+    }, /*#__PURE__*/React.createElement("div", {
+      className: `font-semibold mb-0.5 ${found ? "text-emerald-800" : "text-rose-700"}`
+    }, found ? "✓" : "✗", " ", FIELD_LABELS[f]), found ? /*#__PURE__*/React.createElement("div", {
+      className: "text-slate-500 truncate",
+      title: found.originalHeader
+    }, "列", found.colIndex + 1, ": ", found.originalHeader) : /*#__PURE__*/React.createElement("div", {
+      className: "text-rose-400"
+    }, "未识别到"));
+  })), /*#__PURE__*/React.createElement("p", {
+    className: "text-xs text-slate-400 mt-2"
+  }, "如有未识别字段，把实际列名发给我，我更新识别规则。"));
+}
+
+// ─────────────────────────────────────────────────────────────
+// 组件：统计卡片
+// ─────────────────────────────────────────────────────────────
+function StatCard({
+  icon: Icon,
+  label,
+  value,
+  sub
+}) {
+  return /*#__PURE__*/React.createElement("div", {
+    className: "bg-white rounded-2xl border border-slate-200 p-4 shadow-sm"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center gap-1.5 text-slate-500 text-xs font-medium uppercase tracking-wide mb-1"
+  }, /*#__PURE__*/React.createElement(Icon, {
+    size: 13
+  }), label), /*#__PURE__*/React.createElement("div", {
+    className: "text-2xl font-bold text-slate-800 leading-tight"
+  }, value), sub && /*#__PURE__*/React.createElement("div", {
+    className: "text-xs text-slate-400 mt-0.5"
+  }, sub));
+}
+
+// ─────────────────────────────────────────────────────────────
+// 组件：产品卡片（标题改用 SKU）
+// ─────────────────────────────────────────────────────────────
+function ProductCard({
+  product,
+  rank,
+  bm,
+  onCopy,
+  copied
+}) {
+  const {
+    diagnosis: d,
+    nome,
+    impressoes,
+    cliques,
+    ctr,
+    taxaConversao,
+    pedidos
+  } = product;
+  const c = COLOR[d.color] || COLOR.gray;
+  const displayTitle = getDisplayTitle(product);
+  return /*#__PURE__*/React.createElement("div", {
+    className: `rounded-2xl border-2 ${c.border} ${c.bg} overflow-hidden shadow-sm flex flex-col`
+  }, /*#__PURE__*/React.createElement("div", {
+    className: `${c.hdr} px-4 py-2.5 flex items-center justify-between`
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center gap-2"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "text-white font-bold text-sm"
+  }, "#", rank), /*#__PURE__*/React.createElement("span", {
+    className: "text-xs px-2 py-0.5 rounded-full bg-white/20 text-white font-medium"
+  }, TYPE_EMOJI[d.type], " ", d.type)), /*#__PURE__*/React.createElement("span", {
+    className: "text-xs px-2 py-0.5 rounded-full bg-white/25 text-white font-bold"
+  }, d.priority)), /*#__PURE__*/React.createElement("div", {
+    className: "px-4 pt-3 pb-1"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-start gap-1.5"
+  }, product.firstSku && /*#__PURE__*/React.createElement(Tag, {
+    size: 12,
+    className: "text-teal-500 mt-0.5 shrink-0"
+  }), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("p", {
+    className: "text-slate-900 font-bold text-base leading-tight",
+    title: displayTitle
+  }, displayTitle), /*#__PURE__*/React.createElement("p", {
+    className: "text-slate-400 text-xs mt-0.5 leading-snug line-clamp-2",
+    title: nome
+  }, nome)))), /*#__PURE__*/React.createElement("div", {
+    className: "px-4 py-2 grid grid-cols-5 gap-1"
+  }, [{
+    label: "Impressões",
+    val: impressoes !== null ? impressoes >= 10000 ? (impressoes / 10000).toFixed(1) + "W" : impressoes.toLocaleString() : "-"
+  }, {
+    label: "Cliques",
+    val: cliques !== null ? cliques.toLocaleString() : "-"
+  }, {
+    label: "CTR",
+    val: ctr !== null ? ctr.toFixed(2) + "%" : "-"
+  }, {
+    label: "Taxa Conv.",
+    val: taxaConversao !== null ? taxaConversao.toFixed(2) + "%" : "-"
+  }, {
+    label: "Pedidos",
+    val: pedidos !== null ? pedidos.toString() : "-"
+  }].map(m => /*#__PURE__*/React.createElement("div", {
+    key: m.label,
+    className: "bg-white/60 rounded-lg p-1.5 text-center"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "text-xs text-slate-400 leading-none mb-0.5"
+  }, m.label), /*#__PURE__*/React.createElement("div", {
+    className: "text-sm font-bold text-slate-800"
+  }, m.val)))), /*#__PURE__*/React.createElement("div", {
+    className: "px-4 pb-2 space-y-1"
+  }, /*#__PURE__*/React.createElement(MiniBar, {
+    value: ctr,
+    min: bm.ctr.min,
+    max: bm.ctr.max,
+    label: "CTR",
+    format: v => v.toFixed(2) + "%"
+  }), /*#__PURE__*/React.createElement(MiniBar, {
+    value: taxaConversao,
+    min: bm.taxa.min,
+    max: bm.taxa.max,
+    label: "转化率",
+    format: v => v.toFixed(2) + "%"
+  }), /*#__PURE__*/React.createElement(MiniBar, {
+    value: pedidos,
+    min: bm.ped.min,
+    max: bm.ped.max,
+    label: "Pedidos",
+    format: v => v.toString()
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "px-4 pb-2 space-y-2 flex-1"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "bg-white/70 rounded-xl p-2.5"
+  }, /*#__PURE__*/React.createElement("p", {
+    className: "text-xs font-semibold text-slate-500 mb-1"
+  }, "📍 一句话结论"), /*#__PURE__*/React.createElement("p", {
+    className: "text-xs text-slate-700 leading-relaxed"
+  }, d.conclusion)), /*#__PURE__*/React.createElement("div", {
+    className: "bg-white/70 rounded-xl p-2.5"
+  }, /*#__PURE__*/React.createElement("p", {
+    className: "text-xs font-semibold text-slate-500 mb-1"
+  }, "⚡ 快速策略"), /*#__PURE__*/React.createElement("p", {
+    className: "text-xs text-slate-700"
+  }, d.quickStrategy)), /*#__PURE__*/React.createElement("div", {
+    className: "bg-white/70 rounded-xl p-2.5"
+  }, /*#__PURE__*/React.createElement("p", {
+    className: "text-xs font-semibold text-slate-500 mb-1"
+  }, "✅ 具体动作"), /*#__PURE__*/React.createElement("ul", {
+    className: "space-y-0.5"
+  }, d.actions.map((a, i) => /*#__PURE__*/React.createElement("li", {
+    key: i,
+    className: "text-xs text-slate-700 flex gap-1.5 leading-relaxed"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "text-teal-400 shrink-0"
+  }, "·"), /*#__PURE__*/React.createElement("span", {
+    dangerouslySetInnerHTML: {
+      __html: a.replace(/⚠️(.+)/, '<span class="text-amber-600 font-medium">⚠️$1</span>')
+    }
+  }))))), /*#__PURE__*/React.createElement("div", {
+    className: "flex flex-wrap gap-1"
+  }, d.recommend.push && /*#__PURE__*/React.createElement("span", {
+    className: "text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full"
+  }, "建议放大推广"), d.recommend.observe && /*#__PURE__*/React.createElement("span", {
+    className: "text-xs bg-blue-100   text-blue-700   px-2 py-0.5 rounded-full"
+  }, "建议继续观察"), d.recommend.redoMainImage && /*#__PURE__*/React.createElement("span", {
+    className: "text-xs bg-amber-100  text-amber-700  px-2 py-0.5 rounded-full"
+  }, "建议重做主图"), d.recommend.optimizeDetail && /*#__PURE__*/React.createElement("span", {
+    className: "text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full"
+  }, "建议优化详情页"), d.recommend.pause && /*#__PURE__*/React.createElement("span", {
+    className: "text-xs bg-rose-100   text-rose-700   px-2 py-0.5 rounded-full"
+  }, "建议暂缓投入")), /*#__PURE__*/React.createElement("div", {
+    className: "bg-white/70 rounded-xl p-2.5"
+  }, /*#__PURE__*/React.createElement("p", {
+    className: "text-xs font-semibold text-slate-500 mb-1"
+  }, "📈 下个月观察指标"), /*#__PURE__*/React.createElement("p", {
+    className: "text-xs text-slate-700"
+  }, d.nextMetric))), /*#__PURE__*/React.createElement("div", {
+    className: "px-4 pb-4"
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => onCopy(product),
+    className: "w-full py-2 rounded-xl text-xs font-medium flex items-center justify-center gap-1.5 bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 transition"
+  }, copied ? /*#__PURE__*/React.createElement(CheckCheck, {
+    size: 12,
+    className: "text-emerald-500"
+  }) : /*#__PURE__*/React.createElement(Copy, {
+    size: 12
+  }), copied ? "已复制" : "复制该产品策略")));
+}
+
+// ─────────────────────────────────────────────────────────────
+// 主应用
+// ─────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────
+// 从同一个文件重新读 rows → 库存数据（包装成 Promise）
+// ─────────────────────────────────────────────────────────────
+function buildInventoryFromFile(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      try {
+        const wb = XLSX.read(new Uint8Array(e.target.result), {
+          type: "array"
+        });
+        const sn = wb.SheetNames.find(n => removeAccents(n).includes("melhor desempenho")) || wb.SheetNames[0];
+        const ws = wb.Sheets[sn];
+        const rows = XLSX.utils.sheet_to_json(ws, {
+          header: 1,
+          defval: null
+        });
+        const headers = rows[0].map(h => h ? String(h) : "");
+        resolve(buildInventoryData(rows, headers));
+      } catch (e) {
+        reject(e);
+      }
+    };
+    reader.onerror = () => reject(new Error("读取失败"));
+    reader.readAsArrayBuffer(file);
+  });
+}
+function App() {
+  const [dragging, setDragging] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [result, setResult] = useState(null);
+  const [showColMap, setShowColMap] = useState(false);
+  const [copiedId, setCopiedId] = useState(null);
+  const [copiedText, setCopiedText] = useState("");
+  const [search, setSearch] = useState("");
+  const [filterType, setFilterType] = useState("全部");
+  const [filterPriority, setFilterPriority] = useState("全部");
+  const [sortKey, setSortKey] = useState("pedidos");
+  const [sortDir, setSortDir] = useState("desc");
+  const [view, setView] = useState("table");
+  const [mainTab, setMainTab] = useState("top30"); // "top30" | "lowImp" | "inventory"
+
+  const processFile = useCallback(async file => {
+    if (!file) return;
+    if (!file.name.match(/\.xlsx?$/i)) {
+      setError("请上传 .xlsx 或 .xls 格式");
+      return;
+    }
+    setError(null);
+    setLoading(true);
+    setResult(null);
+    try {
+      const {
+        products,
+        sheetName,
+        colMap,
+        colLog,
+        headers,
+        allSheets
+      } = await parseExcelFile(file);
+
+      // ── TOP30：按订单数从高到低（已排序），取前 30 ──
+      const top30Products = products.slice(0, 30);
+      const benchmarks = calculateBenchmarks(top30Products);
+      const diagnosed = top30Products.map((p, i) => ({
+        ...p,
+        rank: i + 1,
+        diagnosis: diagnoseProduct(p, benchmarks)
+      }));
+      const summary = generateOverallSummary(diagnosed);
+      const chatGPTText = generateChatGPTReviewText(diagnosed);
+      const skuCount = diagnosed.filter(p => p.firstSku).length;
+
+      // ── 低曝光 30：从所有产品里按曝光从低到高排，取前 30 ──
+      // 排除曝光为 null 的行；标记是否同时出现在 TOP30 里
+      const top30Ids = new Set(top30Products.map(p => p.itemId));
+      const lowImp30 = [...products].filter(p => p.impressoes !== null).sort((a, b) => (a.impressoes || 0) - (b.impressoes || 0)).slice(0, 30).map((p, i) => ({
+        ...p,
+        rank: i + 1,
+        alsoInTop30: top30Ids.has(p.itemId),
+        diagnosis: diagnoseProduct(p, benchmarks) // 用同一套基准
+      }));
+
+      // ── 库存补货：从同一个文件的 rows 直接计算（不需要重新上传）──
+      // 需要重新读原始 rows，因为 parseExcelFile 只返回了主商品行
+      // 直接在 processFile 里重新解析一次 rows（共用已有的 wb 解析）
+      const invData = await buildInventoryFromFile(file);
+      setResult({
+        diagnosed,
+        benchmarks,
+        sheetName,
+        colMap,
+        colLog,
+        headers,
+        allSheets,
+        summary,
+        chatGPTText,
+        skuCount,
+        lowImp30,
+        totalProducts: products.length,
+        invData
+      });
+      setShowColMap(true);
+    } catch (e) {
+      setError(e.message);
+    }
+    setLoading(false);
+  }, []);
+  const onDrop = useCallback(e => {
+    e.preventDefault();
+    setDragging(false);
+    processFile(e.dataTransfer.files[0]);
+  }, [processFile]);
+  const onInput = e => processFile(e.target.files[0]);
+  const copyProduct = p => {
+    const d = p.diagnosis;
+    const title = getDisplayTitle(p);
+    const text = [`【${title}】`, `商品全名：${p.nome}`, `一句话结论：${d.conclusion}`, `问题位置：${d.problemLocation}`, `可能原因：\n${d.causes.map((c, i) => `${i + 1}. ${c}`).join("\n")}`, `快速策略：${d.quickStrategy}`, `具体动作：\n${d.actions.map(a => "- " + a).join("\n")}`, `下个月观察：${d.nextMetric}`].join("\n");
+    navigator.clipboard.writeText(text);
+    setCopiedId(p.itemId);
+    setTimeout(() => setCopiedId(null), 2000);
+  };
+  const copyText = (text, key) => {
+    navigator.clipboard.writeText(text);
+    setCopiedText(key);
+    setTimeout(() => setCopiedText(""), 2000);
+  };
+  const diagnosed = result?.diagnosed || [];
+  const allTypes = useMemo(() => ["全部", ...new Set(diagnosed.map(p => p.diagnosis.type))], [diagnosed]);
+  const filtered = useMemo(() => {
+    let list = [...diagnosed];
+    if (filterType !== "全部") list = list.filter(p => p.diagnosis.type === filterType);
+    if (filterPriority !== "全部") list = list.filter(p => p.diagnosis.priority === filterPriority);
+    if (search) list = list.filter(p => p.nome.toLowerCase().includes(search.toLowerCase()) || p.firstSku && p.firstSku.toLowerCase().includes(search.toLowerCase()));
+    list.sort((a, b) => {
+      const va = a[sortKey] ?? 0,
+        vb = b[sortKey] ?? 0;
+      return sortDir === "desc" ? vb - va : va - vb;
+    });
+    return list;
+  }, [diagnosed, filterType, filterPriority, search, sortKey, sortDir]);
+  const toggleSort = key => {
+    if (sortKey === key) setSortDir(d => d === "desc" ? "asc" : "desc");else {
+      setSortKey(key);
+      setSortDir("desc");
+    }
+  };
+  const stats = useMemo(() => {
+    if (!diagnosed.length) return null;
+    return {
+      totalPed: diagnosed.reduce((s, p) => s + (p.pedidos || 0), 0),
+      avgCtr: diagnosed.reduce((s, p) => s + (p.ctr || 0), 0) / diagnosed.length,
+      avgTaxa: diagnosed.reduce((s, p) => s + (p.taxaConversao || 0), 0) / diagnosed.length,
+      totalImp: diagnosed.reduce((s, p) => s + (p.impressoes || 0), 0),
+      totalCli: diagnosed.reduce((s, p) => s + (p.cliques || 0), 0),
+      p1: diagnosed.filter(p => p.diagnosis.priority === "P1").length,
+      mainImg: diagnosed.filter(p => ["高曝光低点击型", "低效款"].includes(p.diagnosis.type)).length,
+      growth: diagnosed.filter(p => ["爆款放大型", "低曝光高转化型"].includes(p.diagnosis.type)).length
+    };
+  }, [diagnosed]);
+  const SortIcon = ({
+    k
+  }) => sortKey === k ? sortDir === "desc" ? /*#__PURE__*/React.createElement(ChevronDown, {
+    size: 11
+  }) : /*#__PURE__*/React.createElement(ChevronUp, {
+    size: 11
+  }) : /*#__PURE__*/React.createElement(ChevronRight, {
+    size: 11,
+    className: "opacity-30"
+  });
+  return /*#__PURE__*/React.createElement("div", {
+    className: "min-h-screen bg-slate-50"
+  }, /*#__PURE__*/React.createElement("header", {
+    className: "bg-white border-b border-slate-200 px-6 py-4 sticky top-0 z-10"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "max-w-7xl mx-auto flex items-center justify-between"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center gap-3"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "w-9 h-9 rounded-xl bg-gradient-to-br from-teal-400 to-emerald-600 flex items-center justify-center shadow"
+  }, /*#__PURE__*/React.createElement(Package, {
+    size: 17,
+    className: "text-white"
+  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h1", {
+    className: "text-lg font-bold text-slate-900 leading-none"
+  }, "TOP30 产品快速诊断器"), /*#__PURE__*/React.createElement("p", {
+    className: "text-xs text-slate-400 mt-0.5"
+  }, "Shopee 近 30 天数据 · 5 个指标 · 本地处理"))), result && /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center gap-2 text-xs text-slate-500"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "hidden sm:inline"
+  }, "Sheet: ", /*#__PURE__*/React.createElement("strong", null, result.sheetName)), result.skuCount > 0 && /*#__PURE__*/React.createElement("span", {
+    className: "hidden sm:inline text-teal-600"
+  }, "· 识别到 ", result.skuCount, " 个 SKU"), /*#__PURE__*/React.createElement("button", {
+    onClick: () => setShowColMap(v => !v),
+    className: "flex items-center gap-1 px-2 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 transition"
+  }, /*#__PURE__*/React.createElement(Info, {
+    size: 11
+  }), " 字段映射"), /*#__PURE__*/React.createElement("label", {
+    className: "cursor-pointer flex items-center gap-1 px-2 py-1 rounded-lg bg-teal-50 text-teal-600 hover:bg-teal-100 transition"
+  }, /*#__PURE__*/React.createElement(RefreshCw, {
+    size: 11
+  }), " 重新上传", /*#__PURE__*/React.createElement("input", {
+    type: "file",
+    accept: ".xlsx,.xls",
+    className: "hidden",
+    onChange: onInput
+  }))))), /*#__PURE__*/React.createElement("main", {
+    className: "max-w-7xl mx-auto px-4 py-6 space-y-5"
+  }, !result && !loading && /*#__PURE__*/React.createElement("div", {
+    onDragOver: e => {
+      e.preventDefault();
+      setDragging(true);
+    },
+    onDragLeave: () => setDragging(false),
+    onDrop: onDrop,
+    className: `border-2 border-dashed rounded-2xl p-16 text-center transition-all ${dragging ? "border-teal-400 bg-teal-50" : "border-slate-300 bg-white hover:border-teal-300"}`
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex flex-col items-center gap-4"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "w-16 h-16 rounded-2xl bg-slate-100 flex items-center justify-center"
+  }, /*#__PURE__*/React.createElement(FileSpreadsheet, {
+    size: 30,
+    className: "text-teal-500"
+  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("p", {
+    className: "text-slate-700 font-semibold text-base"
+  }, "拖拽 Excel 文件到此处"), /*#__PURE__*/React.createElement("p", {
+    className: "text-slate-400 text-sm mt-1"
+  }, "或点击下方按钮选择文件 · 支持 .xlsx 格式")), /*#__PURE__*/React.createElement("label", {
+    className: "cursor-pointer bg-teal-500 hover:bg-teal-600 text-white px-7 py-2.5 rounded-xl text-sm font-semibold transition flex items-center gap-2 shadow-sm"
+  }, /*#__PURE__*/React.createElement(Upload, {
+    size: 14
+  }), "选择 Excel 文件", /*#__PURE__*/React.createElement("input", {
+    type: "file",
+    accept: ".xlsx,.xls",
+    className: "hidden",
+    onChange: onInput
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "text-xs text-slate-400 space-y-1 text-center"
+  }, /*#__PURE__*/React.createElement("p", null, "优先读取「Produtos com Melhor Desempenho」Sheet"), /*#__PURE__*/React.createElement("p", null, "所有数据在浏览器本地处理，不上传任何服务器"), /*#__PURE__*/React.createElement("p", {
+    className: "text-teal-500"
+  }, "✓ 自动从变体行提取 SKU 作为产品标识")))), loading && /*#__PURE__*/React.createElement("div", {
+    className: "text-center py-20 bg-white rounded-2xl border border-slate-200"
+  }, /*#__PURE__*/React.createElement(RefreshCw, {
+    size: 20,
+    className: "animate-spin text-teal-500 mx-auto mb-3"
+  }), /*#__PURE__*/React.createElement("p", {
+    className: "text-sm text-slate-500"
+  }, "正在解析 Excel 并提取 SKU...")), error && /*#__PURE__*/React.createElement("div", {
+    className: "bg-red-50 border border-red-200 rounded-2xl p-5"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-start gap-2 text-red-700"
+  }, /*#__PURE__*/React.createElement(AlertTriangle, {
+    size: 16,
+    className: "mt-0.5 shrink-0"
+  }), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("p", {
+    className: "font-semibold text-sm mb-1"
+  }, "解析失败"), /*#__PURE__*/React.createElement("pre", {
+    className: "text-xs whitespace-pre-wrap text-red-600 leading-relaxed"
+  }, error), /*#__PURE__*/React.createElement("p", {
+    className: "text-xs text-red-400 mt-2"
+  }, "💡 如果是「字段未识别」错误，请把 Excel 的实际列名截图发给我。")))), result && !loading && /*#__PURE__*/React.createElement(React.Fragment, null, showColMap && /*#__PURE__*/React.createElement(ColMapPanel, {
+    colLog: result.colLog,
+    onClose: () => setShowColMap(false)
+  }), stats && /*#__PURE__*/React.createElement("div", {
+    className: "grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3"
+  }, /*#__PURE__*/React.createElement(StatCard, {
+    icon: ShoppingBag,
+    label: "总订单",
+    value: stats.totalPed,
+    sub: "TOP30 合计"
+  }), /*#__PURE__*/React.createElement(StatCard, {
+    icon: MousePointer,
+    label: "平均 CTR",
+    value: stats.avgCtr.toFixed(2) + "%"
+  }), /*#__PURE__*/React.createElement(StatCard, {
+    icon: TrendingUp,
+    label: "平均转化",
+    value: stats.avgTaxa.toFixed(2) + "%"
+  }), /*#__PURE__*/React.createElement(StatCard, {
+    icon: Eye,
+    label: "总曝光",
+    value: (stats.totalImp / 10000).toFixed(1) + "W"
+  }), /*#__PURE__*/React.createElement(StatCard, {
+    icon: BarChart2,
+    label: "总点击",
+    value: stats.totalCli.toLocaleString()
+  }), /*#__PURE__*/React.createElement(StatCard, {
+    icon: AlertTriangle,
+    label: "P1 紧急",
+    value: stats.p1 + " 个",
+    sub: "马上处理"
+  }), /*#__PURE__*/React.createElement(StatCard, {
+    icon: Target,
+    label: "主图问题",
+    value: stats.mainImg + " 个",
+    sub: "低点击产品"
+  }), /*#__PURE__*/React.createElement(StatCard, {
+    icon: Zap,
+    label: "可放大",
+    value: stats.growth + " 个",
+    sub: "爆款/潜力款"
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "bg-white rounded-2xl border border-slate-200 p-5 shadow-sm"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center justify-between mb-3"
+  }, /*#__PURE__*/React.createElement("h2", {
+    className: "font-bold text-slate-800 flex items-center gap-2 text-sm"
+  }, /*#__PURE__*/React.createElement(Layers, {
+    size: 15,
+    className: "text-teal-500"
+  }), "整体店铺摘要"), /*#__PURE__*/React.createElement("button", {
+    onClick: () => copyText(result.summary, "summary"),
+    className: "text-xs text-slate-400 hover:text-teal-600 flex items-center gap-1"
+  }, copiedText === "summary" ? /*#__PURE__*/React.createElement(CheckCheck, {
+    size: 11,
+    className: "text-emerald-500"
+  }) : /*#__PURE__*/React.createElement(Copy, {
+    size: 11
+  }), " 复制")), /*#__PURE__*/React.createElement("p", {
+    className: "text-sm text-slate-700 whitespace-pre-line leading-relaxed"
+  }, result.summary)), /*#__PURE__*/React.createElement("div", {
+    className: "flex gap-1 border-b border-slate-200"
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => setMainTab("top30"),
+    className: `px-5 py-2.5 text-sm font-semibold rounded-t-xl transition border-b-2 -mb-px ${mainTab === "top30" ? "border-teal-500 text-teal-600 bg-white" : "border-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-50"}`
+  }, "🏆 TOP30 订单榜", /*#__PURE__*/React.createElement("span", {
+    className: "ml-1.5 text-xs font-normal opacity-70"
+  }, "按 Pedidos 降序")), /*#__PURE__*/React.createElement("button", {
+    onClick: () => setMainTab("lowImp"),
+    className: `px-5 py-2.5 text-sm font-semibold rounded-t-xl transition border-b-2 -mb-px ${mainTab === "lowImp" ? "border-orange-500 text-orange-600 bg-white" : "border-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-50"}`
+  }, "📉 低曝光 30", /*#__PURE__*/React.createElement("span", {
+    className: "ml-1.5 text-xs font-normal opacity-70"
+  }, "曝光最少的产品")), /*#__PURE__*/React.createElement("button", {
+    onClick: () => setMainTab("inventory"),
+    className: `px-5 py-2.5 text-sm font-semibold rounded-t-xl transition border-b-2 -mb-px ${mainTab === "inventory" ? "border-violet-500 text-violet-600 bg-white" : "border-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-50"}`
+  }, "📦 库存补货", /*#__PURE__*/React.createElement("span", {
+    className: "ml-1.5 text-xs font-normal opacity-70"
+  }, "颜色/容量分析"))), mainTab === "top30" && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+    className: "flex flex-wrap gap-2 items-center"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex rounded-xl overflow-hidden border border-slate-200 text-xs shrink-0"
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => setView("table"),
+    className: `px-3 py-1.5 transition ${view === "table" ? "bg-teal-500 text-white" : "bg-white text-slate-600 hover:bg-slate-50"}`
+  }, "列表"), /*#__PURE__*/React.createElement("button", {
+    onClick: () => setView("cards"),
+    className: `px-3 py-1.5 transition ${view === "cards" ? "bg-teal-500 text-white" : "bg-white text-slate-600 hover:bg-slate-50"}`
+  }, "卡片")), /*#__PURE__*/React.createElement("div", {
+    className: "ml-auto flex flex-wrap gap-2 items-center"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "relative"
+  }, /*#__PURE__*/React.createElement(Search, {
+    size: 11,
+    className: "absolute left-2.5 top-2 text-slate-400"
+  }), /*#__PURE__*/React.createElement("input", {
+    type: "text",
+    placeholder: "搜索 SKU 或商品名...",
+    value: search,
+    onChange: e => setSearch(e.target.value),
+    className: "pl-7 pr-3 py-1.5 text-xs border border-slate-200 rounded-lg bg-white outline-none focus:border-teal-400 w-44"
+  })), /*#__PURE__*/React.createElement(Filter, {
+    size: 11,
+    className: "text-slate-400"
+  }), /*#__PURE__*/React.createElement("select", {
+    value: filterType,
+    onChange: e => setFilterType(e.target.value),
+    className: "text-xs border border-slate-200 rounded-lg px-2 py-1.5 bg-white outline-none"
+  }, allTypes.map(t => /*#__PURE__*/React.createElement("option", {
+    key: t
+  }, t))), /*#__PURE__*/React.createElement("select", {
+    value: filterPriority,
+    onChange: e => setFilterPriority(e.target.value),
+    className: "text-xs border border-slate-200 rounded-lg px-2 py-1.5 bg-white outline-none"
+  }, ["全部", "P1", "P2", "P3", "P4"].map(p => /*#__PURE__*/React.createElement("option", {
+    key: p
+  }, p))), /*#__PURE__*/React.createElement("span", {
+    className: "text-xs text-slate-400"
+  }, "共 ", filtered.length, " 个"))), view === "table" && /*#__PURE__*/React.createElement("div", {
+    className: "bg-white rounded-2xl border border-slate-200 shadow-sm overflow-x-auto"
+  }, /*#__PURE__*/React.createElement("table", {
+    className: "w-full text-xs"
+  }, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", {
+    className: "border-b border-slate-200 bg-slate-50"
+  }, [{
+    label: "#",
+    key: null
+  }, {
+    label: "SKU / 商品",
+    key: null,
+    cls: "min-w-44"
+  }, {
+    label: "Impressões",
+    key: "impressoes"
+  }, {
+    label: "Cliques",
+    key: "cliques"
+  }, {
+    label: "CTR",
+    key: "ctr"
+  }, {
+    label: "Taxa Conv.",
+    key: "taxaConversao"
+  }, {
+    label: "Pedidos",
+    key: "pedidos"
+  }, {
+    label: "诊断",
+    key: null
+  }, {
+    label: "优先级",
+    key: null
+  }, {
+    label: "快速策略",
+    key: null,
+    cls: "min-w-44"
+  }, {
+    label: "",
+    key: null
+  }].map(({
+    label,
+    key,
+    cls
+  }, i) => /*#__PURE__*/React.createElement("th", {
+    key: i,
+    onClick: key ? () => toggleSort(key) : undefined,
+    className: `text-left px-3 py-3 text-slate-500 font-semibold whitespace-nowrap ${key ? "cursor-pointer hover:text-teal-600" : ""} ${cls || ""}`
+  }, key ? /*#__PURE__*/React.createElement("span", {
+    className: "flex items-center gap-0.5"
+  }, label, /*#__PURE__*/React.createElement(SortIcon, {
+    k: key
+  })) : label)))), /*#__PURE__*/React.createElement("tbody", null, filtered.map(p => {
+    const c = COLOR[p.diagnosis.color] || COLOR.gray;
+    const title = getDisplayTitle(p);
+    return /*#__PURE__*/React.createElement("tr", {
+      key: p.itemId,
+      className: "border-b border-slate-100 hover:bg-slate-50/60 transition"
+    }, /*#__PURE__*/React.createElement("td", {
+      className: "px-3 py-3 text-slate-400 font-mono"
+    }, p.rank), /*#__PURE__*/React.createElement("td", {
+      className: "px-3 py-3 max-w-xs"
+    }, /*#__PURE__*/React.createElement("span", {
+      className: "block font-semibold text-slate-800 truncate",
+      title: title
+    }, title), /*#__PURE__*/React.createElement("span", {
+      className: "block text-slate-400 truncate text-xs",
+      title: p.nome
+    }, p.nome)), /*#__PURE__*/React.createElement("td", {
+      className: "px-3 py-3 text-right text-slate-600 tabular-nums"
+    }, p.impressoes !== null ? p.impressoes >= 10000 ? (p.impressoes / 10000).toFixed(1) + "W" : p.impressoes.toLocaleString() : "-"), /*#__PURE__*/React.createElement("td", {
+      className: "px-3 py-3 text-right text-slate-600 tabular-nums"
+    }, p.cliques?.toLocaleString() || "-"), /*#__PURE__*/React.createElement("td", {
+      className: "px-3 py-3 text-right text-slate-600 tabular-nums"
+    }, p.ctr !== null ? p.ctr.toFixed(2) + "%" : "-"), /*#__PURE__*/React.createElement("td", {
+      className: "px-3 py-3 text-right text-slate-600 tabular-nums"
+    }, p.taxaConversao !== null ? p.taxaConversao.toFixed(2) + "%" : "-"), /*#__PURE__*/React.createElement("td", {
+      className: "px-3 py-3 text-right font-bold text-slate-800 tabular-nums"
+    }, p.pedidos ?? "-"), /*#__PURE__*/React.createElement("td", {
+      className: "px-3 py-3"
+    }, /*#__PURE__*/React.createElement("span", {
+      className: `inline-flex items-center gap-1 px-2 py-0.5 rounded-full font-medium ${c.badge}`
+    }, TYPE_EMOJI[p.diagnosis.type], " ", p.diagnosis.type)), /*#__PURE__*/React.createElement("td", {
+      className: "px-3 py-3"
+    }, /*#__PURE__*/React.createElement("span", {
+      className: `inline-block px-2 py-0.5 rounded-full font-bold ${PRIORITY_COLOR[p.diagnosis.priority]}`
+    }, p.diagnosis.priority)), /*#__PURE__*/React.createElement("td", {
+      className: "px-3 py-3 text-slate-600 max-w-xs"
+    }, /*#__PURE__*/React.createElement("span", {
+      className: "block truncate",
+      title: p.diagnosis.quickStrategy
+    }, p.diagnosis.quickStrategy)), /*#__PURE__*/React.createElement("td", {
+      className: "px-3 py-3"
+    }, /*#__PURE__*/React.createElement("button", {
+      onClick: () => copyProduct(p),
+      className: "text-slate-300 hover:text-teal-500 transition",
+      title: "复制策略"
+    }, copiedId === p.itemId ? /*#__PURE__*/React.createElement(CheckCheck, {
+      size: 13,
+      className: "text-emerald-500"
+    }) : /*#__PURE__*/React.createElement(Copy, {
+      size: 13
+    }))));
+  })))), view === "cards" && /*#__PURE__*/React.createElement("div", {
+    className: "grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4"
+  }, filtered.map(p => /*#__PURE__*/React.createElement(ProductCard, {
+    key: p.itemId,
+    product: p,
+    rank: p.rank,
+    bm: result.benchmarks,
+    onCopy: copyProduct,
+    copied: copiedId === p.itemId
+  }))), /*#__PURE__*/React.createElement("div", {
+    className: "bg-slate-800 rounded-2xl p-5"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center justify-between mb-3"
+  }, /*#__PURE__*/React.createElement("h2", {
+    className: "font-bold text-white text-sm flex items-center gap-2"
+  }, /*#__PURE__*/React.createElement(Copy, {
+    size: 13,
+    className: "text-teal-400"
+  }), "复制给 ChatGPT 的复盘文本"), /*#__PURE__*/React.createElement("button", {
+    onClick: () => copyText(result.chatGPTText, "gpt"),
+    className: "text-xs text-teal-400 hover:text-teal-300 flex items-center gap-1 transition"
+  }, copiedText === "gpt" ? /*#__PURE__*/React.createElement(CheckCheck, {
+    size: 11
+  }) : /*#__PURE__*/React.createElement(Copy, {
+    size: 11
+  }), "一键复制")), /*#__PURE__*/React.createElement("pre", {
+    className: "text-xs text-slate-300 whitespace-pre-wrap leading-relaxed font-mono select-all"
+  }, result.chatGPTText))), mainTab === "lowImp" && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+    className: "bg-orange-50 border border-orange-200 rounded-2xl px-4 py-3 flex items-center gap-3 text-xs text-orange-700"
+  }, /*#__PURE__*/React.createElement(Eye, {
+    size: 14,
+    className: "text-orange-500 shrink-0"
+  }), /*#__PURE__*/React.createElement("span", null, "曝光最少的 30 个产品（共 ", /*#__PURE__*/React.createElement("strong", null, result.totalProducts), " 个有效产品）· 带 ", /*#__PURE__*/React.createElement("span", {
+    className: "bg-emerald-100 text-emerald-700 px-1.5 rounded font-semibold"
+  }, "订单TOP30"), " 标 = 高潜力款，优先加曝光")), (() => {
+    const lowFiltered = result.lowImp30.filter(p => (filterType === "全部" || p.diagnosis.type === filterType) && (filterPriority === "全部" || p.diagnosis.priority === filterPriority) && (!search || p.nome.toLowerCase().includes(search.toLowerCase()) || (p.firstSku || "").toLowerCase().includes(search.toLowerCase())));
+    return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+      className: "flex flex-wrap gap-2 items-center"
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "flex rounded-xl overflow-hidden border border-slate-200 text-xs shrink-0"
+    }, /*#__PURE__*/React.createElement("button", {
+      onClick: () => setView("table"),
+      className: `px-3 py-1.5 transition ${view === "table" ? "bg-orange-500 text-white" : "bg-white text-slate-600 hover:bg-slate-50"}`
+    }, "列表"), /*#__PURE__*/React.createElement("button", {
+      onClick: () => setView("cards"),
+      className: `px-3 py-1.5 transition ${view === "cards" ? "bg-orange-500 text-white" : "bg-white text-slate-600 hover:bg-slate-50"}`
+    }, "卡片")), /*#__PURE__*/React.createElement("div", {
+      className: "ml-auto flex flex-wrap gap-2 items-center"
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "relative"
+    }, /*#__PURE__*/React.createElement(Search, {
+      size: 11,
+      className: "absolute left-2.5 top-2 text-slate-400"
+    }), /*#__PURE__*/React.createElement("input", {
+      type: "text",
+      placeholder: "搜索 SKU 或商品名...",
+      value: search,
+      onChange: e => setSearch(e.target.value),
+      className: "pl-7 pr-3 py-1.5 text-xs border border-slate-200 rounded-lg bg-white outline-none focus:border-orange-400 w-44"
+    })), /*#__PURE__*/React.createElement(Filter, {
+      size: 11,
+      className: "text-slate-400"
+    }), /*#__PURE__*/React.createElement("select", {
+      value: filterType,
+      onChange: e => setFilterType(e.target.value),
+      className: "text-xs border border-slate-200 rounded-lg px-2 py-1.5 bg-white outline-none"
+    }, allTypes.map(t => /*#__PURE__*/React.createElement("option", {
+      key: t
+    }, t))), /*#__PURE__*/React.createElement("select", {
+      value: filterPriority,
+      onChange: e => setFilterPriority(e.target.value),
+      className: "text-xs border border-slate-200 rounded-lg px-2 py-1.5 bg-white outline-none"
+    }, ["全部", "P1", "P2", "P3", "P4"].map(p => /*#__PURE__*/React.createElement("option", {
+      key: p
+    }, p))), /*#__PURE__*/React.createElement("span", {
+      className: "text-xs text-slate-400"
+    }, "共 ", lowFiltered.length, " 个"))), view === "table" && /*#__PURE__*/React.createElement("div", {
+      className: "bg-white rounded-2xl border border-slate-200 shadow-sm overflow-x-auto"
+    }, /*#__PURE__*/React.createElement("table", {
+      className: "w-full text-xs"
+    }, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", {
+      className: "border-b border-slate-200 bg-orange-50/60"
+    }, [{
+      label: "#"
+    }, {
+      label: "SKU / 商品",
+      cls: "min-w-44"
+    }, {
+      label: "Impressões ↑"
+    }, {
+      label: "Cliques"
+    }, {
+      label: "CTR"
+    }, {
+      label: "Taxa Conv."
+    }, {
+      label: "Pedidos"
+    }, {
+      label: "诊断"
+    }, {
+      label: "优先级"
+    }, {
+      label: "快速策略",
+      cls: "min-w-44"
+    }, {
+      label: ""
+    }].map(({
+      label,
+      cls
+    }, i) => /*#__PURE__*/React.createElement("th", {
+      key: i,
+      className: `text-left px-3 py-3 text-slate-500 font-semibold whitespace-nowrap ${cls || ""}`
+    }, label)))), /*#__PURE__*/React.createElement("tbody", null, lowFiltered.map(p => {
+      const c = COLOR[p.diagnosis.color] || COLOR.gray;
+      const title = getDisplayTitle(p);
+      return /*#__PURE__*/React.createElement("tr", {
+        key: p.itemId,
+        className: `border-b border-slate-100 hover:bg-orange-50/30 transition ${p.alsoInTop30 ? "bg-emerald-50/40" : ""}`
+      }, /*#__PURE__*/React.createElement("td", {
+        className: "px-3 py-3"
+      }, /*#__PURE__*/React.createElement("span", {
+        className: "font-mono text-orange-500 font-bold"
+      }, "#", p.rank), p.alsoInTop30 && /*#__PURE__*/React.createElement("span", {
+        className: "ml-1 text-xs bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded-full"
+      }, "TOP30")), /*#__PURE__*/React.createElement("td", {
+        className: "px-3 py-3 max-w-xs"
+      }, /*#__PURE__*/React.createElement("span", {
+        className: "block font-semibold text-slate-800 truncate",
+        title: title
+      }, title), /*#__PURE__*/React.createElement("span", {
+        className: "block text-slate-400 truncate text-xs",
+        title: p.nome
+      }, p.nome)), /*#__PURE__*/React.createElement("td", {
+        className: "px-3 py-3 text-right font-bold text-orange-500 tabular-nums"
+      }, p.impressoes?.toLocaleString() || "-"), /*#__PURE__*/React.createElement("td", {
+        className: "px-3 py-3 text-right text-slate-600 tabular-nums"
+      }, p.cliques?.toLocaleString() || "-"), /*#__PURE__*/React.createElement("td", {
+        className: "px-3 py-3 text-right text-slate-600 tabular-nums"
+      }, p.ctr !== null ? p.ctr.toFixed(2) + "%" : "-"), /*#__PURE__*/React.createElement("td", {
+        className: "px-3 py-3 text-right text-slate-600 tabular-nums"
+      }, p.taxaConversao !== null ? p.taxaConversao.toFixed(2) + "%" : "-"), /*#__PURE__*/React.createElement("td", {
+        className: "px-3 py-3 text-right text-slate-600 tabular-nums"
+      }, p.pedidos ?? "-"), /*#__PURE__*/React.createElement("td", {
+        className: "px-3 py-3"
+      }, /*#__PURE__*/React.createElement("span", {
+        className: `inline-flex items-center gap-1 px-2 py-0.5 rounded-full font-medium ${c.badge}`
+      }, TYPE_EMOJI[p.diagnosis.type], " ", p.diagnosis.type)), /*#__PURE__*/React.createElement("td", {
+        className: "px-3 py-3"
+      }, /*#__PURE__*/React.createElement("span", {
+        className: `inline-block px-2 py-0.5 rounded-full font-bold ${PRIORITY_COLOR[p.diagnosis.priority]}`
+      }, p.diagnosis.priority)), /*#__PURE__*/React.createElement("td", {
+        className: "px-3 py-3 text-slate-600 max-w-xs"
+      }, /*#__PURE__*/React.createElement("span", {
+        className: "block truncate",
+        title: p.diagnosis.quickStrategy
+      }, p.diagnosis.quickStrategy)), /*#__PURE__*/React.createElement("td", {
+        className: "px-3 py-3"
+      }, /*#__PURE__*/React.createElement("button", {
+        onClick: () => copyProduct(p),
+        className: "text-slate-300 hover:text-teal-500 transition"
+      }, copiedId === p.itemId ? /*#__PURE__*/React.createElement(CheckCheck, {
+        size: 13,
+        className: "text-emerald-500"
+      }) : /*#__PURE__*/React.createElement(Copy, {
+        size: 13
+      }))));
+    })))), view === "cards" && /*#__PURE__*/React.createElement("div", {
+      className: "grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4"
+    }, lowFiltered.map(p => /*#__PURE__*/React.createElement("div", {
+      key: p.itemId,
+      className: "relative"
+    }, p.alsoInTop30 && /*#__PURE__*/React.createElement("div", {
+      className: "absolute -top-2 -right-2 z-10 bg-emerald-500 text-white text-xs px-2 py-0.5 rounded-full shadow font-semibold"
+    }, "订单 TOP30"), /*#__PURE__*/React.createElement(ProductCard, {
+      product: p,
+      rank: p.rank,
+      bm: result.benchmarks,
+      onCopy: copyProduct,
+      copied: copiedId === p.itemId
+    })))));
+  })()), mainTab === "inventory" && /*#__PURE__*/React.createElement(React.Fragment, null, !result.invData ? /*#__PURE__*/React.createElement("div", {
+    className: "bg-amber-50 border border-amber-200 rounded-2xl p-5 text-sm text-amber-700"
+  }, "⚠️ 当前文件未能识别到变体销量数据。请确认 Excel 包含「Produtos com Melhor Desempenho」Sheet 且有变体行。") : /*#__PURE__*/React.createElement("div", {
+    className: "space-y-4"
+  }, /*#__PURE__*/React.createElement("p", {
+    className: "text-xs text-slate-400"
+  }, "近30天销量来源：", /*#__PURE__*/React.createElement("strong", null, result.invData.salesColName), "\u3000·\u3000建议备货 = 15天消耗量（日均 × 15，向上取整到10）"), result.invData.capacitySections.map(section => /*#__PURE__*/React.createElement("div", {
+    key: section.capacity,
+    className: "bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "bg-violet-600 px-5 py-3 flex items-center gap-3"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "text-white font-black text-lg"
+  }, section.capacity.toUpperCase()), /*#__PURE__*/React.createElement("span", {
+    className: "text-violet-200 text-sm"
+  }, "近30天共 ", section.totalSales, " 单")), /*#__PURE__*/React.createElement("table", {
+    className: "w-full"
+  }, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", {
+    className: "border-b border-slate-100 bg-slate-50 text-xs text-slate-400 uppercase tracking-wide"
+  }, /*#__PURE__*/React.createElement("th", {
+    className: "text-left px-6 py-2 font-medium"
+  }, "颜色"), /*#__PURE__*/React.createElement("th", {
+    className: "text-right px-6 py-2 font-medium"
+  }, "近30天销量"), /*#__PURE__*/React.createElement("th", {
+    className: "text-right px-6 py-2 font-medium text-violet-600"
+  }, "建议备货"))), /*#__PURE__*/React.createElement("tbody", {
+    className: "divide-y divide-slate-50"
+  }, section.colors.map(cg => {
+    const restock = Math.ceil(cg.dailyAvg * 15 / 10) * 10 || 10;
+    const ts = TIER_STYLE[cg.tier] || TIER_STYLE["滞销色"];
+    const label = cg.color.split(" ").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
+    return /*#__PURE__*/React.createElement("tr", {
+      key: cg.color,
+      className: "hover:bg-slate-50/60"
+    }, /*#__PURE__*/React.createElement("td", {
+      className: "px-6 py-3 flex items-center gap-2 text-sm"
+    }, /*#__PURE__*/React.createElement("div", {
+      className: `w-2 h-2 rounded-full shrink-0 ${ts.dot}`
+    }), /*#__PURE__*/React.createElement("span", {
+      className: "font-medium text-slate-800"
+    }, label)), /*#__PURE__*/React.createElement("td", {
+      className: "px-6 py-3 text-right text-slate-700 font-semibold tabular-nums text-sm"
+    }, cg.totalSales), /*#__PURE__*/React.createElement("td", {
+      className: "px-6 py-3 text-right tabular-nums"
+    }, cg.totalSales > 0 ? /*#__PURE__*/React.createElement("span", {
+      className: "font-black text-violet-600 text-base"
+    }, restock) : /*#__PURE__*/React.createElement("span", {
+      className: "text-slate-300 text-xs"
+    }, "—")));
+  })), /*#__PURE__*/React.createElement("tfoot", null, /*#__PURE__*/React.createElement("tr", {
+    className: "border-t-2 border-violet-100 bg-violet-50"
+  }, /*#__PURE__*/React.createElement("td", {
+    className: "px-6 py-2.5 text-sm font-bold text-slate-600"
+  }, "合计"), /*#__PURE__*/React.createElement("td", {
+    className: "px-6 py-2.5 text-right font-black text-slate-800 tabular-nums"
+  }, section.totalSales), /*#__PURE__*/React.createElement("td", {
+    className: "px-6 py-2.5 text-right font-black text-violet-700 tabular-nums text-base"
+  }, Math.ceil(section.totalSales / 30 * 15 / 10) * 10)))))))))), /*#__PURE__*/React.createElement("footer", {
+    className: "text-center text-xs text-slate-400 py-6"
+  }, "v1.5.0 · 所有数据在浏览器本地处理，不上传任何服务器"));
+}
+
+// ══════════════════════════════════════════════════════════════
+//  顶部导航条：三个页面之间跳转（适配 GitHub Pages）
+// ══════════════════════════════════════════════════════════════
+function NavBar() {
+  const btn = "flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium transition whitespace-nowrap";
+  return /*#__PURE__*/React.createElement("div", {
+    className: "bg-white border-b border-slate-200 px-4 py-2.5"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "max-w-7xl mx-auto flex items-center gap-2 flex-wrap"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "text-xs text-slate-400 mr-1 hidden sm:inline"
+  }, "工具导航："), /*#__PURE__*/React.createElement("a", {
+    href: "/",
+    className: btn + " bg-slate-100 text-slate-600 hover:bg-slate-200"
+  }, /*#__PURE__*/React.createElement(FileSpreadsheet, {
+    size: 14
+  }), " 进货价格本"), /*#__PURE__*/React.createElement("a", {
+    href: "/Editor",
+    className: btn + " bg-slate-100 text-slate-600 hover:bg-slate-200"
+  }, /*#__PURE__*/React.createElement(Tag, {
+    size: 14
+  }), " 贴图合成"), /*#__PURE__*/React.createElement("span", {
+    className: btn + " bg-teal-500 text-white cursor-default ml-auto"
+  }, /*#__PURE__*/React.createElement(Package, {
+    size: 14
+  }), " 产品诊断（当前）")));
+}
+
+// 用 NavBar 包裹 App
+function Root() {
+  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(NavBar, null), /*#__PURE__*/React.createElement(App, null));
+}
+
+// 挂载
+document.getElementById("loading").style.display = "none";
+ReactDOM.createRoot(document.getElementById("root")).render(
+  React.createElement(Root)
+);
+  </script>
+</body>
+</html>
