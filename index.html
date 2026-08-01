@@ -257,6 +257,75 @@ main{padding:14px;max-width:1400px;margin:0 auto}
 .sw.on::after{content:"✓";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
   color:#fff;font-size:15px;font-weight:800;text-shadow:0 1px 3px rgba(0,0,0,.4)}
 
+/* 去重面板 */
+.seg2{display:flex;background:var(--bg-2);border-radius:10px;padding:3px;gap:2px}
+.seg2 button{flex:1;border:none;background:none;border-radius:8px;padding:8px 6px;font-size:12.5px;color:var(--ink2)}
+.seg2 button.on{background:var(--card);color:var(--ink);font-weight:700;box-shadow:var(--sh-1)}
+.dupg{border:1px solid var(--line);border-radius:11px;padding:10px;background:var(--card)}
+.dupg.off{opacity:.45}
+.dupg-h{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;margin-bottom:7px}
+.dupg-h input{width:auto;margin:0}
+.dupg-h .cnt{margin-left:auto;font-weight:400;color:var(--ink2);font-size:12px}
+.dupr{display:flex;align-items:center;gap:9px;padding:6px 4px;border-top:1px dashed var(--line);font-size:12.5px}
+.dupr img{width:38px;height:38px;object-fit:contain;background:var(--bg-2);border-radius:6px;flex:0 0 auto}
+.dupr .ph{width:38px;height:38px;border-radius:6px;background:var(--bg-2);display:flex;align-items:center;
+  justify-content:center;color:var(--ink3);font-size:15px;flex:0 0 auto}
+.dupr .info{flex:1;min-width:0;line-height:1.55}
+.dupr .info b{font-size:13px}
+.dupr .meta{color:var(--ink2);font-size:11.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dupr .keep{font-size:11px;font-weight:700;color:var(--accent-dark);background:var(--accent-soft);
+  border:1px solid var(--accent-line);border-radius:999px;padding:2px 8px;white-space:nowrap}
+
+/* App 级对话框 */
+#dlgMask{z-index:260;align-items:center}
+.modal.dlg{max-width:394px}
+@media(max-width:640px){.modal.dlg{max-width:100%;border-radius:18px;margin:0 12px 12px}
+  #dlgMask{align-items:flex-end;padding:0 0 8px}}
+.dlg-head{display:flex;align-items:center;gap:11px;padding:18px 20px 4px;font-size:16px;color:var(--ink)}
+.dlg-ic{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:17px;flex:0 0 auto;background:var(--accent-soft);color:var(--accent-dark)}
+.dlg-ic.danger{background:var(--loss-bg);color:var(--loss)}
+.dlg-ic.info{background:var(--info-soft);color:var(--info)}
+.dlg-body{padding:8px 20px 4px;color:var(--ink2);font-size:13.5px;line-height:1.75;
+  max-height:52vh;overflow-y:auto;white-space:pre-line}
+.dlg-input{width:100%;border:1px solid var(--line);border-radius:var(--r-sm);padding:10px 12px;
+  margin-top:12px;outline:none;background:var(--card);color:var(--ink);font-size:15px}
+.dlg-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-ring)}
+.dlg-opts{display:flex;flex-wrap:wrap;gap:7px;margin-top:11px}
+.dlg-opts:empty{display:none}
+.dlg-opts button{border:1px solid var(--line);background:var(--card);color:var(--ink);
+  border-radius:999px;padding:7px 14px;font-size:13.5px;transition:all .14s}
+.dlg-opts button:hover{border-color:var(--accent-line);background:var(--accent-soft);color:var(--accent-dark)}
+.dlg-opts button.on{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:650}
+.dlg-foot{display:flex;gap:10px;padding:14px 20px 18px}
+.dlg-foot .btn{padding:10px}
+.dlg-foot .btn.danger{background:var(--loss);border-color:var(--loss);color:#fff}
+
+/* 启动画面 */
+#splash{position:fixed;inset:0;z-index:400;background:var(--bg);display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:20px;transition:opacity .38s ease,visibility .38s}
+#splash.gone{opacity:0;visibility:hidden;pointer-events:none}
+.sp-logo{width:78px;height:78px;border-radius:21px;background:linear-gradient(160deg,var(--accent-2),var(--accent));
+  display:flex;align-items:center;justify-content:center;color:#fff;font-size:29px;font-weight:800;
+  letter-spacing:-.02em;box-shadow:0 14px 36px var(--accent-glow);animation:spb 2.1s ease-in-out infinite}
+@keyframes spb{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+.sp-name{font-size:19px;font-weight:750;color:var(--ink);letter-spacing:-.01em}
+.sp-bar{width:172px;height:4px;border-radius:99px;background:var(--bg-2);overflow:hidden}
+.sp-bar i{display:block;height:100%;width:34%;border-radius:99px;background:var(--accent);
+  animation:spl 1.15s cubic-bezier(.55,.1,.45,.9) infinite}
+@keyframes spl{0%{transform:translateX(-105%)}100%{transform:translateX(320%)}}
+.sp-tip{font-size:12.5px;color:var(--ink3);min-height:18px}
+
+/* 下拉刷新 */
+#ptr{position:fixed;top:0;left:0;right:0;height:0;display:flex;align-items:flex-end;justify-content:center;
+  overflow:hidden;z-index:45;pointer-events:none;transition:height .2s}
+#ptr div{display:flex;align-items:center;gap:7px;font-size:12.5px;color:var(--accent-dark);
+  background:var(--card);border:1px solid var(--accent-line);border-radius:999px;
+  padding:6px 14px;margin-bottom:7px;box-shadow:var(--sh-1)}
+#ptr .spin{width:13px;height:13px;border:2px solid var(--accent-line);border-top-color:var(--accent);
+  border-radius:50%;animation:sp .7s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+
 /* 图片放大查看 */
 #lightbox{position:fixed;inset:0;z-index:300;background:rgba(8,11,16,.94);display:none;
   flex-direction:column;align-items:center;justify-content:center;
@@ -460,10 +529,9 @@ kbd{background:var(--bg-2);border:1px solid var(--line-2);border-bottom-width:2p
     <button class="icon-btn primary" id="btnAdd">＋ 新增</button>
     <button class="icon-btn" id="btnInstall" style="display:none" title="安装到主屏幕">⤓ 安装</button>
     <span id="syncDot" class="deskonly" title="云同步状态"><i></i><b id="syncTxt">—</b></span>
-    <button class="sync-chip deskonly" id="syncChip" title="点击上传改动"><span class="dot"></span><span id="syncTxt">已同步</span></button>
     <button class="icon-btn" id="btnTheme" title="切换亮色 / 暗色">🌙</button>
-    <a class="icon-btn deskonly" id="lnkEditor" href="/Editor" title="贴图合成">🖼 贴图合成</a>
-    <a class="icon-btn deskonly" id="lnkDiag" href="/Diagnostic" title="销量分析">📈 销量分析</a>
+    <a class="icon-btn deskonly" id="lnkEditor" href="./Editor/" title="贴图合成">🖼 贴图合成</a>
+    <a class="icon-btn deskonly" id="lnkDiag" href="./Diagnostic/" title="销量分析">📈 销量分析</a>
     <button class="icon-btn" id="btnSet">⚙</button>
   </div>
   <div class="hd-row2" id="catChips"></div>
@@ -507,6 +575,28 @@ kbd{background:var(--bg-2);border:1px solid var(--line-2);border-bottom-width:2p
   <div class="lb-stage" id="lbStage"><img id="lbImg" alt=""></div>
   <div class="lb-cap" id="lbCap"></div>
 </div>
+<div id="splash">
+  <div class="sp-logo">R$</div>
+  <div class="sp-name">进货价格本</div>
+  <div class="sp-bar"><i></i></div>
+  <div class="sp-tip" id="spTip">正在启动…</div>
+</div>
+<div id="ptr"><div><span class="spin"></span><span id="ptrTxt">下拉同步</span></div></div>
+
+<div class="mask" id="dlgMask">
+  <div class="modal dlg">
+    <div class="dlg-head"><span class="dlg-ic" id="dlgIc">?</span><b id="dlgTitle">提示</b></div>
+    <div class="dlg-body">
+      <div id="dlgMsg"></div>
+      <div id="dlgOpts" class="dlg-opts"></div>
+      <input id="dlgInput" class="dlg-input" style="display:none">
+    </div>
+    <div class="dlg-foot">
+      <button class="btn" id="dlgNo">取消</button>
+      <button class="btn save" id="dlgYes">确定</button>
+    </div>
+  </div>
+</div>
 <div id="toasts"></div>
 <nav id="mobileBar">
   <button data-mb="filter"><span>🔎</span>筛选</button>
@@ -524,7 +614,6 @@ kbd{background:var(--bg-2);border:1px solid var(--line-2);border-bottom-width:2p
   </div>
 </div>
 
-<div id="toasts"></div>
 <div id="selBar">
   <span class="n" id="selCount">已选 0</span>
   <button data-sel="cat">类目</button>
@@ -535,8 +624,6 @@ kbd{background:var(--bg-2);border:1px solid var(--line-2);border-bottom-width:2p
   <button data-sel="del" class="danger">删除</button>
   <button data-sel="exit">完成</button>
 </div>
-<div id="printArea"><h2>拿货单</h2><pre id="printBody"></pre></div>
-
 <footer>数据存在本机并同步到云端 · 按 <kbd>?</kbd> 查看快捷键</footer>
 
 <!-- 编辑弹窗 -->
@@ -591,6 +678,25 @@ kbd{background:var(--bg-2);border:1px solid var(--line-2);border-bottom-width:2p
     <div class="m-body">
       <div style="font-size:12px;color:var(--ink2)">保存商品时自动记录价格类改动，点任意一条可打开该商品。</div>
       <div id="histList" style="font-size:13px;line-height:2;max-height:60vh;overflow-y:auto"></div>
+    </div>
+  </div>
+</div>
+
+<!-- 清理重复弹窗 -->
+<div class="mask" id="dupMask">
+  <div class="modal" style="max-width:620px">
+    <div class="m-head"><span>🧹 清理重复商品</span><button class="x" data-close>✕</button></div>
+    <div class="m-body">
+      <div class="seg2" id="dupMode">
+        <button data-dm="strict" class="on">严格：忽略大小写/空格/横杠</button>
+        <button data-dm="fuzzy">模糊：再容忍 O↔0、I↔1</button>
+      </div>
+      <div id="dupSummary" style="font-size:12.5px;color:var(--ink2);line-height:1.8"></div>
+      <div id="dupList" style="display:flex;flex-direction:column;gap:10px;max-height:50vh;overflow-y:auto"></div>
+    </div>
+    <div class="m-foot">
+      <button class="btn" data-close>取消</button>
+      <button class="btn save" id="btnDupMerge">合并勾选的组</button>
     </div>
   </div>
 </div>
@@ -664,6 +770,14 @@ KD-800	Kaidi	3.10	12"></textarea></div>
         <button class="btn save" id="btnInstall2">⤓ 添加到主屏幕</button>
       </div>
       <div class="set-sec">
+        <h4>关于</h4>
+        <div id="aboutBox" style="font-size:12.5px;color:var(--ink2);line-height:1.95"></div>
+        <div class="f-row">
+          <button class="btn" id="btnKeys">⌨️ 快捷键</button>
+          <button class="btn" id="btnReload">🔄 检查更新</button>
+        </div>
+      </div>
+      <div class="set-sec">
         <h4>外观</h4>
         <div class="theme-seg" id="themeSeg">
           <button data-theme-mode="light">☀️ 亮色</button>
@@ -716,6 +830,7 @@ KD-800	Kaidi	3.10	12"></textarea></div>
           <button class="btn" id="btnExport">导出 JSON（含图片）</button>
           <button class="btn" id="btnImport">导入 JSON</button>
           <button class="btn" id="btnCSV">导出 CSV 报表</button>
+          <button class="btn" id="btnDup">🧹 清理重复商品</button>
           <input type="file" id="importFile" accept="application/json,text/plain,.json,.txt" hidden>
         </div>
         <div class="f-row">
@@ -1195,7 +1310,7 @@ function openSettings(){
   $('sbUrl').value=settings.cloud.url||'';
   $('sbKey').value=settings.cloud.key||'';
   $('sbAuto').checked=!!settings.cloud.auto;
-  renderCatList();renderBrandList();renderSwatches();applyTheme();
+  renderCatList();renderBrandList();renderSwatches();applyTheme();renderAbout();
   const ci=settings.lastCatalogUpdate;
   if(ci){
     $('catInfoSec').style.display='';
@@ -1216,10 +1331,10 @@ $('btnAddBrand').addEventListener('click',()=>{
   if(v&&!settings.brands.includes(v)){settings.brands.push(v);renderBrandList();}
   $('newBrand').value='';
 });
-$('brandList').addEventListener('click',e=>{
+$('brandList').addEventListener('click',async e=>{
   const b=e.target.dataset.delbrand;if(!b)return;
   const used=products.some(p=>p.brand===b);
-  if(used&&!confirm(`有商品属于品牌「${b}」，删除后这些商品变为无品牌。继续？`))return;
+  if(used&&!await uiConfirm(`有商品属于品牌「${b}」，删除后这些商品变为无品牌。`,{title:'删除品牌',danger:true,yes:'删除'}))return;
   settings.brands=settings.brands.filter(x=>x!==b);
   if(used){products.forEach(p=>{if(p.brand===b){p.brand='';idbPut('products',p);}});}
   if(filterBrand===b)filterBrand='全部';
@@ -1230,10 +1345,10 @@ $('btnAddCat').addEventListener('click',()=>{
   if(v&&!settings.categories.includes(v)){settings.categories.push(v);renderCatList();}
   $('newCat').value='';
 });
-$('catList').addEventListener('click',e=>{
+$('catList').addEventListener('click',async e=>{
   const c=e.target.dataset.delcat;if(!c)return;
   const used=products.some(p=>p.category===c);
-  if(used&&!confirm(`有商品属于「${c}」，删除后这些商品将归入「未分类」。继续？`))return;
+  if(used&&!await uiConfirm(`有商品属于「${c}」，删除后这些商品将归入「未分类」。`,{title:'删除类目',danger:true,yes:'删除'}))return;
   settings.categories=settings.categories.filter(x=>x!==c);
   if(used){products.forEach(p=>{if(p.category===c){p.category='未分类';idbPut('products',p);}});}
   if(filterCat===c)filterCat='全部';
@@ -1293,7 +1408,7 @@ async function importJSON(file){
   try{
     const data=JSON.parse(await file.text());
     if(!Array.isArray(data.products))throw 0;
-    if(!confirm(`将导入 ${data.products.length} 件商品并覆盖当前全部数据，确定？`))return;
+    if(!await uiConfirm(`将导入 ${data.products.length} 件商品，并覆盖当前全部数据。`,{title:'导入备份',danger:true,yes:'覆盖导入'}))return;
     await idbClear('products');
     urlCache.forEach(u=>URL.revokeObjectURL(u));urlCache.clear();
     products=[];
@@ -1394,7 +1509,7 @@ $('btnPickCopy').addEventListener('click',async()=>{
   catch{$('pickText').select();document.execCommand('copy');toast('已复制','ok');}
 });
 $('btnPickClear').addEventListener('click',async()=>{
-  if(!confirm('清空所有商品的补货标记？'))return;
+  if(!await uiConfirm('将清除所有商品的补货数量标记。',{title:'清空补货',danger:true,yes:'清空'}))return;
   for(const p of products){if(p.restock){p.restock=null;await idbPut('products',p);}}
   closeMasks();render();
 });
@@ -1458,6 +1573,7 @@ function openSheet(kind){
 }
 $('mobileBar').addEventListener('click',e=>{
   const k=e.target.closest('[data-mb]')?.dataset.mb; if(!k)return;
+  haptic(8);
   if(k==='add')return openEdit(null);
   if(k==='restock'){restockOnly=!restockOnly;syncMobileBar();render();return;}
   if(k==='pick'){$('pickText').value=buildPickList();$('pickMask').classList.add('show');return;}
@@ -1487,9 +1603,303 @@ $('sheetBody').addEventListener('click',async e=>{
   else if(a==='push'){openSettings();cloudPushAll(false);}
   else if(a==='pull'){openSettings();cloudPullMerge();}
   else if(a==='csv')exportCSV();
-  else if(a==='editor')location.href='/Editor';
-  else if(a==='diag')location.href='/Diagnostic';
+  else if(a==='editor')location.href='./Editor/';
+  else if(a==='diag')location.href='./Diagnostic/';
   else if(a==='keys')showShortcuts();
+});
+
+/* ============ App 级对话框（替代浏览器原生弹窗）============ */
+let _dlgResolve=null;
+function closeDlg(val){
+  $('dlgMask').classList.remove('show');
+  const r=_dlgResolve; _dlgResolve=null;
+  if(r)r(val);
+}
+function openDlg({title,msg,icon,iconType,yes,no,danger,input,options,value}){
+  return new Promise(res=>{
+    _dlgResolve=res;
+    $('dlgTitle').textContent=title||'提示';
+    $('dlgMsg').textContent=msg||'';
+    $('dlgIc').textContent=icon||'?';
+    $('dlgIc').className='dlg-ic'+(iconType?' '+iconType:'');
+    $('dlgYes').textContent=yes||'确定';
+    $('dlgYes').className='btn '+(danger?'danger':'save');
+    $('dlgNo').style.display=no===null?'none':'';
+    if(no)$('dlgNo').textContent=no;
+    const inp=$('dlgInput'), opts=$('dlgOpts');
+    opts.innerHTML='';
+    if(options&&options.length){
+      opts.innerHTML=options.map(o=>`<button data-dopt="${esc(String(o))}">${esc(String(o))}</button>`).join('');
+    }
+    if(input){ inp.style.display=''; inp.value=value!=null?value:'';
+      inp.placeholder=typeof input==='string'?input:'';
+      inp.type=(input==='number')?'number':'text';
+      setTimeout(()=>{inp.focus();inp.select();},60);
+    } else inp.style.display='none';
+    $('dlgMask').classList.add('show');
+    if(!input)setTimeout(()=>$('dlgYes').focus(),60);
+  });
+}
+const uiAlert  =(msg,o={})=>openDlg({msg,title:o.title||'提示',icon:o.icon||'i',iconType:o.iconType||'info',yes:o.yes||'知道了',no:null});
+const uiConfirm=(msg,o={})=>openDlg({msg,title:o.title||'确认',icon:o.icon||(o.danger?'!':'?'),
+    iconType:o.danger?'danger':'',yes:o.yes||'确定',no:o.no||'取消',danger:o.danger});
+const uiPrompt =(msg,o={})=>openDlg({msg,title:o.title||'输入',icon:o.icon||'✎',
+    yes:o.yes||'确定',no:'取消',input:o.placeholder||true,value:o.value,options:o.options});
+$('dlgYes').addEventListener('click',()=>{
+  const inp=$('dlgInput');
+  closeDlg(inp.style.display==='none'?true:inp.value.trim());
+});
+$('dlgNo').addEventListener('click',()=>closeDlg($('dlgInput').style.display==='none'?false:null));
+$('dlgMask').addEventListener('click',e=>{ if(e.target.id==='dlgMask')closeDlg($('dlgInput').style.display==='none'?false:null); });
+$('dlgOpts').addEventListener('click',e=>{
+  const v=e.target.closest('[data-dopt]')?.dataset.dopt; if(v==null)return;
+  const inp=$('dlgInput');
+  if(inp.style.display!=='none'){ inp.value=v;
+    $('dlgOpts').querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.dopt===v)); }
+  else closeDlg(v);
+});
+$('dlgInput').addEventListener('keydown',e=>{
+  if(e.key==='Enter'){e.preventDefault();closeDlg($('dlgInput').value.trim());}
+});
+
+setTimeout(()=>{try{hideSplash();}catch(e){}},12000);
+
+/* ============ 关于 ============ */
+const APP_VERSION='2026.07.30';
+function renderAbout(){
+  const el=$('aboutBox'); if(!el)return;
+  const imgs=products.filter(p=>p.img||p.imgUrl).length;
+  const withPrice=products.filter(p=>p.bulk!=null||p.small!=null).length;
+  const standalone=window.matchMedia('(display-mode: standalone)').matches||navigator.standalone;
+  el.innerHTML=
+    `进货价格本 <b>v${APP_VERSION}</b>${standalone?' · 已安装为 App':''}<br>`+
+    `商品 <b>${products.length}</b> 件 · 有图 <b>${imgs}</b> · 有进价 <b>${withPrice}</b><br>`+
+    `云端：${cloudReady()?'<b>已连接</b>':'未配置'} · 离线可用：${('serviceWorker' in navigator)?'支持':'不支持'}`;
+}
+$('btnKeys')&&$('btnKeys').addEventListener('click',()=>{
+  uiAlert('/ \u2003搜索\nN \u2003新增商品\nS \u2003批量选择\nCtrl+S\u2003保存\nEsc \u2003关闭\n? \u2003快捷键',{title:'键盘快捷键',icon:'⌨'});
+});
+$('btnReload')&&$('btnReload').addEventListener('click',async()=>{
+  if('serviceWorker' in navigator){
+    const rs=await navigator.serviceWorker.getRegistrations();
+    for(const r of rs)await r.update();
+  }
+  toast('正在重新加载最新版本…');
+  setTimeout(()=>location.reload(true),700);
+});
+
+/* ============ 触感反馈 ============ */
+function haptic(ms=10){ try{ navigator.vibrate&&navigator.vibrate(ms); }catch(e){} }
+
+/* ============ 返回键 / 手势返回（像原生 App）============ */
+let _navDepth=0;
+function anyOverlayOpen(){
+  return [...document.querySelectorAll('.mask')].some(m=>m.classList.contains('show'))
+      || $('lightbox').classList.contains('show') || selMode;
+}
+function pushOverlay(){
+  _navDepth++;
+  try{ history.pushState({pbOverlay:_navDepth},''); }catch(e){}
+}
+window.addEventListener('popstate',()=>{
+  if(_navDepth>0)_navDepth--;
+  // 逐层关闭：灯箱 > 对话框 > 弹窗 > 选择模式
+  if($('lightbox').classList.contains('show')){closeLightbox();return;}
+  if($('dlgMask').classList.contains('show')){closeDlg(false);return;}
+  const open=[...document.querySelectorAll('.mask')].filter(m=>m.classList.contains('show'));
+  if(open.length){closeMasks();return;}
+  if(selMode){setSelMode(false);return;}
+});
+// 任何遮罩打开时压入历史
+(function(){
+  const mo=new MutationObserver(muts=>{
+    for(const m of muts){
+      const el=m.target;
+      if(el.classList&&el.classList.contains('show')&&
+         (el.classList.contains('mask')||el.id==='lightbox')){
+        if(!el.dataset.pushed){el.dataset.pushed='1';pushOverlay();}
+      }else if(el.dataset&&el.dataset.pushed&&!el.classList.contains('show')){
+        delete el.dataset.pushed;
+      }
+    }
+  });
+  document.querySelectorAll('.mask,#lightbox').forEach(el=>
+    mo.observe(el,{attributes:true,attributeFilter:['class']}));
+})();
+
+/* ============ 下拉刷新（手机）============ */
+(function(){
+  let sy=0,pulling=false,ready=false;
+  const bar=$('ptr'), txt=$('ptrTxt');
+  window.addEventListener('touchstart',e=>{
+    if(window.scrollY>4||anyOverlayOpen()||e.touches.length!==1)return;
+    sy=e.touches[0].clientY; pulling=true; ready=false;
+  },{passive:true});
+  window.addEventListener('touchmove',e=>{
+    if(!pulling)return;
+    const d=e.touches[0].clientY-sy;
+    if(d<=0){bar.style.height='0';return;}
+    const h=Math.min(64,d*0.52);
+    bar.style.height=h+'px';
+    ready=h>=46;
+    txt.textContent=ready?'松开同步':'下拉同步';
+  },{passive:true});
+  window.addEventListener('touchend',async()=>{
+    if(!pulling)return; pulling=false;
+    bar.style.height='0';
+    if(!ready)return;
+    haptic(14);
+    if(!cloudReady()){toast('未配置云同步','warn');return;}
+    txt.textContent='同步中…';
+    await cloudPushAll(false);
+    await cloudPullMerge();
+    syncState(); toast('已与云端同步','ok');
+  },{passive:true});
+})();
+
+
+/* ============ 清理重复商品 ============ */
+let _dupMode='strict', _dupGroups=[];
+const dupKey=(m,mode)=>{
+  let s=(m||'').toUpperCase().replace(/[\s\-_./]/g,'');
+  if(mode==='fuzzy')s=s.replace(/O/g,'0').replace(/I/g,'1');
+  return s;
+};
+// 记录越"完整/越像用户编辑过"分越高
+function completeness(p){
+  let s=0;
+  if(p.img)s+=4; else if(p.imgUrl)s+=2;
+  if(p.bulk!=null)s+=2;
+  if(p.small!=null)s+=1;
+  if(p.moq!=null)s+=1;
+  if(p.sticker!=null)s+=1;
+  if(p.brand)s+=1;
+  if(p.category&&p.category!=='未分类')s+=1;
+  if(p.notes)s+=1;
+  if(p.restock)s+=3;
+  s+=Object.keys(p.sellPrices||{}).length*4;
+  s+=Math.min(3,((p.history||[]).filter(h=>h.f!=='创建').length)*0.5);
+  return s;
+}
+function findDuplicates(mode){
+  const g=new Map();
+  for(const p of products){
+    const k=dupKey(p.model,mode);
+    if(!k)continue;
+    if(!g.has(k))g.set(k,[]);
+    g.get(k).push(p);
+  }
+  const out=[];
+  for(const [k,list] of g){
+    if(list.length<2)continue;
+    list.sort((a,b)=>completeness(b)-completeness(a)||(b.updatedAt||0)-(a.updatedAt||0));
+    out.push({key:k,items:list,keepId:list[0].id,on:true});
+  }
+  out.sort((a,b)=>b.items.length-a.items.length||a.key.localeCompare(b.key));
+  return out;
+}
+function renderDupList(){
+  _dupGroups=findDuplicates(_dupMode);
+  const extra=_dupGroups.reduce((s,g)=>s+g.items.length-1,0);
+  $('dupSummary').innerHTML= _dupGroups.length
+    ? `发现 <b>${_dupGroups.length}</b> 组重复，可合并掉 <b>${extra}</b> 条。<br>合并规则：保留勾中的那条，其余记录里<b>你填过而它没有的信息</b>（价格、售价、图片、备注、补货）会补进来，然后删除多余记录。可撤销。`
+    : '没有发现重复商品 👍';
+  $('dupList').innerHTML=_dupGroups.map((g,gi)=>`
+    <div class="dupg${g.on?'':' off'}" data-gi="${gi}">
+      <div class="dupg-h">
+        <input type="checkbox" data-dgon="${gi}" ${g.on?'checked':''}>
+        <span>${esc(g.items[0].model)}</span>
+        <span class="cnt">${g.items.length} 条重复</span>
+      </div>
+      ${g.items.map(p=>{
+        const u=imgURL(p);
+        const pf=settings.activePlatform;
+        const sell=(p.sellPrices||{})[pf];
+        const bits=[p.brand||'无品牌',p.category||'未分类',
+          '进价 '+(p.bulk!=null?p.bulk:'—'),
+          sell!=null?'售价 '+sell:null,
+          p.restock?'补货 '+p.restock:null].filter(Boolean);
+        return `<label class="dupr">
+          <input type="radio" name="dupkeep${gi}" data-dgkeep="${gi}" value="${p.id}" ${p.id===g.keepId?'checked':''} style="width:auto">
+          ${u?`<img src="${u}">`:'<span class="ph">📦</span>'}
+          <span class="info"><b>${esc(p.model)}</b><br><span class="meta">${esc(bits.join(' · '))}</span></span>
+          ${p.id===g.keepId?'<span class="keep">保留</span>':''}
+        </label>`;
+      }).join('')}
+    </div>`).join('');
+}
+$('dupList').addEventListener('change',e=>{
+  const gi=e.target.dataset.dgon;
+  if(gi!=null){ _dupGroups[+gi].on=e.target.checked;
+    e.target.closest('.dupg').classList.toggle('off',!e.target.checked); return; }
+  const gk=e.target.dataset.dgkeep;
+  if(gk!=null){ _dupGroups[+gk].keepId=e.target.value;
+    e.target.closest('.dupg').querySelectorAll('.keep').forEach(x=>x.remove());
+    e.target.closest('.dupr').insertAdjacentHTML('beforeend','<span class="keep">保留</span>'); }
+});
+$('dupMode').addEventListener('click',e=>{
+  const m=e.target.closest('[data-dm]')?.dataset.dm; if(!m)return;
+  _dupMode=m;
+  $('dupMode').querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.dm===m));
+  renderDupList();
+});
+$('btnDup').addEventListener('click',()=>{ _dupMode='strict';
+  $('dupMode').querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.dm==='strict'));
+  renderDupList(); closeMasks(); $('dupMask').classList.add('show'); });
+
+function mergeRecords(primary, others){
+  for(const o of others){
+    if(primary.bulk==null&&o.bulk!=null)primary.bulk=o.bulk;
+    if(primary.small==null&&o.small!=null)primary.small=o.small;
+    if(primary.moq==null&&o.moq!=null)primary.moq=o.moq;
+    if(primary.sticker==null&&o.sticker!=null)primary.sticker=o.sticker;
+    if(primary.aff==null&&o.aff!=null)primary.aff=o.aff;
+    if(!primary.restock&&o.restock)primary.restock=o.restock;
+    if(!primary.brand&&o.brand)primary.brand=o.brand;
+    if((!primary.category||primary.category==='未分类')&&o.category&&o.category!=='未分类')primary.category=o.category;
+    if(!primary.img&&!primary.imgUrl){ if(o.img)primary.img=o.img; else if(o.imgUrl)primary.imgUrl=o.imgUrl; }
+    primary.sellPrices={...(o.sellPrices||{}),...(primary.sellPrices||{})};   // 主记录优先
+    if(o.notes&&(!primary.notes||o.notes.length>primary.notes.length))primary.notes=o.notes;
+    primary.history=[...(primary.history||[]),...(o.history||[])]
+      .sort((a,b)=>(a.t||0)-(b.t||0)).slice(-20);
+  }
+  primary.updatedAt=Date.now();
+  return primary;
+}
+$('btnDupMerge').addEventListener('click',async()=>{
+  const groups=_dupGroups.filter(g=>g.on);
+  if(!groups.length){toast('没有勾选任何组','warn');return;}
+  const removeCount=groups.reduce((s,g)=>s+g.items.length-1,0);
+  if(!await uiConfirm(`将合并 ${groups.length} 组，删除 ${removeCount} 条多余记录。\n被删记录里你填过的信息会先补进保留的那条。`,
+      {title:'确认合并',yes:'合并',danger:true}))return;
+  const undo=[];   // {before, deleted[]}
+  let merged=0;
+  for(const g of groups){
+    const primary=products.find(p=>p.id===g.keepId);
+    if(!primary)continue;
+    const others=g.items.filter(p=>p.id!==g.keepId);
+    undo.push({before:{...primary,sellPrices:{...(primary.sellPrices||{})},history:[...(primary.history||[])]},
+               deleted:others.map(o=>({...o}))});
+    mergeRecords(primary,others);
+    await idbPut('products',primary); cloudPushOne(primary);
+    for(const o of others){
+      await idbDel('products',o.id); cloudDeleteOne(o.id);
+      if(urlCache.has(o.id)){URL.revokeObjectURL(urlCache.get(o.id));urlCache.delete(o.id);}
+    }
+    products=products.filter(p=>!others.some(o=>o.id===p.id));
+    merged++;
+  }
+  closeMasks(); render(); syncState();
+  toast(`已合并 ${merged} 组，清理 ${removeCount} 条`,'ok','撤销',async()=>{
+    for(const u of undo){
+      const p=products.find(x=>x.id===u.before.id);
+      if(p)Object.assign(p,u.before);
+      else products.push(u.before);
+      await idbPut('products',u.before.id?p||u.before:u.before);
+      for(const d of u.deleted){ await idbPut('products',d); products.push(d); }
+    }
+    render(); toast('已恢复','ok');
+  });
 });
 
 /* ============ 图片放大查看 ============ */
@@ -1603,6 +2013,7 @@ function setSelMode(on){
 }
 function updateSelBar(){ const c=$('selCount'); if(c)c.textContent='已选 '+selected.size; }
 function toggleSel(id){
+  haptic(6);
   selected.has(id)?selected.delete(id):selected.add(id);
   const card=document.querySelector('.card[data-id="'+id+'"]');
   if(card)card.classList.toggle('sel',selected.has(id));
@@ -1617,7 +2028,7 @@ $('selBar').addEventListener('click',async e=>{
   if(!selected.size){toast('先选中商品','warn');return;}
   const items=products.filter(p=>selected.has(p.id));
   if(a==='del'){
-    if(!confirm('删除选中的 '+items.length+' 件商品？'))return;
+    if(!await uiConfirm('将删除选中的 '+items.length+' 件商品，可在提示中撤销。',{title:'批量删除',danger:true,yes:'删除'}))return;
     const backup=items.map(p=>({...p}));
     for(const p of items){await idbDel('products',p.id);cloudDeleteOne(p.id);
       if(urlCache.has(p.id)){URL.revokeObjectURL(urlCache.get(p.id));urlCache.delete(p.id);}}
@@ -1630,11 +2041,14 @@ $('selBar').addEventListener('click',async e=>{
     return;
   }
   let val=null;
-  if(a==='cat'){ val=prompt('把选中的 '+items.length+' 件设为哪个类目？\n可选：'+settings.categories.join(' / ')); if(!val)return;
+  if(a==='cat'){ val=await uiPrompt('把选中的 '+items.length+' 件商品设为哪个类目？',
+      {title:'批量改类目',options:settings.categories,placeholder:'点选或输入新类目'}); if(!val)return;
     if(!settings.categories.includes(val)){settings.categories.push(val);await idbPut('settings',settings);} }
-  if(a==='brand'){ val=prompt('把选中的 '+items.length+' 件设为哪个品牌？\n可选：'+settings.brands.join(' / ')+'\n（留空=清除品牌）'); if(val===null)return;
+  if(a==='brand'){ val=await uiPrompt('把选中的 '+items.length+' 件商品设为哪个品牌？留空则清除品牌。',
+      {title:'批量改品牌',options:settings.brands,placeholder:'点选或输入新品牌'}); if(val===null)return;
     if(val&&!settings.brands.includes(val)){settings.brands.push(val);await idbPut('settings',settings);} }
-  if(a==='restock'){ const v=prompt('给选中的 '+items.length+' 件设置补货数量（0 或留空=取消补货）'); if(v===null)return; val=v; }
+  if(a==='restock'){ const v=await uiPrompt('给选中的 '+items.length+' 件商品设置补货数量，0 或留空表示取消补货。',
+      {title:'批量设补货',placeholder:'number'}); if(v===null)return; val=v; }
   for(const p of items){
     const before={...p,sellPrices:{...(p.sellPrices||{})}};
     if(a==='cat')p.category=val;
@@ -1907,7 +2321,8 @@ function buildModelIndex(list){
 }
 async function importProductPack(data){
   const list=data.products||[];
-  if(!confirm(`品牌商品包（${data.brand||''}）共 ${list.length} 个商品。\n已有型号：只补充空缺的字段（价格、备注、图片不会被覆盖）；新型号：完整加入。继续？`))return;
+  if(!await uiConfirm(`品牌商品包（${data.brand||''}）共 ${list.length} 个商品。\n\n已有型号只补充空缺字段，你填的价格、备注、图片不会被覆盖；新型号完整加入。`,
+      {title:'导入商品包',yes:'导入'}))return;
   const idx=buildModelIndex(products);
   let added=0,filled=0;
   for(const c of list){
@@ -1940,7 +2355,10 @@ async function importProductPack(data){
 async function importImagePack(data){
   if(!data||data.type!=='imagepack'||!data.images)throw new Error('type');
   const entries=Object.entries(data.images);
-  const overwrite=confirm('图片包共 '+entries.length+' 张。\n【确定】= 覆盖商品已有图片\n【取消】= 只给没有图片的商品加图');
+  const _ow=await openDlg({title:'导入图片包',icon:'🖼',msg:'图片包共 '+entries.length+' 张。请选择导入方式：',
+      options:['只补缺图（推荐）','覆盖已有图片'],yes:'取消',no:null});
+  if(_ow===true||_ow==null)return;
+  const overwrite=(_ow==='覆盖已有图片');
   const idx=buildModelIndex(products);
   const btn=$('btnImgPack'), oldTxt=btn.textContent;
   let ok=0, miss=0, i=0;
@@ -2193,8 +2611,9 @@ async function cloudTest(){
 }
 $('btnTest').addEventListener('click',()=>{saveSettingsSilent();cloudTest();});
 $('btnPush').addEventListener('click',()=>{saveSettingsSilent();cloudPushAll(false);});
-$('btnPushAll').addEventListener('click',()=>{
-  if(!confirm('全量上传会把本地全部商品重新推送到云端，耗时较长。确定？'))return;
+$('btnPushAll').addEventListener('click',async()=>{
+  if(!await uiConfirm('会把本地全部商品重新推送到云端，耗时较长。通常只在换设备或换数据库时需要。',
+      {title:'强制全量上传',yes:'开始上传'}))return;
   saveSettingsSilent();cloudPushAll(true);
 });
 $('btnPull').addEventListener('click',()=>{saveSettingsSilent();cloudPullMerge();});
@@ -2259,7 +2678,14 @@ document.addEventListener('keydown',e=>{
 });
 
 /* ================= 启动 ================= */
+function hideSplash(){
+  const s=document.getElementById('splash');
+  if(s&&!s.classList.contains('gone')){s.classList.add('gone');setTimeout(()=>s.remove(),420);}
+}
 function bootLog(msg,isErr){
+  const tip=document.getElementById('spTip');
+  if(tip)tip.innerHTML=String(msg).replace(/<br>/g,' · ').slice(0,60);
+  if(isErr){const s=document.getElementById('splash');if(s)s.classList.add('gone');}
   const n=document.getElementById('bootNote');
   if(n){ n.innerHTML=(isErr?'<span style="color:var(--loss)">✕ '+msg+'</span>':msg); }
   if(isErr){const b=document.getElementById('booting');if(b)b.querySelectorAll('.sk').forEach(s=>s.remove());}
@@ -2507,10 +2933,12 @@ function bootLog(msg,isErr){
   bootLog('4/4 渲染…');
   applyTheme();
   render();
+  hideSplash();
   if(cloudReady()&&settings.cloud.auto){
     setTimeout(()=>{cloudPullMerge().catch(()=>{});},800);   // 后台同步云端最新
   }
  }catch(err){
+  hideSplash();
   bootLog('初始化失败：'+(err&&err.message||err)+'<br>请截图此提示。若在手机上，请尝试：文件先存到本地存储 → Chrome 地址栏输入 file:///sdcard/Download/进货价格本.html 打开；或用 GitHub Pages 网址访问。',1);
   console.error(err);
  }
