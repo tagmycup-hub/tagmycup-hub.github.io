@@ -257,6 +257,56 @@ main{padding:14px;max-width:1400px;margin:0 auto}
 .sw.on::after{content:"✓";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
   color:#fff;font-size:15px;font-weight:800;text-shadow:0 1px 3px rgba(0,0,0,.4)}
 
+/* 拿货单 */
+/* 拿货地点 */
+.pk-loc{border:1px solid var(--accent-line);background:var(--accent-soft);border-radius:12px;
+  padding:11px 13px;display:flex;flex-direction:column;gap:9px}
+.pk-loc-h{font-size:13px;font-weight:750;color:var(--accent-dark);display:flex;align-items:center;gap:8px}
+.pk-loc-h span{font-weight:400;font-size:12px;color:var(--ink2);margin-left:auto}
+.pk-loc .catline .chip{background:var(--card);font-size:13px;padding:6px 13px}
+.pk-loc .catline .chip.on{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:700}
+.pk-loc input{border:1px solid var(--line);border-radius:9px;padding:8px 11px;background:var(--card);
+  color:var(--ink);outline:none;font-size:13.5px}
+.pk-loc input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-ring)}
+
+#pickList{display:flex;flex-direction:column;gap:12px;max-height:52vh;overflow-y:auto}
+.pk-g{border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--card)}
+.pk-gh{background:linear-gradient(180deg,var(--panel-a),var(--panel-b));padding:11px 14px;
+  font-size:14.5px;font-weight:750;display:flex;justify-content:space-between;align-items:center;
+  border-bottom:1px solid var(--line)}
+.pk-gh span{color:var(--accent-dark);font-variant-numeric:tabular-nums}
+.pk-row{display:flex;align-items:center;gap:14px;padding:14px 14px;border-top:1px solid var(--line)}
+.pk-row:first-of-type{border-top:none}
+.pk-row img{width:86px;height:86px;object-fit:contain;background:var(--bg-2);border-radius:11px;flex:0 0 auto;
+  cursor:zoom-in;border:1px solid var(--line)}
+.pk-ph{width:86px;height:86px;border-radius:11px;background:var(--bg-2);display:flex;align-items:center;
+  justify-content:center;font-size:34px;color:var(--ink3);flex:0 0 auto}
+.pk-info{flex:1;min-width:0;display:flex;flex-direction:column;gap:5px}
+.pk-info b{font-size:18px;font-weight:750;line-height:1.28;word-break:break-word;letter-spacing:-.01em}
+.pk-meta{font-size:13px;color:var(--ink2);line-height:1.5}
+.pk-qty{display:flex;align-items:center;gap:0;flex:0 0 auto;border:1px solid var(--line);
+  border-radius:9px;overflow:hidden;background:var(--card)}
+.pk-qty button{border:none;background:var(--bg-2);width:40px;height:42px;font-size:21px;
+  font-weight:700;color:var(--accent-dark);line-height:1}
+.pk-qty button:hover{background:var(--accent-soft)}
+.pk-qty input{width:66px;height:42px;border:none;text-align:center;font-size:17px;font-weight:750;
+  background:var(--card);color:var(--ink);outline:none;font-variant-numeric:tabular-nums;
+  -moz-appearance:textfield}
+.pk-qty input::-webkit-outer-spin-button,.pk-qty input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.pk-sub{flex:0 0 auto;min-width:92px;text-align:right;font-size:16px;font-weight:750;color:var(--ink)}
+#pickTotal{margin-top:12px;padding:12px 15px;border-radius:12px;background:var(--accent-soft);
+  border:1px solid var(--accent-line);color:var(--accent-dark);font-size:15px;
+  display:flex;justify-content:space-between;align-items:center}
+#pickTotal b{font-size:18px;font-variant-numeric:tabular-nums}
+@media(max-width:640px){
+  .pk-row{flex-wrap:wrap;gap:11px;padding:13px 12px}
+  .pk-info{flex:1 1 calc(100% - 86px);order:0}
+  .pk-row img,.pk-ph{width:74px;height:74px}
+  .pk-info b{font-size:17px}
+  .pk-sub{min-width:0;flex:1;text-align:right;font-size:16px}
+  .pk-qty{margin-left:auto}
+}
+
 /* 去重面板 */
 .seg2{display:flex;background:var(--bg-2);border-radius:10px;padding:3px;gap:2px}
 .seg2 button{flex:1;border:none;background:none;border-radius:8px;padding:8px 6px;font-size:12.5px;color:var(--ink2)}
@@ -706,8 +756,15 @@ kbd{background:var(--bg-2);border:1px solid var(--line-2);border-bottom-width:2p
   <div class="modal">
     <div class="m-head"><span>拿货单</span><button class="x" data-close>✕</button></div>
     <div class="m-body">
-      <div style="font-size:12px;color:var(--ink2)">在商品编辑页填「补货数量」即可加入拿货单，按 品牌 → 类目 分组，按大量价小计。</div>
-      <div class="field"><textarea id="pickText" rows="14" readonly style="font-family:ui-monospace,monospace;font-size:12px"></textarea></div>
+      <div class="pk-loc">
+        <div class="pk-loc-h">📍 拿货地点<span id="pkLocHint"></span></div>
+        <div class="catline" id="pkLocChips"></div>
+        <input id="pkLocFree" placeholder="其他地点 / 摊位号 / 备注（可留空）">
+      </div>
+      <div style="font-size:12px;color:var(--ink2)">按 品牌 → 类目 分组。数量可直接在这里加减，改完自动保存。</div>
+      <div id="pickList"></div>
+      <div id="pickTotal"></div>
+      <textarea id="pickText" readonly style="position:absolute;left:-9999px;top:0" tabindex="-1"></textarea>
     </div>
     <div class="m-foot">
       <button class="btn" id="btnPickClear">清空标记</button>
@@ -820,6 +877,11 @@ KD-800	Kaidi	3.10	12"></textarea></div>
         <div id="sbStatus" style="font-size:12px;color:var(--ink2)"></div>
       </div>
       <div class="set-sec">
+        <h4>常用拿货地点（拿货单里可多选）</h4>
+        <div class="catline" id="locList"></div>
+        <div class="addcat"><input id="newLoc" placeholder="新增地点，如 25 de Março"><button class="icon-btn" id="btnAddLoc">添加</button></div>
+      </div>
+      <div class="set-sec">
         <h4>商品类目</h4>
         <div class="catline" id="catList"></div>
         <div class="addcat"><input id="newCat" placeholder="新类目名称"><button class="icon-btn" id="btnAddCat">添加</button></div>
@@ -886,6 +948,8 @@ const DEFAULT_SETTINGS={
   packaging:0.15, thermal:0.032,
   brands:['A GOLD','Kaidi','Hmaston','杂牌'],
   targetMargin:25, theme:'auto', accent:'#E2661B',
+  locations:['25 de Março','Santa Ifigênia','Brás','Feira da Madrugada'],
+  pickLocs:[], pickLocFree:'',
   cloud:{url:CLOUD_DEFAULTS.url,key:CLOUD_DEFAULTS.key,auto:true},
   categories:['充电宝','耳机','充电器','车充','数据线','转接头','智能表','音箱','摄像头','手机支架','电子产品','配件','保温杯','首饰','智能标签','麦克风','小家电','美容仪器','未分类'],
   activePlatform:'tk', seedVersion:0
@@ -1009,6 +1073,10 @@ function renderPtabs(){
   document.getElementById('ptabs').innerHTML=settings.platforms.map(pf=>
     `<button class="ptab ${pf.id===settings.activePlatform?'on':''}" data-pf="${pf.id}">${pf.name}<span class="rate">${pf.mode==='tiered'?pf.r1+'/'+pf.r2+'%+运'+(pf.ship||0)+'%':pf.rate+'%+'+pf.fixed}</span></button>`).join('');
 }
+// 搜索归一化：去掉空格与所有符号，只留字母数字和中文 → "fna14" 能命中 "FN-A14"
+function searchNorm(s){
+  return (s||'').toLowerCase().replace(/[^a-z0-9\u4e00-\u9fa5]+/g,'');
+}
 function visibleProducts(){
   let list=products.filter(p=>{
     if(filterCat!=='全部'&&(p.category||'未分类')!==filterCat)return false;
@@ -1019,7 +1087,14 @@ function visibleProducts(){
     }
     if(query){
       const q=query.toLowerCase();
-      if(!((p.model||'').toLowerCase().includes(q)||(p.notes||'').toLowerCase().includes(q)||(p.brand||'').toLowerCase().includes(q)))return false;
+      const nq=searchNorm(query);
+      const hit = (p.model||'').toLowerCase().includes(q)
+        || (p.notes||'').toLowerCase().includes(q)
+        || (p.brand||'').toLowerCase().includes(q)
+        || (nq && (searchNorm(p.model).includes(nq)
+                || searchNorm(p.brand).includes(nq)
+                || searchNorm(p.notes).includes(nq)));
+      if(!hit)return false;
     }
     return true;
   });
@@ -1310,7 +1385,7 @@ function openSettings(){
   $('sbUrl').value=settings.cloud.url||'';
   $('sbKey').value=settings.cloud.key||'';
   $('sbAuto').checked=!!settings.cloud.auto;
-  renderCatList();renderBrandList();renderSwatches();applyTheme();renderAbout();
+  renderCatList();renderBrandList();renderSwatches();applyTheme();renderAbout();renderLocList();
   const ci=settings.lastCatalogUpdate;
   if(ci){
     $('catInfoSec').style.display='';
@@ -1447,6 +1522,69 @@ function renderStats(){
 }
 
 /* ============ 拿货单 ============ */
+function renderPickList(){
+  renderPickLocs();
+  const items=products.filter(p=>p.restock&&p.restock>0);
+  const el=$('pickList'), tot=$('pickTotal');
+  $('pickText').value=buildPickList();
+  if(!items.length){
+    el.innerHTML='<div class="empty">还没有商品标记补货<br>在列表长按（手机）或按 <kbd>S</kbd> 进入选择模式 → 勾选商品 → 补货数量</div>';
+    tot.style.display='none'; return;
+  }
+  tot.style.display='';
+  const groups={};
+  for(const p of items){const k=(p.brand||'(无品牌)')+' / '+(p.category||'未分类');(groups[k]=groups[k]||[]).push(p);}
+  let total=0,qty=0,out='';
+  for(const k of Object.keys(groups).sort()){
+    const list=groups[k].sort((a,b)=>(a.model||'').localeCompare(b.model||'','zh',{numeric:true}));
+    let gsub=0;
+    const rows=list.map(p=>{
+      const price=p.bulk!=null?p.bulk:p.small;
+      const sub=price!=null?price*p.restock:0;
+      gsub+=sub; total+=sub; qty+=p.restock;
+      const u=imgURL(p);
+      const low=p.moq&&p.restock<p.moq;
+      return `<div class="pk-row" data-pkid="${p.id}">
+        ${u?`<img src="${u}" alt="">`:'<span class="pk-ph">📦</span>'}
+        <div class="pk-info">
+          <b>${esc(p.model)}</b>
+          <span class="pk-meta">${price!=null?'@ R$ '+price.toFixed(2):'⚠ 无进价'}${p.moq?' · 起订 '+p.moq:''}${low?' · <b style="color:var(--warn)">低于起订量</b>':''}</span>
+        </div>
+        <div class="pk-qty">
+          <button type="button" data-pkstep="-1">−</button>
+          <input type="number" min="0" step="1" value="${p.restock}" data-pkq>
+          <button type="button" data-pkstep="1">＋</button>
+        </div>
+        <div class="pk-sub num">${price!=null?'R$ '+sub.toFixed(2):'—'}</div>
+      </div>`;
+    }).join('');
+    out+=`<div class="pk-g"><div class="pk-gh">${esc(k)}<span>R$ ${gsub.toFixed(2)}</span></div>${rows}</div>`;
+  }
+  el.innerHTML=out;
+  tot.innerHTML=`<span>合计 ${qty} 件</span><b>R$ ${total.toFixed(2)}</b>`;
+}
+async function setPickQty(id,val){
+  const p=products.find(x=>x.id===id); if(!p)return;
+  const before={...p,sellPrices:{...(p.sellPrices||{})}};
+  p.restock = val>0 ? val : null;
+  p.updatedAt=Date.now(); p.history=logChanges(before,p);
+  await idbPut('products',p); cloudPushOne(p);
+  renderPickList(); render(); syncState();
+}
+$('pickList').addEventListener('click',e=>{
+  const step=e.target.dataset.pkstep; if(step==null)return;
+  const row=e.target.closest('[data-pkid]');
+  const inp=row.querySelector('[data-pkq]');
+  const p=products.find(x=>x.id===row.dataset.pkid);
+  const unit=(p&&p.moq&&p.moq>1)?1:1;
+  const v=Math.max(0,(+inp.value||0)+(+step)*unit);
+  inp.value=v; haptic(5); setPickQty(row.dataset.pkid,v);
+});
+$('pickList').addEventListener('change',e=>{
+  if(e.target.dataset.pkq==null)return;
+  const row=e.target.closest('[data-pkid]');
+  setPickQty(row.dataset.pkid, Math.max(0,+e.target.value||0));
+});
 function buildPickList(){
   const items=products.filter(p=>p.restock&&p.restock>0);
   if(!items.length)return '（还没有商品标记补货数量）';
@@ -1455,7 +1593,9 @@ function buildPickList(){
     const k=(p.brand||'(无品牌)')+' / '+(p.category||'未分类');
     (groups[k]=groups[k]||[]).push(p);
   }
-  let out='拿货单 '+new Date().toLocaleDateString()+'\n'; let total=0, totalQty=0;
+  let out='拿货单 '+new Date().toLocaleDateString()+'\n';
+  const loc=locsText(); if(loc)out+='📍 地点: '+loc+'\n';
+  let total=0, totalQty=0;
   for(const k of Object.keys(groups).sort()){
     out+='\n【'+k+'】\n';
     for(const p of groups[k].sort((a,b)=>(a.model||'').localeCompare(b.model||''))){
@@ -1501,7 +1641,7 @@ $('histList').addEventListener('click',e=>{
 });
 $('btnStats').addEventListener('click',()=>{statsOn=!statsOn;$('btnStats').classList.toggle('on',statsOn);renderStats();});
 $('btnRestockFilter').addEventListener('click',()=>{restockOnly=!restockOnly;$('btnRestockFilter').classList.toggle('on',restockOnly);render();});
-$('btnPickList').addEventListener('click',()=>{$('pickText').value=buildPickList();$('pickMask').classList.add('show');});
+$('btnPickList').addEventListener('click',()=>{renderPickList();$('pickMask').classList.add('show');});
 $('btnPickShare').addEventListener('click',sharePick);
 $('btnPickPrint').addEventListener('click',printPick);
 $('btnPickCopy').addEventListener('click',async()=>{
@@ -1510,8 +1650,8 @@ $('btnPickCopy').addEventListener('click',async()=>{
 });
 $('btnPickClear').addEventListener('click',async()=>{
   if(!await uiConfirm('将清除所有商品的补货数量标记。',{title:'清空补货',danger:true,yes:'清空'}))return;
-  for(const p of products){if(p.restock){p.restock=null;await idbPut('products',p);}}
-  closeMasks();render();
+  for(const p of products){if(p.restock){p.restock=null;await idbPut('products',p);cloudPushOne(p);}}
+  renderPickList();closeMasks();render();syncState();
 });
 
 /* ============ CSV 报表导出 ============ */
@@ -1576,7 +1716,7 @@ $('mobileBar').addEventListener('click',e=>{
   haptic(8);
   if(k==='add')return openEdit(null);
   if(k==='restock'){restockOnly=!restockOnly;syncMobileBar();render();return;}
-  if(k==='pick'){$('pickText').value=buildPickList();$('pickMask').classList.add('show');return;}
+  if(k==='pick'){renderPickList();$('pickMask').classList.add('show');return;}
   openSheet(k==='filter'?'filter':'more');
 });
 function syncMobileBar(){
@@ -1902,6 +2042,68 @@ $('btnDupMerge').addEventListener('click',async()=>{
   });
 });
 
+
+/* ============ 拿货地点 ============ */
+function locsText(){
+  const sel=(settings.pickLocs||[]).slice();
+  const free=(settings.pickLocFree||'').trim();
+  if(free)sel.push(free);
+  return sel.join(' / ');
+}
+function renderPickLocs(){
+  const box=$('pkLocChips'); if(!box)return;
+  const sel=settings.pickLocs||[];
+  const list=settings.locations||[];
+  box.innerHTML=list.length
+    ? list.map(l=>`<button class="chip${sel.includes(l)?' on':''}" data-ploc="${esc(l)}">${esc(l)}</button>`).join('')
+    : '<span style="font-size:12px;color:var(--ink2)">还没有常用地点，可在下方直接写，或到 ⚙ 设置里添加</span>';
+  $('pkLocFree').value=settings.pickLocFree||'';
+  const t=locsText();
+  $('pkLocHint').textContent=t?('已选：'+t):'未选择';
+}
+$('pkLocChips')&&$('pkLocChips').addEventListener('click',async e=>{
+  const l=e.target.closest('[data-ploc]')?.dataset.ploc; if(!l)return;
+  const sel=new Set(settings.pickLocs||[]);
+  sel.has(l)?sel.delete(l):sel.add(l);
+  settings.pickLocs=[...sel];
+  await idbPut('settings',settings);
+  renderPickLocs(); $('pickText').value=buildPickList(); haptic(6);
+});
+let _locT;
+$('pkLocFree')&&$('pkLocFree').addEventListener('input',e=>{
+  settings.pickLocFree=e.target.value;
+  clearTimeout(_locT);
+  _locT=setTimeout(async()=>{
+    await idbPut('settings',settings);
+    $('pkLocHint').textContent=locsText()?('已选：'+locsText()):'未选择';
+    $('pickText').value=buildPickList();
+  },300);
+});
+function renderLocList(){
+  const el=$('locList'); if(!el)return;
+  const list=settings.locations||[];
+  el.innerHTML=list.length
+    ? list.map(l=>`<span class="chip">${esc(l)}<span class="xdel" data-delloc="${esc(l)}" style="cursor:pointer">✕</span></span>`).join('')
+    : '<span style="font-size:12px;color:var(--ink2)">还没有添加地点</span>';
+}
+$('btnAddLoc')&&$('btnAddLoc').addEventListener('click',async()=>{
+  const v=$('newLoc').value.trim();
+  if(!v)return;
+  settings.locations=settings.locations||[];
+  if(!settings.locations.includes(v))settings.locations.push(v);
+  $('newLoc').value='';
+  await idbPut('settings',settings);
+  renderLocList(); toast('已添加地点','ok');
+});
+$('newLoc')&&$('newLoc').addEventListener('keydown',e=>{ if(e.key==='Enter'){e.preventDefault();$('btnAddLoc').click();} });
+$('locList')&&$('locList').addEventListener('click',async e=>{
+  const l=e.target.dataset.delloc; if(!l)return;
+  settings.locations=(settings.locations||[]).filter(x=>x!==l);
+  settings.pickLocs=(settings.pickLocs||[]).filter(x=>x!==l);
+  await idbPut('settings',settings);
+  renderLocList();
+});
+
 /* ============ 图片放大查看 ============ */
 let _lb={scale:1,x:0,y:0,url:null};
 function openLightbox(src,caption){
@@ -2047,8 +2249,31 @@ $('selBar').addEventListener('click',async e=>{
   if(a==='brand'){ val=await uiPrompt('把选中的 '+items.length+' 件商品设为哪个品牌？留空则清除品牌。',
       {title:'批量改品牌',options:settings.brands,placeholder:'点选或输入新品牌'}); if(val===null)return;
     if(val&&!settings.brands.includes(val)){settings.brands.push(val);await idbPut('settings',settings);} }
-  if(a==='restock'){ const v=await uiPrompt('给选中的 '+items.length+' 件商品设置补货数量，0 或留空表示取消补货。',
-      {title:'批量设补货',placeholder:'number'}); if(v===null)return; val=v; }
+  if(a==='restock'){
+    const withMoq=items.filter(p=>p.moq>0).length;
+    const pick=await openDlg({title:'批量设补货',icon:'🛒',
+      msg:`选中 ${items.length} 件商品，其中 ${withMoq} 件有起订量。`,
+      options:['按各自起订量填入','统一填一个数量…','清空补货标记'], yes:'取消', no:null});
+    if(pick===true||pick==null)return;
+    if(pick==='按各自起订量填入'){
+      let done=0, skip=[];
+      for(const p of items){
+        if(!(p.moq>0)){skip.push(p.model);continue;}
+        const before={...p,sellPrices:{...(p.sellPrices||{})}};
+        p.restock=p.moq; p.updatedAt=Date.now(); p.history=logChanges(before,p);
+        await idbPut('products',p); cloudPushOne(p); done++;
+      }
+      setSelMode(false); syncState();
+      toast(`已按起订量填入 ${done} 件`+(skip.length?`，${skip.length} 件没有起订量未处理`:''),'ok');
+      return;
+    }
+    if(pick==='清空补货标记'){ val=''; }
+    else{
+      const v=await uiPrompt('给选中的 '+items.length+' 件商品统一设置补货数量：',
+        {title:'统一数量',placeholder:'number'});
+      if(v===null)return; val=v;
+    }
+  }
   for(const p of items){
     const before={...p,sellPrices:{...(p.sellPrices||{})}};
     if(a==='cat')p.category=val;
@@ -2215,7 +2440,7 @@ document.addEventListener('keydown',e=>{
   if(anyMaskOpen())return;
   if(k==='n'||k==='N'){e.preventDefault();openEdit(null);}
   else if(k==='t'||k==='T'){const dark=document.documentElement.getAttribute('data-theme')==='dark';setTheme(dark?'light':'dark');}
-  else if(k==='b'||k==='B'){$('pickText').value=buildPickList();$('pickMask').classList.add('show');}
+  else if(k==='b'||k==='B'){renderPickList();$('pickMask').classList.add('show');}
   else if(k==='h'||k==='H'){renderHistory();$('histMask').classList.add('show');}
   else if(k==='f'||k==='F'){openSheet('filter');}
   else if(k==='s'||k==='S'){if(cloudReady()){toast('开始上传改动…');cloudPushAll(false);}else toast('还没配置云同步','warn');}
