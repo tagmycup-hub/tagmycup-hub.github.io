@@ -258,6 +258,37 @@ main{padding:14px;max-width:1400px;margin:0 auto}
   color:#fff;font-size:15px;font-weight:800;text-shadow:0 1px 3px rgba(0,0,0,.4)}
 
 /* 拿货单 */
+/* 拿货历史 */
+.trip{border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--card)}
+.trip-h{display:flex;align-items:center;gap:9px;padding:11px 13px;cursor:pointer;
+  background:linear-gradient(180deg,var(--panel-a),var(--panel-b))}
+.trip-h .d{font-weight:750;font-size:14px}
+.trip-h .l{font-size:12px;color:var(--accent-dark);background:var(--accent-soft);
+  border:1px solid var(--accent-line);border-radius:999px;padding:2px 9px;
+  max-width:44%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.trip-h .v{margin-left:auto;font-weight:750;font-variant-numeric:tabular-nums;color:var(--ink)}
+.trip-b{display:none;padding:4px 13px 11px;font-size:12.5px;line-height:1.95;color:var(--ink2)}
+.trip.open .trip-b{display:block}
+.trip-b .ln{display:flex;justify-content:space-between;gap:10px;border-top:1px dashed var(--line);padding:4px 0}
+.trip-b .ln b{font-weight:650;color:var(--ink)}
+
+/* 拿货单：打勾 / 进度 / 分组 */
+.pk-tools{display:flex;gap:8px;align-items:center}
+.pk-tick{width:34px;height:34px;flex:0 0 auto;border-radius:50%;border:2px solid var(--line-2);
+  background:var(--card);color:#fff;font-size:17px;font-weight:800;line-height:1;
+  display:flex;align-items:center;justify-content:center;transition:all .15s}
+.pk-tick:hover{border-color:var(--accent)}
+.pk-tick.on{background:var(--green);border-color:var(--green)}
+.pk-row.done{background:var(--green-bg)}
+.pk-row.done .pk-info b{text-decoration:line-through;opacity:.6}
+.pk-row.done img,.pk-row.done .pk-ph{opacity:.55}
+.pk-gh .pk-gt{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pk-gh .pk-gp{font-size:12px;font-weight:600;color:var(--ink2);background:var(--bg-2);
+  border-radius:999px;padding:2px 9px;margin-right:9px;flex:0 0 auto}
+.pk-bar{display:inline-block;width:74px;height:6px;border-radius:99px;background:rgba(0,0,0,.12);
+  overflow:hidden;margin-left:8px;vertical-align:middle}
+.pk-bar i{display:block;height:100%;background:var(--green);border-radius:99px;transition:width .25s}
+
 /* 拿货地点 */
 .pk-loc{border:1px solid var(--accent-line);background:var(--accent-soft);border-radius:12px;
   padding:11px 13px;display:flex;flex-direction:column;gap:9px}
@@ -591,6 +622,7 @@ kbd{background:var(--bg-2);border:1px solid var(--line-2);border-bottom-width:2p
     <button class="chip deskonly" id="btnRestockFilter" title="只看标了补货的商品">🛒 补货</button>
     <button class="chip deskonly" id="btnPickList" title="生成拿货单">📋 拿货单</button>
     <button class="chip deskonly" id="btnHistory" title="最近价格改动">🕒 改动</button>
+    <button class="chip deskonly" id="btnTrips" title="拿货历史">📦 历史</button>
     <select id="brandSel"></select>
     <select id="sortSel">
       <option value="model">按型号排序</option>
@@ -669,6 +701,7 @@ kbd{background:var(--bg-2);border:1px solid var(--line-2);border-bottom-width:2p
   <button data-sel="cat">类目</button>
   <button data-sel="brand">品牌</button>
   <button data-sel="restock">补货数量</button>
+  <button data-sel="loc">📍 地点</button>
   <button data-sel="all">全选本页</button>
   <span class="sp"></span>
   <button data-sel="del" class="danger">删除</button>
@@ -705,6 +738,11 @@ kbd{background:var(--bg-2);border:1px solid var(--line-2);border-bottom-width:2p
         <div class="field"><label>贴纸成本 R$（电器类留空）</label><input id="fSticker" type="number" step="0.01" min="0" placeholder="0"></div>
         <div class="field"><label>🛒 补货数量（填了进拿货单）</label><input id="fRestock" type="number" min="0" placeholder="不补货留空"></div>
       </div>
+      <div class="field">
+        <label>📍 进货地点（拿货单按此分组）</label>
+        <div class="catline" id="fLocChips" style="margin-bottom:6px"></div>
+        <input id="fLoc" placeholder="点上面选，或直接输入新地点">
+      </div>
       <div class="sellgrid">
         <div class="sg-title">各平台售价 → 净利润（扣佣金/运费/达人 + 包材）</div>
         <div class="sg-row" style="grid-template-columns:1fr 90px 1fr"><span class="pname">达人佣金 %</span><input id="fAff" type="number" step="0.5" min="0" placeholder="默认5"><span class="live none" style="font-size:11px">留空=平台默认</span></div>
@@ -729,6 +767,18 @@ kbd{background:var(--bg-2);border:1px solid var(--line-2);border-bottom-width:2p
       <div style="font-size:12px;color:var(--ink2)">保存商品时自动记录价格类改动，点任意一条可打开该商品。</div>
       <div id="histList" style="font-size:13px;line-height:2;max-height:60vh;overflow-y:auto"></div>
     </div>
+  </div>
+</div>
+
+<!-- 拿货历史弹窗 -->
+<div class="mask" id="tripMask">
+  <div class="modal" style="max-width:640px">
+    <div class="m-head"><span>📦 拿货历史</span><button class="x" data-close>✕</button></div>
+    <div class="m-body">
+      <div id="tripStats" style="font-size:12.5px;color:var(--ink2);line-height:1.9"></div>
+      <div id="tripList" style="display:flex;flex-direction:column;gap:10px;max-height:58vh;overflow-y:auto"></div>
+    </div>
+    <div class="m-foot"><button class="btn" data-close>关闭</button></div>
   </div>
 </div>
 
@@ -761,12 +811,20 @@ kbd{background:var(--bg-2);border:1px solid var(--line-2);border-bottom-width:2p
         <div class="catline" id="pkLocChips"></div>
         <input id="pkLocFree" placeholder="其他地点 / 摊位号 / 备注（可留空）">
       </div>
-      <div style="font-size:12px;color:var(--ink2)">按 品牌 → 类目 分组。数量可直接在这里加减，改完自动保存。</div>
+      <div class="pk-tools">
+        <div class="seg2" id="pkGroup" style="flex:1">
+          <button data-pg="loc">📍 按地点</button>
+          <button data-pg="brand">🏷 按品牌</button>
+        </div>
+        <button class="icon-btn" id="btnPickReset" title="清除所有打勾">↺ 重置打勾</button>
+      </div>
+      <div style="font-size:12px;color:var(--ink2)">数量可直接加减，拿到一样就点左边的圈打勾。改完自动保存。</div>
       <div id="pickList"></div>
       <div id="pickTotal"></div>
       <textarea id="pickText" readonly style="position:absolute;left:-9999px;top:0" tabindex="-1"></textarea>
     </div>
     <div class="m-foot">
+      <button class="btn" id="btnPickSave">📦 完成拿货</button>
       <button class="btn" id="btnPickClear">清空标记</button>
       <button class="btn" id="btnPickPrint">🖨 打印</button>
       <button class="btn" id="btnPickShare">💬 WhatsApp</button>
@@ -915,7 +973,7 @@ window.addEventListener('unhandledrejection',e=>{
   if(g&&g.querySelector('#booting'))g.innerHTML='<div class="empty" style="color:var(--loss)">初始化出错：'+ (e.reason&&e.reason.message||e.reason) +'<br>可能原因：无痕模式/浏览器禁用了本地存储。请用普通模式的 Chrome 打开</div>';
 });
 /* ================= IndexedDB ================= */
-const DB_NAME='pricebook', DB_VER=1;
+const DB_NAME='pricebook', DB_VER=2;
 let db;
 function openDB(){return new Promise((res,rej)=>{
   const r=indexedDB.open(DB_NAME,DB_VER);
@@ -923,6 +981,7 @@ function openDB(){return new Promise((res,rej)=>{
     const d=e.target.result;
     if(!d.objectStoreNames.contains('products'))d.createObjectStore('products',{keyPath:'id'});
     if(!d.objectStoreNames.contains('settings'))d.createObjectStore('settings',{keyPath:'key'});
+    if(!d.objectStoreNames.contains('trips'))d.createObjectStore('trips',{keyPath:'id'});
   };
   r.onsuccess=e=>{db=e.target.result;res()};
   r.onerror=()=>rej(r.error);
@@ -1186,6 +1245,7 @@ function openEdit(id){
   $('fMoq').value=p&&p.moq!=null?p.moq:'';
   $('fSticker').value=p&&p.sticker!=null?p.sticker:'';
   $('fRestock').value=p&&p.restock!=null?p.restock:'';
+  window.__locInit=p&&p.loc?p.loc:'';
   window.__affInit=p&&p.aff!=null?p.aff:'';
   $('fNotes').value=p?(p.notes||''):'';
   $('sellRows').innerHTML=settings.platforms.map(pf=>{
@@ -1195,6 +1255,8 @@ function openEdit(id){
       <span class="live num" data-live="${pf.id}">—</span>
       <button class="fillbtn" data-fill="${pf.id}" type="button" style="grid-column:2">按${settings.targetMargin}%利润填价</button><span></span></div>`;
   }).join('');
+  $('fLoc').value=window.__locInit||'';
+  renderFLocChips();
   setImgPreview(p?(p.img||p.imgUrl||null):null);
   $('fAff').value=window.__affInit!=null?window.__affInit:'';
   updateLive();
@@ -1264,7 +1326,7 @@ function updateLive(){
     el.className='live num '+(net>=0?'win':'lose');
   });
 }
-const HIST_FIELDS=[['bulk','大量价'],['small','少量价'],['moq','起订量'],['sticker','贴纸'],['restock','补货'],['aff','达人%'],['category','类目'],['brand','品牌']];
+const HIST_FIELDS=[['bulk','大量价'],['small','少量价'],['moq','起订量'],['sticker','贴纸'],['restock','补货'],['aff','达人%'],['category','类目'],['brand','品牌'],['loc','进货地点']];
 function logChanges(old,neu){
   const h=(old&&old.history)?old.history.slice():[];
   const t=Date.now();
@@ -1292,6 +1354,7 @@ async function saveEdit(){
     id:old?old.id:uid(), model, category:$('fCat').value, brand:$('fBrand').value,
     bulk:n($('fBulk').value), small:n($('fSmall').value),
     moq:n($('fMoq').value), sticker:n($('fSticker').value), restock:n($('fRestock').value), aff:n($('fAff').value),
+    loc:$('fLoc').value.trim()||null,
     sellPrices, notes:$('fNotes').value.trim(),
     img:currentImgBlob(), imgUrl:old?old.imgUrl:null, imgSyncedAt:old?old.imgSyncedAt:null,
     updatedAt:Date.now()
@@ -1524,6 +1587,9 @@ function renderStats(){
 /* ============ 拿货单 ============ */
 function renderPickList(){
   renderPickLocs();
+  const gb=settings.pickGroupBy||'loc';
+  const gEl=$('pkGroup');
+  if(gEl)gEl.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.pg===gb));
   const items=products.filter(p=>p.restock&&p.restock>0);
   const el=$('pickList'), tot=$('pickTotal');
   $('pickText').value=buildPickList();
@@ -1532,23 +1598,35 @@ function renderPickList(){
     tot.style.display='none'; return;
   }
   tot.style.display='';
+  const byLoc = settings.pickGroupBy!=='brand';   // 默认按地点
   const groups={};
-  for(const p of items){const k=(p.brand||'(无品牌)')+' / '+(p.category||'未分类');(groups[k]=groups[k]||[]).push(p);}
-  let total=0,qty=0,out='';
-  for(const k of Object.keys(groups).sort()){
+  for(const p of items){
+    const k = byLoc ? (p.loc||'📍 未设地点')
+                    : ((p.brand||'(无品牌)')+' / '+(p.category||'未分类'));
+    (groups[k]=groups[k]||[]).push(p);
+  }
+  const keys=Object.keys(groups).sort((a,b)=>{
+    if(a.startsWith('📍 未设'))return 1; if(b.startsWith('📍 未设'))return -1;
+    return a.localeCompare(b,'pt');
+  });
+  let total=0,qty=0,out='',doneCnt=0;
+  for(const k of keys){
     const list=groups[k].sort((a,b)=>(a.model||'').localeCompare(b.model||'','zh',{numeric:true}));
-    let gsub=0;
+    let gsub=0,gdone=0;
     const rows=list.map(p=>{
       const price=p.bulk!=null?p.bulk:p.small;
       const sub=price!=null?price*p.restock:0;
       gsub+=sub; total+=sub; qty+=p.restock;
+      const done=!!p.picked; if(done){gdone++;doneCnt++;}
       const u=imgURL(p);
       const low=p.moq&&p.restock<p.moq;
-      return `<div class="pk-row" data-pkid="${p.id}">
-        ${u?`<img src="${u}" alt="">`:'<span class="pk-ph">📦</span>'}
+      const sec=byLoc?[p.brand,p.category].filter(Boolean).join(' · '):(p.loc||'');
+      return `<div class="pk-row${done?' done':''}" data-pkid="${p.id}">
+        <button type="button" class="pk-tick${done?' on':''}" data-pktick title="拿到了就打勾">${done?'✓':''}</button>
+        ${u?`<img src="${u}" alt="" data-pkimg>`:'<span class="pk-ph">📦</span>'}
         <div class="pk-info">
           <b>${esc(p.model)}</b>
-          <span class="pk-meta">${price!=null?'@ R$ '+price.toFixed(2):'⚠ 无进价'}${p.moq?' · 起订 '+p.moq:''}${low?' · <b style="color:var(--warn)">低于起订量</b>':''}</span>
+          <span class="pk-meta">${price!=null?'@ R$ '+price.toFixed(2):'⚠ 无进价'}${p.moq?' · 起订 '+p.moq:''}${low?' · <b style="color:var(--warn)">低于起订量</b>':''}${sec?'<br>'+esc(sec):''}</span>
         </div>
         <div class="pk-qty">
           <button type="button" data-pkstep="-1">−</button>
@@ -1558,10 +1636,16 @@ function renderPickList(){
         <div class="pk-sub num">${price!=null?'R$ '+sub.toFixed(2):'—'}</div>
       </div>`;
     }).join('');
-    out+=`<div class="pk-g"><div class="pk-gh">${esc(k)}<span>R$ ${gsub.toFixed(2)}</span></div>${rows}</div>`;
+    out+=`<div class="pk-g"><div class="pk-gh">
+        <span class="pk-gt">${esc(k)}</span>
+        <span class="pk-gp">${gdone}/${list.length}</span>
+        <span>R$ ${gsub.toFixed(2)}</span>
+      </div>${rows}</div>`;
   }
   el.innerHTML=out;
-  tot.innerHTML=`<span>合计 ${qty} 件</span><b>R$ ${total.toFixed(2)}</b>`;
+  const pct=items.length?Math.round(doneCnt/items.length*100):0;
+  tot.innerHTML=`<span>合计 ${qty} 件 · 已拿 ${doneCnt}/${items.length}
+      <span class="pk-bar"><i style="width:${pct}%"></i></span></span><b>R$ ${total.toFixed(2)}</b>`;
 }
 async function setPickQty(id,val){
   const p=products.find(x=>x.id===id); if(!p)return;
@@ -1571,7 +1655,18 @@ async function setPickQty(id,val){
   await idbPut('products',p); cloudPushOne(p);
   renderPickList(); render(); syncState();
 }
-$('pickList').addEventListener('click',e=>{
+$('pickList').addEventListener('click',async e=>{
+  const tick=e.target.closest('[data-pktick]');
+  if(tick){
+    const row=tick.closest('[data-pkid]');
+    const p=products.find(x=>x.id===row.dataset.pkid);
+    if(p){ p.picked=!p.picked; p.updatedAt=Date.now();
+      await idbPut('products',p); cloudPushOne(p); haptic(8); renderPickList(); }
+    return;
+  }
+  const im=e.target.closest('[data-pkimg]');
+  if(im){ const p=products.find(x=>x.id===im.closest('[data-pkid]').dataset.pkid);
+    if(p)openLightbox(p.img||p.imgUrl||im.src,p.model); return; }
   const step=e.target.dataset.pkstep; if(step==null)return;
   const row=e.target.closest('[data-pkid]');
   const inp=row.querySelector('[data-pkq]');
@@ -1642,6 +1737,18 @@ $('histList').addEventListener('click',e=>{
 $('btnStats').addEventListener('click',()=>{statsOn=!statsOn;$('btnStats').classList.toggle('on',statsOn);renderStats();});
 $('btnRestockFilter').addEventListener('click',()=>{restockOnly=!restockOnly;$('btnRestockFilter').classList.toggle('on',restockOnly);render();});
 $('btnPickList').addEventListener('click',()=>{renderPickList();$('pickMask').classList.add('show');});
+$('pkGroup').addEventListener('click',async e=>{
+  const g=e.target.closest('[data-pg]')?.dataset.pg; if(!g)return;
+  settings.pickGroupBy=g; await idbPut('settings',settings);
+  $('pkGroup').querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.pg===g));
+  renderPickList();
+});
+$('btnPickReset').addEventListener('click',async()=>{
+  const on=products.filter(p=>p.picked);
+  if(!on.length){toast('没有打勾的商品');return;}
+  for(const p of on){p.picked=false;p.updatedAt=Date.now();await idbPut('products',p);cloudPushOne(p);}
+  renderPickList(); toast('已清除 '+on.length+' 个打勾','ok');
+});
 $('btnPickShare').addEventListener('click',sharePick);
 $('btnPickPrint').addEventListener('click',printPick);
 $('btnPickCopy').addEventListener('click',async()=>{
@@ -1697,6 +1804,7 @@ function openSheet(kind){
     b.innerHTML=`<div class="sheet-act">
       <button data-sact="stats">📊 统计面板</button>
       <button data-sact="history">🕒 最近改动</button>
+      <button data-sact="trips">📦 拿货历史</button>
       <button data-sact="settings">⚙ 设置</button>
       <button data-sact="theme">🎨 外观 / 深色</button>
       <button data-sact="batch">📥 批量导入</button>
@@ -1736,6 +1844,7 @@ $('sheetBody').addEventListener('click',async e=>{
   closeMasks();
   if(a==='stats'){statsOn=true;$('btnStats').classList.add('on');renderStats();window.scrollTo({top:0,behavior:'smooth'});}
   else if(a==='history'){renderHistory();$('histMask').classList.add('show');}
+  else if(a==='trips'){renderTrips();$('tripMask').classList.add('show');}
   else if(a==='settings')openSettings();
   else if(a==='theme'){openSettings();setTimeout(()=>{const el=$('themeSeg');if(el&&el.scrollIntoView)el.scrollIntoView({block:'center',behavior:'smooth'});},140);}
   else if(a==='batch'){$('batchText').value='';$('batchPreview').textContent='';$('batchMask').classList.add('show');}
@@ -2043,6 +2152,131 @@ $('btnDupMerge').addEventListener('click',async()=>{
 });
 
 
+
+
+/* ============ 拿货历史（存档） ============ */
+async function saveTrip(){
+  const items=products.filter(p=>p.restock&&p.restock>0);
+  if(!items.length){toast('拿货单是空的','warn');return;}
+  const doneN=items.filter(p=>p.picked).length;
+  const mode=await openDlg({title:'完成拿货',icon:'📦',
+    msg:`共 ${items.length} 件，已打勾 ${doneN} 件。\n存档后可在「📦 历史」里回看这次拿了什么、花了多少。`,
+    options:doneN&&doneN<items.length
+      ? ['只存已打勾的 '+doneN+' 件','存全部 '+items.length+' 件']
+      : ['存全部 '+items.length+' 件'],
+    yes:'取消', no:null});
+  if(mode===true||mode==null)return;
+  const onlyDone=String(mode).startsWith('只存已打勾');
+  const list=onlyDone?items.filter(p=>p.picked):items;
+  const lines=list.map(p=>{
+    const price=p.bulk!=null?p.bulk:p.small;
+    return {model:p.model,brand:p.brand||'',cat:p.category||'',loc:p.loc||'',
+            qty:p.restock,price:price??null,sub:price!=null?price*p.restock:0,pid:p.id};
+  });
+  const trip={id:uid(),at:Date.now(),
+    locs:locsText()||[...new Set(lines.map(l=>l.loc).filter(Boolean))].join(' / '),
+    qty:lines.reduce((s,l)=>s+l.qty,0),
+    total:lines.reduce((s,l)=>s+l.sub,0),
+    lines};
+  await idbPut('trips',trip);
+  // 清掉已存档商品的补货标记与打勾
+  for(const p of list){
+    p.restock=null; p.picked=false; p.updatedAt=Date.now();
+    await idbPut('products',p); cloudPushOne(p);
+  }
+  closeMasks(); render(); syncState();
+  toast(`已存档：${trip.qty} 件 · R$ ${trip.total.toFixed(2)}`,'ok','查看',()=>{renderTrips();$('tripMask').classList.add('show');});
+}
+$('btnPickSave')&&$('btnPickSave').addEventListener('click',saveTrip);
+
+async function renderTrips(){
+  let trips=[];
+  try{ trips=await idbAll('trips'); }catch(e){}
+  trips.sort((a,b)=>b.at-a.at);
+  const el=$('tripList'), st=$('tripStats');
+  if(!trips.length){
+    st.textContent='';
+    el.innerHTML='<div class="empty">还没有拿货记录<br>在拿货单里点「📦 完成拿货」就会存档</div>';
+    return;
+  }
+  const sum=trips.reduce((s,t)=>s+t.total,0);
+  const qty=trips.reduce((s,t)=>s+t.qty,0);
+  const last=trips[0];
+  st.innerHTML=`共 <b>${trips.length}</b> 次拿货 · 累计 <b>${qty}</b> 件 · <b>R$ ${sum.toFixed(2)}</b><br>`+
+    `最近一次：${new Date(last.at).toLocaleDateString()}${last.locs?' · '+esc(last.locs):''}`;
+  el.innerHTML=trips.map(t=>`
+    <div class="trip" data-tid="${t.id}">
+      <div class="trip-h">
+        <span class="d">${new Date(t.at).toLocaleDateString()}</span>
+        ${t.locs?`<span class="l">📍 ${esc(t.locs)}</span>`:''}
+        <span class="v">${t.qty} 件 · R$ ${t.total.toFixed(2)}</span>
+      </div>
+      <div class="trip-b">
+        ${t.lines.map(l=>`<div class="ln"><span><b>${esc(l.model)}</b> ×${l.qty}${l.loc?' · '+esc(l.loc):''}</span>
+          <span class="num">${l.price!=null?'@'+l.price.toFixed(2)+' = R$ '+l.sub.toFixed(2):'—'}</span></div>`).join('')}
+        <div class="ln" style="border-top:1px solid var(--line);margin-top:4px">
+          <button class="icon-btn" data-trepeat="${t.id}" style="font-size:12px;padding:5px 10px">↻ 再拿一次</button>
+          <button class="icon-btn" data-tdel="${t.id}" style="font-size:12px;padding:5px 10px;color:var(--loss)">删除记录</button>
+        </div>
+      </div>
+    </div>`).join('');
+}
+$('tripList')&&$('tripList').addEventListener('click',async e=>{
+  const rep=e.target.closest('[data-trepeat]');
+  if(rep){
+    const t=(await idbAll('trips')).find(x=>x.id===rep.dataset.trepeat);
+    if(!t)return;
+    if(!await uiConfirm(`把这次的 ${t.lines.length} 个商品按同样数量重新标记为补货？`,{title:'再拿一次',yes:'标记'}))return;
+    let n=0,miss=0;
+    const idx=buildModelIndex(products);
+    for(const l of t.lines){
+      const p=products.find(x=>x.id===l.pid)||idx.get(l.model);
+      if(!p){miss++;continue;}
+      p.restock=l.qty; p.picked=false; p.updatedAt=Date.now();
+      await idbPut('products',p); cloudPushOne(p); n++;
+    }
+    closeMasks(); render(); syncState();
+    toast(`已标记 ${n} 件补货`+(miss?`，${miss} 件已不存在`:''),'ok');
+    return;
+  }
+  const del=e.target.closest('[data-tdel]');
+  if(del){
+    if(!await uiConfirm('删除这条拿货记录？商品数据不受影响。',{title:'删除记录',danger:true,yes:'删除'}))return;
+    await idbDel('trips',del.dataset.tdel);
+    renderTrips(); toast('已删除','ok');
+    return;
+  }
+  const h=e.target.closest('.trip-h');
+  if(h)h.parentElement.classList.toggle('open');
+});
+$('btnTrips')&&$('btnTrips').addEventListener('click',()=>{renderTrips();$('tripMask').classList.add('show');});
+
+/* ============ 商品的进货地点选择 ============ */
+function renderFLocChips(){
+  const box=$('fLocChips'); if(!box)return;
+  const cur=($('fLoc').value||'').trim();
+  const list=settings.locations||[];
+  box.innerHTML=list.length
+    ? list.map(l=>`<button type="button" class="chip${l===cur?' on':''}" data-floc="${esc(l)}">${esc(l)}</button>`).join('')
+      + (cur&&!list.includes(cur)?`<button type="button" class="chip on" data-floc="${esc(cur)}">${esc(cur)}</button>`:'')
+    : '<span style="font-size:12px;color:var(--ink2)">还没有常用地点，可直接在下面输入，或到 ⚙ 设置里添加</span>';
+}
+$('fLocChips')&&$('fLocChips').addEventListener('click',e=>{
+  const l=e.target.closest('[data-floc]')?.dataset.floc; if(!l)return;
+  $('fLoc').value=($('fLoc').value.trim()===l)?'':l;   // 再点一次取消
+  renderFLocChips(); haptic(6);
+});
+$('fLoc')&&$('fLoc').addEventListener('input',()=>renderFLocChips());
+
+/* ============ 批量设进货地点 ============ */
+async function batchSetLoc(items){
+  const opts=[...(settings.locations||[]),'（清除地点）'];
+  const val=await uiPrompt(`把选中的 ${items.length} 件商品的进货地点设为？`,
+    {title:'批量设进货地点',icon:'📍',options:opts,placeholder:'点选或输入新地点'});
+  if(val===null)return null;
+  return val==='（清除地点）'?'':val;
+}
+
 /* ============ 拿货地点 ============ */
 function locsText(){
   const sel=(settings.pickLocs||[]).slice();
@@ -2246,6 +2480,7 @@ $('selBar').addEventListener('click',async e=>{
   if(a==='cat'){ val=await uiPrompt('把选中的 '+items.length+' 件商品设为哪个类目？',
       {title:'批量改类目',options:settings.categories,placeholder:'点选或输入新类目'}); if(!val)return;
     if(!settings.categories.includes(val)){settings.categories.push(val);await idbPut('settings',settings);} }
+  if(a==='loc'){ const v=await batchSetLoc(items); if(v===null)return; val=v; }
   if(a==='brand'){ val=await uiPrompt('把选中的 '+items.length+' 件商品设为哪个品牌？留空则清除品牌。',
       {title:'批量改品牌',options:settings.brands,placeholder:'点选或输入新品牌'}); if(val===null)return;
     if(val&&!settings.brands.includes(val)){settings.brands.push(val);await idbPut('settings',settings);} }
@@ -2279,6 +2514,7 @@ $('selBar').addEventListener('click',async e=>{
     if(a==='cat')p.category=val;
     if(a==='brand')p.brand=val;
     if(a==='restock')p.restock=(val===''||+val===0)?null:+val;
+    if(a==='loc')p.loc=val||null;
     p.updatedAt=Date.now(); p.history=logChanges(before,p);
     await idbPut('products',p); cloudPushOne(p);
   }
@@ -2516,7 +2752,7 @@ $('btnCopy').addEventListener('click',()=>{
   $('btnDel').style.display='none';
   $('btnCopy').style.display='none';
   $('fModel').value=src.model+'-2';
-  $('fRestock').value='';               // 补货标记不复制
+  $('fRestock').value='';               // 补货标记不复制（地点保留）
   const el=$('fModel'); el.focus(); el.select();
 });
 $('btnSetSave').addEventListener('click',saveSettings);
