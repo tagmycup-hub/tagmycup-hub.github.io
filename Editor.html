@@ -2568,12 +2568,19 @@ async function duplicateProject() {
     await saveWorkspace();                       // 确保当前项目已落盘
     const data = await idbGet(projKey(src));      // 读取源项目完整数据(含所有 blob)
     if (!data) return notify('源项目为空，无法复制', 'err');
-    const copy = JSON.parse(JSON.stringify(data, (k, v) => v)); // 结构深拷贝
-    // blob 不能被 JSON 序列化,单独深拷贝引用(IndexedDB 存的是结构化克隆,引用安全)
-    copy.bases = (data.bases || []).map(b => ({ ...b }));
-    copy.stks = (data.stks || []).map(st => ({ ...st }));
-    copy.logos = { brand: { ...(data.logos && data.logos.brand || {}) }, ip: { ...(data.logos && data.logos.ip || {}) } };
-    copy.ts = Date.now();
+    // 逐字段浅拷贝:保留 Blob 引用(JSON 往返会摧毁 Blob),嵌套对象单独克隆
+    const copy = {
+      v: data.v, ts: Date.now(),
+      bases: (data.bases || []).map(b => ({ ...b, adj: { ...b.adj }, warp: b.warp ? b.warp.slice() : null, manualBody: b.manualBody ? { ...b.manualBody } : null })),
+      stks: (data.stks || []).map(st => ({ ...st, warp: st.warp ? st.warp.slice() : null, crop: st.crop ? { ...st.crop } : null })),
+      logos: {
+        brand: { ...(data.logos && data.logos.brand || {}), warp: data.logos && data.logos.brand && data.logos.brand.warp ? data.logos.brand.warp.slice() : null },
+        ip: { ...(data.logos && data.logos.ip || {}), warp: data.logos && data.logos.ip && data.logos.ip.warp ? data.logos.ip.warp.slice() : null }
+      },
+      init: { ...(data.init || {}) },
+      size: data.size, cw: data.cw, ch: data.ch, dia: data.dia, tpl: data.tpl,
+      exp: data.exp ? { ...data.exp } : collectExportSettings()   // 导出设置一并继承
+    };
     await idbPut(copy, projKey(name));
     projects.push(name); curProj = name; saveProjList();
     resetState();
@@ -2628,6 +2635,33 @@ function idbDel(key) {
 }
 let saveT = null;
 function scheduleSave() { clearTimeout(saveT); saveT = setTimeout(saveWorkspace, 1200); }
+/* 导出区全部设置:随项目保存/复制 */
+const EXP_FIELDS = [
+  ['folder-name', 'v'], ['name-tpl', 'v'], ['fmt-sel', 'v'], ['q-range', 'v'],
+  ['exp-mode', 'v'], ['size-sel', 'v'], ['cw-in', 'v'], ['ch-in', 'v'],
+  ['print-name', 'v'], ['print-dpi', 'v'], ['print-mmw', 'v'], ['print-mmh', 'v'],
+  ['cup-dia', 'v'],
+  ['zip-toggle', 'c'], ['print-toggle', 'c'], ['print-logo', 'c'], ['wb-toggle', 'c']
+];
+function collectExportSettings() {
+  const o = {};
+  EXP_FIELDS.forEach(([id, t]) => {
+    const el = G(id);
+    if (el) o[id] = t === 'c' ? !!el.checked : el.value;
+  });
+  return o;
+}
+function applyExportSettings(o) {
+  if (!o) return;
+  EXP_FIELDS.forEach(([id, t]) => {
+    const el = G(id);
+    if (!el || o[id] === undefined) return;
+    if (t === 'c') el.checked = !!o[id]; else el.value = o[id];
+  });
+  // 同步依赖 UI 状态
+  onZipToggle(); onPrintToggle(); onFmtChange(); onQualityInput();
+  updPrintDim(); onSizeChange(true);
+}
 async function saveWorkspace() {
   try {
     const pickL = k => { const L = S.logos[k]; return { blob: L.blob || null, name: L.name, en: L.en, x: L.x, y: L.y, scale: L.scale, op: L.op, sx: L.sx || 1, sy: L.sy || 1, taper: L.taper || 0, skx: L.skx || 0, sky: L.sky || 0, warp: L.warp ? L.warp.slice() : null, rot: L.rot || 0 }; };
@@ -2637,7 +2671,8 @@ async function saveWorkspace() {
       stks: S.stks.map(st => ({ name: st.name, blob: st.blob, checked: st.checked, x: st.x, y: st.y, scale: st.scale, sx: st.sx, sy: st.sy, rot: st.rot, op: st.op, curve: st.curve || 0, cvv: st.cvv || 0, gloss: st.gloss || 0, glp: st.glp === undefined ? 34 : st.glp, warp: st.warp ? st.warp.slice() : null, taper: st.taper || 0, skx: st.skx || 0, sky: st.sky || 0, crop: st.crop ? { ...st.crop } : null })),
       logos: { brand: pickL('brand'), ip: pickL('ip') },
       init: { ...S.init }, size: G('size-sel').value, cw: +G('cw-in').value, ch: +G('ch-in').value,
-      dia: +G('cup-dia').value, tpl: G('name-tpl').value
+      dia: +G('cup-dia').value, tpl: G('name-tpl').value,
+      exp: collectExportSettings()
     });
     invalidateProjPreview(curProj);
     setStatus(curProj + ' · 已保存 ' + new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }));
@@ -2673,6 +2708,7 @@ async function restoreWorkspace() {
     if (d.init) S.init = { ...S.init, ...d.init };
     if (d.dia) G('cup-dia').value = d.dia;
     if (d.tpl !== undefined) G('name-tpl').value = d.tpl;
+    if (d.exp) applyExportSettings(d.exp);
     if (d.size) { G('size-sel').value = d.size; if (d.cw) G('cw-in').value = d.cw; if (d.ch) G('ch-in').value = d.ch; onSizeChange(true); }
     const n = S.bases.length + S.stks.length;
     if (n) notify(`「${curProj}」已恢复（${S.bases.length} 底图 · ${S.stks.length} 素材）`, 'ok');
@@ -3106,7 +3142,7 @@ async function exportProject() {
       bases: [], stks: [],
       logos: { brand: await pickL('brand'), ip: await pickL('ip') },
       init: { ...S.init },
-      out: { size: G('size-sel').value, cw: +G('cw-in').value, ch: +G('ch-in').value, dia: +G('cup-dia').value, tpl: G('name-tpl').value, folder: G('folder-name').value }
+      out: { size: G('size-sel').value, cw: +G('cw-in').value, ch: +G('ch-in').value, dia: +G('cup-dia').value, tpl: G('name-tpl').value, folder: G('folder-name').value, exp: collectExportSettings() }
     };
     for (const b of S.bases) d.bases.push({ name: b.name, checked: b.checked !== false, manualBody: b.manualBody || null, sx: b.sx || 1, sy: b.sy || 1, taper: b.taper || 0, skx: b.skx || 0, sky: b.sky || 0, warp: b.warp ? b.warp.slice() : null, adj: { ...b.adj }, data: await blobToDataURL(b.blob) });
     for (const st of S.stks) d.stks.push({
@@ -3165,7 +3201,7 @@ async function importProject(input) {
     if (o.dia) G('cup-dia').value = o.dia;
     if (o.tpl !== undefined) G('name-tpl').value = o.tpl;
     if (o.folder !== undefined) G('folder-name').value = o.folder;
-    onSizeChange(true);
+    if (o.exp) applyExportSettings(o.exp); else onSizeChange(true);
     renderProjSel(); refreshAll(); pvFit();
     setProg(true, '完成 ✓', 100);
     notify(`已导入「${name}」（${S.bases.length} 底图 · ${S.stks.length} 素材）`, 'ok');
