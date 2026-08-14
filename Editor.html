@@ -244,15 +244,16 @@ input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.3);}
 <div id="topbar">
   <div class="logo-dot"></div><span class="logo-text">贴图合成器</span>
   <div class="nav-links">
-    <a href="/" class="nav-link" title="进货价格本 · 主页面">💰 进货价格本</a>
+    <a href="/Index" class="nav-link" title="进货价格本 · 主页面">💰 进货价格本</a>
     <a href="/Diagnostic" class="nav-link" title="销量分析">📊 销量分析</a>
   </div>
   <div class="spacer"></div>
   <span id="clip-ind">📋 已复制</span>
   <button id="undo-btn" onclick="undo()" disabled>↩ 撤销</button>
-  <span id="undo-ct"></span><select id="proj-sel" title="切换项目" onchange="onProjSwitch()"></select>
+  <span id="undo-ct"></span><div id="proj-dd"><button id="proj-dd-btn" title="切换项目" onclick="toggleProjDD(event)"><span id="proj-dd-cur">默认项目</span><span class="dd-arr">▾</span></button><div id="proj-dd-menu"></div></div>
   <button id="proj-new" title="新建项目" onclick="newProject()">＋</button>
   <button id="proj-ren" title="重命名当前项目" onclick="renameProject()">✎</button>
+  <button id="proj-dup" title="复制当前项目（含全部素材与底图）" onclick="duplicateProject()">⧉</button>
   <button id="proj-exp" title="导出当前项目为文件（备份/换电脑）" onclick="exportProject()">⤓</button>
   <button id="proj-imp" title="从文件导入项目" onclick="G('proj-file').click()">⤒</button>
   <input type="file" id="proj-file" accept=".json,application/json" style="display:none" onchange="importProject(this)">
@@ -529,9 +530,24 @@ input[type=range].tl::-moz-range-thumb{background:var(--teal);}
 .tg .ti img{transition:transform .15s;}
 .tg .ti:hover img{transform:scale(1.06);}
 #ws-clear,#proj-new,#proj-ren{background:transparent;border:1px solid var(--bd);color:var(--dim);border-radius:var(--r);padding:3px 7px;font-size:12px;cursor:pointer;}
-#proj-new:hover,#proj-ren:hover{color:var(--acc-l);border-color:var(--acc);}
-#proj-sel{background:var(--surf3);color:var(--txt);border:1px solid var(--bd);border-radius:var(--r);padding:3px 6px;font-size:11px;outline:none;max-width:130px;cursor:pointer;}
-#proj-sel:hover{border-color:var(--acc);}
+#proj-new:hover,#proj-ren:hover,#proj-dup:hover{color:var(--acc-l);border-color:var(--acc);}
+#proj-dup{background:transparent;border:1px solid var(--bd);color:var(--dim);border-radius:var(--r);padding:3px 7px;font-size:12px;cursor:pointer;}
+#proj-dd{position:relative;display:inline-block;}
+#proj-dd-btn{display:inline-flex;align-items:center;gap:5px;background:var(--surf3);color:var(--txt);border:1px solid var(--bd);border-radius:var(--r);padding:3px 8px;font-size:11px;cursor:pointer;max-width:150px;}
+#proj-dd-btn:hover{border-color:var(--acc);}
+#proj-dd-cur{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:110px;}
+#proj-dd .dd-arr{font-size:9px;color:var(--dim);flex-shrink:0;}
+#proj-dd-menu{position:absolute;top:calc(100% + 4px);left:0;min-width:200px;max-height:340px;overflow-y:auto;background:var(--surf2);border:1px solid var(--bdhi);border-radius:8px;padding:5px;box-shadow:0 12px 32px rgba(0,0,0,.5);display:none;z-index:250;}
+#proj-dd-menu.on{display:block;}
+.dd-item{display:flex;align-items:center;gap:9px;padding:5px 7px;border-radius:6px;cursor:pointer;transition:background .1s;}
+.dd-item:hover{background:var(--surf3);}
+.dd-item.cur{background:var(--acc-d);}
+.dd-th{width:46px;height:46px;flex-shrink:0;border:1px solid var(--bd);border-radius:5px;overflow:hidden;background:repeating-conic-gradient(#3a3833 0 25%,#2a2825 0 50%) 0 0/10px 10px;display:flex;align-items:center;justify-content:center;}
+.dd-th img{width:100%;height:100%;object-fit:contain;display:block;}
+.dd-th-l{font-size:9px;color:var(--mut);font-family:var(--mono);}
+.dd-nm{flex:1;font-size:12px;color:var(--txt);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.dd-item.cur .dd-nm{color:var(--acc-l);font-weight:500;}
+.dd-chk{color:var(--acc-l);font-size:12px;flex-shrink:0;}
 #ws-clear:hover{color:var(--err);border-color:var(--err);}
 #snap-btn.act{color:var(--acc-l);border-color:var(--acc);background:var(--acc-d);}
 .ov{position:fixed;inset:0;background:rgba(10,9,8,.72);backdrop-filter:blur(3px);display:none;align-items:center;justify-content:center;z-index:200;}
@@ -2465,13 +2481,47 @@ if (!projects.includes(curProj)) curProj = projects[0];
 const projKey = n => 'proj:' + (n || curProj);
 function saveProjList() { store.set('tm_projects', JSON.stringify(projects)); store.set('tm_curproj', curProj); }
 function renderProjSel() {
-  const sel = G('proj-sel');
-  sel.innerHTML = '';
-  projects.forEach(n => {
-    const o = document.createElement('option');
-    o.value = n; o.textContent = n; o.selected = n === curProj;
-    sel.appendChild(o);
+  const cur = G('proj-dd-cur');
+  if (cur) cur.textContent = curProj;
+}
+/* 自定义项目下拉:每项带缩略图预览 */
+function toggleProjDD(e) {
+  if (e) e.stopPropagation();
+  const menu = G('proj-dd-menu');
+  if (menu.classList.contains('on')) return closeProjDD();
+  buildProjMenu();
+  menu.classList.add('on');
+  setTimeout(() => document.addEventListener('click', closeProjDD, { once: true }), 0);
+}
+function closeProjDD() { G('proj-dd-menu').classList.remove('on'); }
+async function buildProjMenu() {
+  const menu = G('proj-dd-menu');
+  menu.innerHTML = '';
+  projects.forEach(name => {
+    const it = document.createElement('div');
+    it.className = 'dd-item' + (name === curProj ? ' cur' : '');
+    it.onclick = ev => { ev.stopPropagation(); closeProjDD(); if (name !== curProj) switchToProj(name); };
+    const th = document.createElement('div'); th.className = 'dd-th'; th.innerHTML = '<span class="dd-th-l">···</span>';
+    it.appendChild(th);
+    const nm = document.createElement('span'); nm.className = 'dd-nm'; nm.textContent = name;
+    it.appendChild(nm);
+    if (name === curProj) { const c = document.createElement('span'); c.className = 'dd-chk'; c.textContent = '✓'; it.appendChild(c); }
+    menu.appendChild(it);
+    // 异步填缩略图
+    projFirstImage(name).then(url => {
+      if (url) th.innerHTML = `<img src="${url}" alt="">`;
+      else th.innerHTML = '<span class="dd-th-l">无图</span>';
+    });
   });
+}
+async function switchToProj(name) {
+  clearTimeout(saveT);
+  await saveWorkspace();
+  curProj = name; saveProjList();
+  resetState();
+  await restoreWorkspace();
+  renderProjSel(); refreshAll(); pvFit();
+  notify('已切换到「' + curProj + '」', 'ok');
 }
 function resetState() {
   S.bases = []; S.stks = []; S.activeBase = -1; S.activeStk = null; S.activeLogo = null;
@@ -2480,17 +2530,7 @@ function resetState() {
   S.crop = null; S.guides = []; undoStack.length = 0; updUndo();
   G('crop-tb').classList.remove('on'); cv.classList.remove('crop');
 }
-async function onProjSwitch() {
-  const next = G('proj-sel').value;
-  if (next === curProj) return;
-  clearTimeout(saveT);
-  await saveWorkspace();          // 先存当前项目
-  curProj = next; saveProjList();
-  resetState();
-  await restoreWorkspace();
-  refreshAll(); pvFit();
-  notify('已切换到「' + curProj + '」', 'ok');
-}
+async function onProjSwitch() { /* 已由自定义下拉 switchToProj 取代 */ }
 async function newProject() {
   const n = (prompt('新建项目名称：', '项目' + (projects.length + 1)) || '').trim();
   if (!n) return;
@@ -2508,8 +2548,55 @@ async function renameProject() {
   const old = curProj;
   try { const d = await idbGet(projKey(old)); if (d) await idbPut(d, projKey(n)); await idbDel(projKey(old)); } catch (e) {}
   projects[projects.indexOf(old)] = n; curProj = n; saveProjList();
+  if (old in prevCache) { prevCache[n] = prevCache[old]; delete prevCache[old]; }
   renderProjSel(); notify('已重命名为「' + n + '」', 'ok');
 }
+function uniqueProjName(base) {
+  let n = base + ' 副本';
+  if (!projects.includes(n)) return n;
+  let i = 2;
+  while (projects.includes(base + ' 副本' + i)) i++;
+  return base + ' 副本' + i;
+}
+async function duplicateProject() {
+  const src = curProj;
+  const name = (prompt('复制项目为：', uniqueProjName(src)) || '').trim();
+  if (!name) return;
+  if (projects.includes(name)) return notify('项目名已存在', 'err');
+  clearTimeout(saveT);
+  try {
+    await saveWorkspace();                       // 确保当前项目已落盘
+    const data = await idbGet(projKey(src));      // 读取源项目完整数据(含所有 blob)
+    if (!data) return notify('源项目为空，无法复制', 'err');
+    const copy = JSON.parse(JSON.stringify(data, (k, v) => v)); // 结构深拷贝
+    // blob 不能被 JSON 序列化,单独深拷贝引用(IndexedDB 存的是结构化克隆,引用安全)
+    copy.bases = (data.bases || []).map(b => ({ ...b }));
+    copy.stks = (data.stks || []).map(st => ({ ...st }));
+    copy.logos = { brand: { ...(data.logos && data.logos.brand || {}) }, ip: { ...(data.logos && data.logos.ip || {}) } };
+    copy.ts = Date.now();
+    await idbPut(copy, projKey(name));
+    projects.push(name); curProj = name; saveProjList();
+    resetState();
+    await restoreWorkspace();
+    renderProjSel(); refreshAll(); pvFit();
+    notify(`已复制为「${name}」（${S.bases.length} 底图 · ${S.stks.length} 素材）`, 'ok');
+  } catch (e) { console.error(e); notify('复制失败', 'err'); }
+}
+/* ---------- 项目预览浮层 ---------- */
+let prevCache = {};   // 项目名 → dataURL(首图) | ''
+async function projFirstImage(name) {
+  if (name in prevCache) return prevCache[name];
+  try {
+    const d = name === curProj ? null : await idbGet(projKey(name));
+    let blob = null;
+    if (name === curProj) blob = (S.bases[0] && S.bases[0].blob) || (S.stks[0] && S.stks[0].blob) || null;
+    else if (d) blob = (d.bases && d.bases[0] && d.bases[0].blob) || (d.stks && d.stks[0] && d.stks[0].blob) || null;
+    const url = blob ? await blobToDataURL(blob) : '';
+    prevCache[name] = url || '';
+    return prevCache[name];
+  } catch (e) { prevCache[name] = ''; return ''; }
+}
+function invalidateProjPreview(name) { if (name) delete prevCache[name]; else prevCache = {}; }
 function idbOpen() {
   return new Promise((res, rej) => {
     if (!window.indexedDB) return rej('no idb');
@@ -2552,6 +2639,7 @@ async function saveWorkspace() {
       init: { ...S.init }, size: G('size-sel').value, cw: +G('cw-in').value, ch: +G('ch-in').value,
       dia: +G('cup-dia').value, tpl: G('name-tpl').value
     });
+    invalidateProjPreview(curProj);
     setStatus(curProj + ' · 已保存 ' + new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }));
   } catch (e) { /* 无痕/受限环境静默跳过 */ }
 }
@@ -2596,6 +2684,7 @@ async function clearWorkspaceCache() {
   try {
     clearTimeout(saveT);
     await idbDel();
+    invalidateProjPreview(curProj);
     if (projects.length > 1) {
       projects.splice(projects.indexOf(curProj), 1);
       curProj = projects[0]; saveProjList();
