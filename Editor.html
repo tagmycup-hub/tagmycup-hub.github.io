@@ -250,7 +250,7 @@ input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.3);}
   <div class="spacer"></div>
   <span id="clip-ind">📋 已复制</span>
   <button id="undo-btn" onclick="undo()" disabled>↩ 撤销</button>
-  <span id="undo-ct"></span><div id="proj-dd"><button id="proj-dd-btn" title="切换项目" onclick="toggleProjDD(event)"><span id="proj-dd-cur">默认项目</span><span class="dd-arr">▾</span></button><div id="proj-dd-menu"></div></div>
+  <span id="undo-ct"></span><div id="proj-dd"><button id="proj-dd-btn" title="切换项目" onclick="toggleProjDD(event)"><span id="proj-dd-cur">默认项目</span><span id="proj-dd-tag" style="display:none"></span><span class="dd-arr">▾</span></button><div id="proj-dd-menu"></div></div>
   <button id="proj-new" title="新建项目" onclick="newProject()">＋</button>
   <button id="proj-ren" title="重命名当前项目" onclick="renameProject()">✎</button>
   <button id="proj-dup" title="复制当前项目（含全部素材与底图）" onclick="duplicateProject()">⧉</button>
@@ -439,6 +439,7 @@ input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.3);}
   <div id="exp-zone">
     <div id="exp-desc">—</div>
     <div class="folder-row"><span class="fl-lbl">🖼️</span><select id="fmt-sel" onchange="onFmtChange()" style="width:110px;background:var(--surf3);color:var(--txt);border:1px solid var(--bd);border-radius:var(--r);padding:5px 8px;font-size:12px;outline:none;flex-shrink:0"><option value="png">PNG 无损</option><option value="jpg">JPG 小体积</option><option value="webp">WebP</option></select><input type="range" id="q-range" class="tl" min="50" max="100" value="85" oninput="onQualityInput()" style="flex:1;display:none"><span id="q-val" style="font-size:10px;font-family:var(--mono);color:var(--dim);width:34px;text-align:right;display:none">85%</span></div>
+    <div class="zip-row"><label class="tog" style="flex-shrink:0"><input type="checkbox" id="cap-toggle" checked onchange="onCapChange()"><span class="sl"></span></label><span class="zip-lbl on" id="cap-lbl" onclick="G('cap-toggle').click()">限制单文件大小</span><input type="number" id="cap-mb" value="2" min="0.1" max="50" step="0.1" style="width:52px" onchange="onCapChange()"><span style="font-size:10px;color:var(--mut);flex-shrink:0">MB</span></div>
     <div class="zip-row"><label class="tog" style="flex-shrink:0"><input type="checkbox" id="wb-toggle" onchange="onWbChange()"><span class="sl"></span></label><span class="zip-lbl" id="wb-lbl" onclick="G('wb-toggle').click()">白底填充（透明区填纯白）</span><span id="wb-forced" style="display:none;font-size:10px;color:var(--warm);flex-shrink:0">JPG 强制</span></div>
     <div id="bg-warn" style="display:none;font-size:11px;color:var(--warm);background:rgba(217,119,6,.08);border:1px solid rgba(217,119,6,.3);border-radius:var(--r);padding:6px 8px;margin-bottom:6px;line-height:1.5"></div>
     <div class="folder-row"><span class="fl-lbl">🧩</span><select id="exp-mode" onchange="updExpDesc()" style="flex:1;background:var(--surf3);color:var(--txt);border:1px solid var(--bd);border-radius:var(--r);padding:5px 8px;font-size:12px;outline:none"><option value="comp">组合导出 — 当前布局 × 每张底图</option><option value="matrix">矩阵导出 — 每个素材 × 每张底图</option></select></div>
@@ -505,6 +506,16 @@ input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.3);}
   <div style="font-size:11px;color:var(--dim);margin-top:10px;line-height:1.6">留空则用默认命名。示例：<br><span style="font-family:var(--mono);color:var(--acc-l)">{日期}_{底图}_{素材}_{序号}</span><br>→ 20260728_保温杯_Pochacco_001.png</div>
   <div class="mbtns"><button class="bp" onclick="closeTpl()">知道了</button></div>
 </div></div>
+<div id="tag-ov" class="ov"><div class="ov-card">
+  <div class="ov-t">🏷 项目分类 <span id="tag-proj" style="font-size:11px;color:var(--dim);font-weight:400"></span></div>
+  <div style="font-size:11px;color:var(--dim);margin-bottom:6px">已选标签（点击移除）</div>
+  <div id="tag-cur" class="tag-box"></div>
+  <div style="font-size:11px;color:var(--dim);margin:10px 0 6px">常用分类（点击添加）</div>
+  <div id="tag-presets" class="tag-box"></div>
+  <div style="font-size:11px;color:var(--dim);margin:10px 0 6px">自定义</div>
+  <div style="display:flex;gap:6px"><input type="text" id="tag-input" placeholder="输入标签后回车" maxlength="16" style="flex:1;background:var(--surf3);color:var(--txt);border:1px solid var(--bd);border-radius:var(--r);padding:6px 9px;font-size:12px;outline:none"><button class="bi" onclick="addTagFromInput()">添加</button></div>
+  <div class="mbtns"><button class="bg" onclick="closeTagEditor()">取消</button><button class="bp" onclick="saveTagEditor()">保存</button></div>
+</div></div>
 <div id="pick-tip"><span>🥤 拖出杯身可印区域</span><button class="bg" onclick="cancelBodyPick()">取消</button></div>
 <div id="notif"></div>
 <style>
@@ -548,6 +559,33 @@ input[type=range].tl::-moz-range-thumb{background:var(--teal);}
 .dd-nm{flex:1;font-size:12px;color:var(--txt);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .dd-item.cur .dd-nm{color:var(--acc-l);font-weight:500;}
 .dd-chk{color:var(--acc-l);font-size:12px;flex-shrink:0;}
+.dd-info{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px;}
+.dd-tl{display:flex;flex-wrap:wrap;gap:3px;}
+.dd-tl-i{font-size:9px;padding:1px 5px;border-radius:6px;background:var(--surf);border:1px solid var(--bd);color:var(--dim);white-space:nowrap;}
+.dd-item.cur .dd-tl-i{border-color:var(--acc);color:var(--acc-l);}
+.dd-tagbtn{background:transparent;border:1px solid var(--bd);color:var(--dim);font-size:11px;cursor:pointer;padding:3px 6px;border-radius:5px;flex-shrink:0;transition:all .12s;}
+.dd-item:hover .dd-tagbtn{border-color:var(--acc);color:var(--acc-l);}
+.dd-tagbtn:hover{color:var(--acc-l);background:var(--surf);}
+.dd-tagbar{display:flex;flex-wrap:wrap;align-items:center;gap:4px;padding:4px 5px 7px;margin-bottom:4px;border-bottom:1px solid var(--bd);}
+.dd-tagtip{font-size:10px;color:var(--mut);line-height:1.4;}
+.tag-box{display:flex;flex-wrap:wrap;gap:5px;min-height:28px;padding:6px;background:var(--surf3);border:1px solid var(--bd);border-radius:6px;}
+.tag-b{font-size:11px;padding:3px 9px;border-radius:11px;border:1px solid var(--bd);background:var(--surf2);color:var(--dim);cursor:pointer;white-space:nowrap;transition:all .12s;}
+.tag-b:hover{border-color:var(--acc);color:var(--acc-l);}
+.tag-b.sel{background:var(--acc);border-color:var(--acc);color:#fff;}
+.tag-b.sel:hover{background:var(--err);border-color:var(--err);}
+.tag-empty{font-size:10px;color:var(--mut);padding:3px;}
+.dd-tag{font-size:10px;padding:2px 8px;border-radius:10px;background:var(--surf3);border:1px solid var(--bd);color:var(--dim);cursor:pointer;white-space:nowrap;}
+.dd-tag:hover{border-color:var(--acc);color:var(--acc-l);}
+.dd-tag.on{background:var(--acc);border-color:var(--acc);color:#fff;}
+.dd-none{padding:14px 8px;text-align:center;font-size:11px;color:var(--mut);}
+.dd-search{padding:2px 5px 6px;}
+.dd-search input{width:100%;background:var(--surf3);color:var(--txt);border:1px solid var(--bd);border-radius:6px;padding:5px 8px;font-size:11px;outline:none;box-sizing:border-box;}
+.dd-search input:focus{border-color:var(--acc);}
+.dd-list{max-height:250px;overflow-y:auto;}
+#proj-dd-tag{font-size:9px;padding:1px 5px;border-radius:6px;background:var(--acc-d);border:1px solid var(--acc);color:var(--acc-l);flex-shrink:0;max-width:60px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.zip-row input[type=number]{background:var(--surf3);color:var(--txt);border:1px solid var(--bd);border-radius:var(--r);padding:3px 5px;font-size:11px;font-family:var(--mono);outline:none;flex-shrink:0;}
+.zip-row input[type=number]:disabled{opacity:.4;}
+.zip-row input[type=number]:focus{border-color:var(--acc);}
 #ws-clear:hover{color:var(--err);border-color:var(--err);}
 #snap-btn.act{color:var(--acc-l);border-color:var(--acc);background:var(--acc-d);}
 .ov{position:fixed;inset:0;background:rgba(10,9,8,.72);backdrop-filter:blur(3px);display:none;align-items:center;justify-content:center;z-index:200;}
@@ -2251,6 +2289,7 @@ window.addEventListener('keydown', e => {
     if (G('ep-ov').classList.contains('on')) return closeEp();
     if (G('gal-ov').classList.contains('on')) return closeGallery();
     if (G('tpl-ov').classList.contains('on')) return closeTpl();
+    if (G('tag-ov').classList.contains('on')) return closeTagEditor();
     if (S.pickBody) return cancelBodyPick();
     if (S.warpMode) { S.warpMode = false; G('warp-btn').classList.remove('act'); renderCanvas(); return; }
     if (S.crop) exitCropMode(); else { S.activeStk = null; S.activeLogo = null; refreshAll(); }
@@ -2480,15 +2519,95 @@ curProj = store.get('tm_curproj') || projects[0];
 if (!projects.includes(curProj)) curProj = projects[0];
 const projKey = n => 'proj:' + (n || curProj);
 function saveProjList() { store.set('tm_projects', JSON.stringify(projects)); store.set('tm_curproj', curProj); }
+/* ---------- 项目分类（标签）---------- */
+let projTags = {};      // 项目名 → [标签…]
+let tagFilter = '';     // 当前筛选标签('' = 全部)
+let projSearch = '';    // 项目搜索关键词
+try { projTags = JSON.parse(store.get('tm_projtags') || '{}'); } catch (e) { projTags = {}; }
+const PRESET_TAGS = ['500ml', '750ml', '1L', '白色', '黑色', '粉色', '保温杯', '运动水壶', '马克杯'];
+function saveProjTags() { store.set('tm_projtags', JSON.stringify(projTags)); }
+function tagsOf(n) { return projTags[n] || []; }
+function allTags() {
+  const set = new Set();
+  Object.values(projTags).forEach(list => (list || []).forEach(t => set.add(t)));
+  return [...set].sort((a, b) => a.localeCompare(b, 'zh'));
+}
+function setProjTags(name, list) {
+  const clean = [...new Set(list.map(t => t.trim()).filter(Boolean))].slice(0, 8);
+  if (clean.length) projTags[name] = clean; else delete projTags[name];
+  saveProjTags();
+}
+let tagEditTarget = '', tagEditList = [];
+function editProjTags(name) {
+  tagEditTarget = name;
+  tagEditList = tagsOf(name).slice();
+  G('tag-proj').textContent = '「' + name + '」';
+  G('tag-input').value = '';
+  renderTagEditor();
+  G('tag-ov').classList.add('on');
+  setTimeout(() => G('tag-input').focus(), 60);
+}
+function renderTagEditor() {
+  const cur = G('tag-cur');
+  cur.innerHTML = '';
+  if (!tagEditList.length) {
+    const e = document.createElement('span'); e.className = 'tag-empty'; e.textContent = '暂无标签';
+    cur.appendChild(e);
+  }
+  tagEditList.forEach(t => {
+    const b = document.createElement('button');
+    b.className = 'tag-b sel'; b.textContent = t + ' ✕';
+    b.title = '点击移除';
+    b.onclick = () => { tagEditList = tagEditList.filter(x => x !== t); renderTagEditor(); };
+    cur.appendChild(b);
+  });
+  // 常用 + 其他项目已用过的标签
+  const pool = [...new Set([...PRESET_TAGS, ...allTags()])];
+  const ps = G('tag-presets');
+  ps.innerHTML = '';
+  pool.filter(t => !tagEditList.includes(t)).forEach(t => {
+    const b = document.createElement('button');
+    b.className = 'tag-b'; b.textContent = '+ ' + t;
+    b.onclick = () => { if (tagEditList.length < 8) { tagEditList.push(t); renderTagEditor(); } else notify('最多 8 个标签', 'err'); };
+    ps.appendChild(b);
+  });
+  if (!ps.children.length) { const e = document.createElement('span'); e.className = 'tag-empty'; e.textContent = '已全部添加'; ps.appendChild(e); }
+}
+function addTagFromInput() {
+  const v = G('tag-input').value.trim();
+  if (!v) return;
+  if (tagEditList.includes(v)) { G('tag-input').value = ''; return; }
+  if (tagEditList.length >= 8) return notify('最多 8 个标签', 'err');
+  tagEditList.push(v); G('tag-input').value = '';
+  renderTagEditor();
+}
+function closeTagEditor() { G('tag-ov').classList.remove('on'); }
+function saveTagEditor() {
+  setProjTags(tagEditTarget, tagEditList);
+  closeTagEditor();
+  buildProjMenu(); renderProjSel();
+  notify(tagsOf(tagEditTarget).length ? '分类已更新：' + tagsOf(tagEditTarget).join(' · ') : '已清除分类', 'ok');
+}
+function filteredProjects() {
+  if (!tagFilter) return projects;
+  return projects.filter(n => tagsOf(n).includes(tagFilter));
+}
 function renderProjSel() {
   const cur = G('proj-dd-cur');
   if (cur) cur.textContent = curProj;
+  const tg = G('proj-dd-tag');
+  if (tg) {
+    const t = tagsOf(curProj);
+    tg.textContent = t.length ? t[0] : '';
+    tg.style.display = t.length ? '' : 'none';
+  }
 }
 /* 自定义项目下拉:每项带缩略图预览 */
 function toggleProjDD(e) {
   if (e) e.stopPropagation();
   const menu = G('proj-dd-menu');
   if (menu.classList.contains('on')) return closeProjDD();
+  projSearch = '';
   buildProjMenu();
   menu.classList.add('on');
   setTimeout(() => document.addEventListener('click', closeProjDD, { once: true }), 0);
@@ -2497,22 +2616,74 @@ function closeProjDD() { G('proj-dd-menu').classList.remove('on'); }
 async function buildProjMenu() {
   const menu = G('proj-dd-menu');
   menu.innerHTML = '';
-  projects.forEach(name => {
+  // 分类筛选条(始终显示;无标签时给出引导)
+  const tags = allTags();
+  const bar = document.createElement('div'); bar.className = 'dd-tagbar';
+  if (tags.length) {
+    const mk = (label, val) => {
+      const c = document.createElement('button');
+      c.className = 'dd-tag' + (tagFilter === val ? ' on' : '');
+      c.textContent = label;
+      c.onclick = ev => { ev.stopPropagation(); tagFilter = tagFilter === val ? '' : val; buildProjMenu(); };
+      return c;
+    };
+    bar.appendChild(mk('全部', ''));
+    tags.forEach(t => bar.appendChild(mk(t, t)));
+  } else {
+    const tip = document.createElement('span'); tip.className = 'dd-tagtip';
+    tip.textContent = '点右侧 🏷 给项目分类（容量 / 颜色 / 杯型）';
+    bar.appendChild(tip);
+  }
+  menu.appendChild(bar);
+  // 搜索框(项目 >6 个时显示)
+  if (projects.length > 6) {
+    const sb = document.createElement('div'); sb.className = 'dd-search';
+    const inp = document.createElement('input');
+    inp.type = 'text'; inp.placeholder = '搜索项目…'; inp.value = projSearch;
+    inp.onclick = ev => ev.stopPropagation();
+    inp.oninput = () => { projSearch = inp.value; renderProjItems(); };
+    sb.appendChild(inp);
+    menu.appendChild(sb);
+  }
+  const holder = document.createElement('div'); holder.className = 'dd-list';
+  menu.appendChild(holder);
+  renderProjItems();
+  function renderProjItems() {
+  holder.innerHTML = '';
+  const kw = projSearch.trim().toLowerCase();
+  const list = filteredProjects().filter(n => !kw || n.toLowerCase().includes(kw) || tagsOf(n).some(t => t.toLowerCase().includes(kw)));
+  if (!list.length) {
+    const e = document.createElement('div'); e.className = 'dd-none';
+    e.textContent = kw ? '没有匹配的项目' : '该分类下暂无项目';
+    holder.appendChild(e);
+  }
+  list.forEach(name => {
     const it = document.createElement('div');
     it.className = 'dd-item' + (name === curProj ? ' cur' : '');
     it.onclick = ev => { ev.stopPropagation(); closeProjDD(); if (name !== curProj) switchToProj(name); };
     const th = document.createElement('div'); th.className = 'dd-th'; th.innerHTML = '<span class="dd-th-l">···</span>';
     it.appendChild(th);
+    const box = document.createElement('div'); box.className = 'dd-info';
     const nm = document.createElement('span'); nm.className = 'dd-nm'; nm.textContent = name;
-    it.appendChild(nm);
+    box.appendChild(nm);
+    const tl = tagsOf(name);
+    if (tl.length) {
+      const tw = document.createElement('div'); tw.className = 'dd-tl';
+      tl.forEach(t => { const b = document.createElement('span'); b.className = 'dd-tl-i'; b.textContent = t; tw.appendChild(b); });
+      box.appendChild(tw);
+    }
+    it.appendChild(box);
+    const tg = document.createElement('button'); tg.className = 'dd-tagbtn'; tg.textContent = '🏷'; tg.title = '编辑分类标签';
+    tg.onclick = ev => { ev.stopPropagation(); editProjTags(name); };
+    it.appendChild(tg);
     if (name === curProj) { const c = document.createElement('span'); c.className = 'dd-chk'; c.textContent = '✓'; it.appendChild(c); }
-    menu.appendChild(it);
-    // 异步填缩略图
+    holder.appendChild(it);
     projFirstImage(name).then(url => {
       if (url) th.innerHTML = `<img src="${url}" alt="">`;
       else th.innerHTML = '<span class="dd-th-l">无图</span>';
     });
   });
+  }
 }
 async function switchToProj(name) {
   clearTimeout(saveT);
@@ -2549,6 +2720,7 @@ async function renameProject() {
   try { const d = await idbGet(projKey(old)); if (d) await idbPut(d, projKey(n)); await idbDel(projKey(old)); } catch (e) {}
   projects[projects.indexOf(old)] = n; curProj = n; saveProjList();
   if (old in prevCache) { prevCache[n] = prevCache[old]; delete prevCache[old]; }
+  if (tagsOf(old).length) { projTags[n] = projTags[old]; delete projTags[old]; saveProjTags(); }
   renderProjSel(); notify('已重命名为「' + n + '」', 'ok');
 }
 function uniqueProjName(base) {
@@ -2583,6 +2755,7 @@ async function duplicateProject() {
     };
     await idbPut(copy, projKey(name));
     projects.push(name); curProj = name; saveProjList();
+    if (tagsOf(src).length) setProjTags(name, tagsOf(src).slice()); // 标签一并继承
     resetState();
     await restoreWorkspace();
     renderProjSel(); refreshAll(); pvFit();
@@ -2640,8 +2813,8 @@ const EXP_FIELDS = [
   ['folder-name', 'v'], ['name-tpl', 'v'], ['fmt-sel', 'v'], ['q-range', 'v'],
   ['exp-mode', 'v'], ['size-sel', 'v'], ['cw-in', 'v'], ['ch-in', 'v'],
   ['print-name', 'v'], ['print-dpi', 'v'], ['print-mmw', 'v'], ['print-mmh', 'v'],
-  ['cup-dia', 'v'],
-  ['zip-toggle', 'c'], ['print-toggle', 'c'], ['print-logo', 'c'], ['wb-toggle', 'c']
+  ['cup-dia', 'v'], ['cap-mb', 'v'],
+  ['zip-toggle', 'c'], ['print-toggle', 'c'], ['print-logo', 'c'], ['wb-toggle', 'c'], ['cap-toggle', 'c']
 ];
 function collectExportSettings() {
   const o = {};
@@ -2659,7 +2832,7 @@ function applyExportSettings(o) {
     if (t === 'c') el.checked = !!o[id]; else el.value = o[id];
   });
   // 同步依赖 UI 状态
-  onZipToggle(); onPrintToggle(); onFmtChange(); onQualityInput();
+  onZipToggle(); onPrintToggle(); onFmtChange(); onQualityInput(); onCapChange();
   updPrintDim(); onSizeChange(true);
 }
 async function saveWorkspace() {
@@ -2722,6 +2895,7 @@ async function clearWorkspaceCache() {
     await idbDel();
     invalidateProjPreview(curProj);
     if (projects.length > 1) {
+      delete projTags[curProj]; saveProjTags();
       projects.splice(projects.indexOf(curProj), 1);
       curProj = projects[0]; saveProjList();
       resetState(); renderProjSel();
@@ -2834,6 +3008,8 @@ function updExpDesc() {
       ? `矩阵：${nb} 底图 × ${ns} 素材 → ${total} 张 PNG${wp ? ` + ${ns} 印花` : ''}`
       : `${nb} 底图 × ${ns} 素材${logos ? ' + ' + logos + ' Logo' : ''} → ${nb} 张 PNG${wp ? ' + 印花' : ''}`)
     : (wp ? '— 仅导出印花 PNG（透明底）' : '— 请先上传底图');
+  const cp = capBytes();
+  if (cp) G('exp-desc').textContent += ` · ≤${(cp / 1048576).toFixed(1)}MB/张`;
   const canGo = (nb || wp) && !exporting;
   G('btn-exp').disabled = !canGo;
   G('btn-folder').disabled = !canGo || !window.showDirectoryPicker;
@@ -2927,6 +3103,54 @@ function expFmt() {
   return f === 'jpg' ? { ext: 'jpg', mime: 'image/jpeg' } : f === 'webp' ? { ext: 'webp', mime: 'image/webp' } : { ext: 'png', mime: 'image/png' };
 }
 function expQuality() { return clamp(+G('q-range').value || 85, 50, 100) / 100; }
+function capBytes() {
+  if (!G('cap-toggle').checked) return 0;
+  const mb = clamp(+G('cap-mb').value || 2, 0.1, 50);
+  return Math.round(mb * 1024 * 1024);
+}
+function fmtSize(b) { return b >= 1048576 ? (b / 1048576).toFixed(2) + 'MB' : Math.round(b / 1024) + 'KB'; }
+/* 缩放画布到指定比例 */
+function scaleCanvas(src, k) {
+  const w = Math.max(1, Math.round(src.width * k)), h = Math.max(1, Math.round(src.height * k));
+  const off = document.createElement('canvas');
+  off.width = w; off.height = h;
+  const x = off.getContext('2d');
+  x.imageSmoothingEnabled = true; x.imageSmoothingQuality = 'high';
+  x.drawImage(src, 0, 0, w, h);
+  return off;
+}
+/* 在大小上限内导出:先降质量,不够再降分辨率。PNG 无质量参数,直接降分辨率。
+   返回 { blob, note } —— note 说明为达标做了什么 */
+async function blobUnderCap(canvas, mime, q0, cap, keepPng) {
+  let blob = await canvasBlob(canvas, mime, q0);
+  if (!cap || blob.size <= cap) return { blob, note: '' };
+  const isPng = mime === 'image/png';
+  // 1) 有损格式:降质量,但不低于 65%(商品图画质底线)
+  if (!isPng) {
+    for (const q of [0.85, 0.78, 0.72, 0.65]) {
+      if (q >= q0) continue;
+      blob = await canvasBlob(canvas, mime, q);
+      if (blob.size <= cap) return { blob, note: `质量降至${Math.round(q * 100)}%` };
+    }
+  }
+  // 2) 仍超标 → 保持可接受画质,改为逐级缩小分辨率
+  const qFloor = isPng ? undefined : 0.72;
+  let k = 1;
+  for (let i = 0; i < 8; i++) {
+    k *= 0.82;
+    const sc = scaleCanvas(canvas, k);
+    blob = await canvasBlob(sc, mime, qFloor);
+    if (blob.size <= cap) {
+      return { blob, note: `缩至${Math.round(k * 100)}%尺寸(${sc.width}×${sc.height})` };
+    }
+  }
+  // 3) 极端情况:非 PNG 允许再压质量到底
+  if (!isPng) {
+    const sc = scaleCanvas(canvas, k);
+    blob = await canvasBlob(sc, mime, 0.6);
+  }
+  return { blob, note: '已压至最小' };
+}
 function whiteBgOn() { return G('wb-toggle').checked || G('fmt-sel').value === 'jpg'; }
 function onFmtChange() {
   const f = G('fmt-sel').value, showQ = f !== 'png', jpg = f === 'jpg';
@@ -2938,6 +3162,12 @@ function onFmtChange() {
   renderCanvas(); updExpDesc(); scheduleSave();
 }
 function onQualityInput() { G('q-val').textContent = G('q-range').value + '%'; }
+function onCapChange() {
+  const on = G('cap-toggle').checked;
+  G('cap-lbl').classList.toggle('on', on);
+  G('cap-mb').disabled = !on;
+  updExpDesc(); scheduleSave();
+}
 function onWbChange() {
   G('wb-lbl').classList.toggle('on', whiteBgOn());
   renderCanvas(); scheduleSave();
@@ -3011,8 +3241,9 @@ async function runExport(sink) { // sink: {zip} | {dir} | null(逐个下载)
   if (!total) return;
   exporting = true; exportCancel = false;
   updExpDesc(); setProg(true, '正在导出…', 0); setStatus('导出中');
-  const fmt = expFmt(), q = expQuality();
-  let done = 0;
+  const fmt = expFmt(), q = expQuality(), cap = capBytes();
+  let done = 0, totalBytes = 0;
+  const shrunk = [];
   const put = async (name, blob) => {
     if (sink && sink.zip) sink.zip.file(name, blob);
     else if (sink && sink.dir) {
@@ -3033,14 +3264,26 @@ async function runExport(sink) { // sink: {zip} | {dir} | null(逐个下载)
       await new Promise(r => setTimeout(r, 16));
       const c = j.render();
       if (done === 0) bgWarnCheck(c);
-      await put(j.name, await canvasBlob(c, fmt.mime, q));
+      const r1 = await blobUnderCap(c, fmt.mime, q, cap, false);
+      if (r1.note) shrunk.push(j.name + '（' + r1.note + '）');
+      totalBytes += r1.blob.size;
+      await put(j.name, r1.blob);
       done++;
     }
     for (const st of printJobs) {
       if (exportCancel) throw 'cancel';
       setProg(true, `印花 ${done + 1}/${total}` + (st ? '：' + st.name : ''), done / total * 100);
       await new Promise(r => setTimeout(r, 16));
-      await put(printFileName(st), await renderPrintBlob(st));
+      const pb = await renderPrintBlob(st);
+      let pblob = pb;
+      if (cap && pb.size > cap) {
+        const pc = renderPrintCanvas(st);
+        const r2 = await blobUnderCap(pc, 'image/png', 1, cap, true);
+        pblob = await pngSetDpi(r2.blob, printDims().dpi);
+        if (r2.note) shrunk.push(printFileName(st) + '（' + r2.note + '）');
+      }
+      totalBytes += pblob.size;
+      await put(printFileName(st), pblob);
       done++;
     }
     if (sink && sink.zip) {
@@ -3053,7 +3296,9 @@ async function runExport(sink) { // sink: {zip} | {dir} | null(逐个下载)
       setTimeout(() => URL.revokeObjectURL(a.href), 4000);
     }
     setProg(true, '完成 ✓', 100);
-    notify(`已导出 ${total} 个文件`, 'ok'); setStatus('就绪');
+    notify(`已导出 ${total} 个文件 · 共 ${fmtSize(totalBytes)}` + (shrunk.length ? ` · ${shrunk.length} 个已压缩` : ''), 'ok');
+    if (shrunk.length) console.info('为满足大小上限已压缩：\n' + shrunk.join('\n'));
+    setStatus('就绪');
   } catch (e) {
     if (e === 'cancel') { notify('已取消导出'); setStatus('就绪'); }
     else { console.error(e); notify('导出出错', 'err'); setStatus('出错'); }
@@ -3231,7 +3476,7 @@ async function gateExport(run) {
   if (!jobs.length && !prints.length) return;
   epRun = run;
   G('ep-skip-cb').checked = false;
-  G('ep-count').textContent = `共 ${jobs.length + prints.length} 个文件`;
+  G('ep-count').textContent = `共 ${jobs.length + prints.length} 个文件` + (capBytes() ? ` · 单张 ≤${(capBytes() / 1048576).toFixed(1)}MB` : '');
   const grid = G('ep-grid');
   grid.innerHTML = '';
   G('ep-ov').classList.add('on');
@@ -3264,6 +3509,11 @@ G('ep-ov').addEventListener('click', e => { if (e.target === G('ep-ov')) closeEp
 G('kb-ov').addEventListener('click', e => { if (e.target === G('kb-ov')) closeKb(); });
 G('gal-ov').addEventListener('click', e => { if (e.target === G('gal-ov')) closeGallery(); });
 G('tpl-ov').addEventListener('click', e => { if (e.target === G('tpl-ov')) closeTpl(); });
+G('tag-ov').addEventListener('click', e => { if (e.target === G('tag-ov')) closeTagEditor(); });
+G('tag-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') { e.preventDefault(); addTagFromInput(); }
+  if (e.key === 'Escape') { e.preventDefault(); closeTagEditor(); }
+});
 async function exportAll() { gateExport(doExportAll); }
 async function exportToFolder() { gateExport(doExportToFolder); }
 
@@ -3284,6 +3534,7 @@ G('modal-bg').addEventListener('click', e => { if (e.target === G('modal-bg')) c
   renderPresetChips();
   onZipToggle();
   onPrintToggle();
+  onCapChange();
   updPrintDim();
   onFmtChange();
   onQualityInput();
