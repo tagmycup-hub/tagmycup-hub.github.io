@@ -1,9 +1,10 @@
 /* 进货价格本 · 离线缓存 */
-const CACHE='pricebook-v1';
+const CACHE='pricebook-84b25630';
 const ASSETS=['./','./index.html','./manifest.webmanifest'];
 
 self.addEventListener('install',e=>{
-  self.skipWaiting();
+  // 首次安装（无控制者）直接激活；已有旧版时等页面确认再激活
+  if(!self.registration.active) self.skipWaiting();
   e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS).catch(()=>{})));
 });
 self.addEventListener('activate',e=>{
@@ -29,4 +30,9 @@ self.addEventListener('fetch',e=>{
   e.respondWith(caches.match(req).then(r=>r||fetch(req).then(res=>{
     const cp=res.clone();caches.open(CACHE).then(c=>c.put(req,cp));return res;
   }).catch(()=>r)));
+});
+
+// 收到页面指令：立刻激活新版本
+self.addEventListener('message',e=>{
+  if(e.data && e.data.type==='SKIP_WAITING') self.skipWaiting();
 });
