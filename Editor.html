@@ -260,6 +260,8 @@ input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.3);}
   <button id="ws-clear" title="删除当前项目缓存" onclick="clearWorkspaceCache()">🧹</button><span id="status">就绪</span>
 </div>
 <div id="app">
+<div id="tg-left" class="pane-tg" title="点击收起/展开 · 拖动调整宽度（[）"><span class="pt-a">‹</span><span class="pt-g">⋮</span></div>
+<div id="tg-right" class="pane-tg" title="点击收起/展开 · 拖动调整宽度（]）"><span class="pt-a">›</span><span class="pt-g">⋮</span></div>
 <div id="left">
   <div id="preset-bar">
     <div class="pb-r1"><span class="pb-lbl">模式</span><div id="preset-chips"></div><button class="pchip pchip-add" onclick="openNewPresetModal()">＋</button></div>
@@ -268,7 +270,8 @@ input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.3);}
   <div class="ps">
     <div class="usec" id="drop-base">
       <div class="uh"><span class="ut">底图</span><span class="tag cnt" id="base-cnt">0</span><button class="bd2 ok" onclick="selectAllBases()">全选</button><button class="bd2" onclick="startBodyPick()" title="手动框选杯身可印区域">🥤框选</button><button class="bd2" onclick="clearManualBody()" title="恢复自动识别">↺</button><button class="bd2" onclick="clearBases()">清空</button></div>
-      <div class="ub"><div class="br"><button class="bp" onclick="G('inp-base').click()">＋ 上传底图</button><input type="file" id="inp-base" accept="image/*" multiple hidden onchange="loadFiles('base',this)"></div><div class="tg" id="base-grid"><div class="emp" id="base-empty">PNG·JPG·批量·拖拽</div></div></div>
+      <div class="ub"><div class="br"><button class="bp" onclick="G('inp-base').click()">＋ 上传底图</button><input type="file" id="inp-base" accept="image/*" multiple hidden onchange="loadFiles('base',this)"></div><div class="tg" id="base-grid"><div class="emp" id="base-empty">上传底图 · 自动进库 · 全项目共享</div></div>
+</div>
     </div>
     <div class="usec" id="drop-stk">
       <div class="uh"><span class="ut">素材</span><span class="tag cnt" id="stk-cnt">0</span><button class="bd2 ok" onclick="selectAllStickers()">全选</button><button class="bd2" onclick="clearStickers()">清空</button><button class="bi" id="grp-btn" onclick="toggleGroupMode()">编组</button></div>
@@ -276,19 +279,37 @@ input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.3);}
         <div class="br"><button class="bp" onclick="G('inp-stk').click()">＋ 上传素材</button><input type="file" id="inp-stk" accept="image/*" multiple hidden onchange="loadFiles('sticker',this)"></div>
         <div id="grp-banner"><span>⬡ 编组</span><span id="grp-ct" style="color:var(--acc-l);margin:0 4px">0</span><span>个 · 同步操作</span></div>
         <div style="font-size:10px;color:var(--mut);font-family:var(--mono);margin-bottom:6px;line-height:1.8">☑ 勾选 = 一起合成输出<br>双击 = 进入裁切编辑模式</div>
-        <div class="tg" id="stk-grid"><div class="emp" id="stk-empty">透明底 PNG · 拖拽上传</div></div>
+        <div class="tg" id="stk-grid"><div class="emp" id="stk-empty">上传透明底 PNG · 自动进库</div></div>
+
       </div>
     </div>
-    <div class="usec" id="drop-brand">
-      <div class="uh"><span class="ut">品牌 Logo</span><span class="tag warm">L</span><button class="bd2" onclick="clearLogo('brand')">清空</button></div>
-      <div class="ub"><div class="br"><button class="bp" onclick="G('inp-brand').click()">＋ 上传</button><input type="file" id="inp-brand" accept="image/*" hidden onchange="loadFiles('brand',this)"></div>
-        <div class="logo-r"><div class="logo-b" id="brand-box"><span class="logo-ni">无</span></div><div class="logo-m"><div class="logo-nm" id="brand-name">未上传</div><div class="tog-r"><label class="tog"><input type="checkbox" id="brand-en" onchange="toggleLogoEnable('brand')"><span class="sl"></span></label><span class="tog-lbl" id="brand-lbl">启用</span></div></div></div>
+    <div class="usec logosec" id="drop-brand">
+      <div class="uh" onclick="toggleLogoSec(event)" style="cursor:pointer">
+        <span class="ut">Logo</span><span class="tag cnt" id="lib-n-logo">0</span>
+        <span id="logo-sum"></span>
+        <button class="ls-tg" id="logo-sec-tg">▾</button>
       </div>
-    </div>
-    <div class="usec" id="drop-ip">
-      <div class="uh"><span class="ut">IP Logo</span><span class="tag teal">R</span><button class="bd2" onclick="clearLogo('ip')">清空</button></div>
-      <div class="ub"><div class="br"><button class="bp tl" onclick="G('inp-ip').click()">＋ 上传</button><input type="file" id="inp-ip" accept="image/*" hidden onchange="loadFiles('ip',this)"></div>
-        <div class="logo-r"><div class="logo-b" id="ip-box"><span class="logo-ni">无</span></div><div class="logo-m"><div class="logo-nm" id="ip-name">未上传</div><div class="tog-r"><label class="tog tl"><input type="checkbox" id="ip-en" onchange="toggleLogoEnable('ip')"><span class="sl"></span></label><span class="tog-lbl" id="ip-lbl">启用</span></div></div></div>
+      <div class="ub" id="logo-body">
+        <div class="lgrow" id="drop-brand-in">
+          <div class="logo-b sm" id="brand-box"><span class="logo-ni">无</span></div>
+          <div class="lg-m"><div class="logo-nm" id="brand-name">未上传</div><div class="lg-tags"><span class="tag warm">品牌 L</span></div></div>
+          <label class="tog" title="启用"><input type="checkbox" id="brand-en" onchange="toggleLogoEnable('brand')"><span class="sl"></span></label>
+          <button class="bd2" onclick="G('inp-brand').click()" title="上传">＋</button>
+          <button class="bd2" onclick="clearLogo('brand')" title="清空">✕</button>
+          <input type="file" id="inp-brand" accept="image/*" hidden onchange="loadFiles('brand',this)">
+          <span class="tog-lbl" id="brand-lbl" style="display:none"></span>
+        </div>
+        <div class="lgrow" id="drop-ip-in">
+          <div class="logo-b sm" id="ip-box"><span class="logo-ni">无</span></div>
+          <div class="lg-m"><div class="logo-nm" id="ip-name">未上传</div><div class="lg-tags"><span class="tag teal">IP R</span></div></div>
+          <label class="tog tl" title="启用"><input type="checkbox" id="ip-en" onchange="toggleLogoEnable('ip')"><span class="sl"></span></label>
+          <button class="bd2" onclick="G('inp-ip').click()" title="上传">＋</button>
+          <button class="bd2" onclick="clearLogo('ip')" title="清空">✕</button>
+          <input type="file" id="inp-ip" accept="image/*" hidden onchange="loadFiles('ip',this)">
+          <span class="tog-lbl" id="ip-lbl" style="display:none"></span>
+        </div>
+        <div class="tg lg-lib" id="logo-grid"></div>
+        <div style="font-size:9.5px;color:var(--mut);font-family:var(--mono);margin-top:5px">点库中 Logo 加入 · 上传自动进库</div>
       </div>
     </div>
   </div>
@@ -337,6 +358,7 @@ input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.3);}
     <button class="pb-act" id="ruler-btn" title="显示印花实际厘米尺寸（R）" onclick="toggleRuler()">📏 尺寸</button>
     <button class="pb-act" id="cmp-btn" title="对比有无印花（C）" onclick="toggleCompare()">◐ 对比</button>
     <button class="pb-act" onclick="openGallery()" title="全底图画廊预览（G）">▦ 画廊</button>
+    <button class="pb-act" onclick="openLibrary()" title="素材库：跨项目共享（L）">🗂 素材库</button>
     <div class="sep"></div>
     <button class="bi" onclick="pvZoom(1.2)" style="font-size:13px;padding:4px 9px">+</button>
     <button class="bi" onclick="pvZoom(1/1.2)" style="font-size:13px;padding:4px 9px">−</button>
@@ -475,6 +497,10 @@ input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.3);}
     <tr><td>R</td><td>印花厘米标尺</td></tr>
     <tr><td>C</td><td>有无印花对比</td></tr>
     <tr><td>G</td><td>全底图画廊</td></tr>
+    <tr><td>L</td><td>素材库</td></tr>
+    <tr><td>A</td><td>全选 / 全不选素材</td></tr>
+    <tr><td>右键素材</td><td>复制一份实例</td></tr>
+    <tr><td>[ / ]</td><td>收起左 / 右面板</td></tr>
     <tr><td>W</td><td>拖角变形模式</td></tr>
     <tr><td>?</td><td>打开本面板</td></tr>
   </table>
@@ -505,6 +531,21 @@ input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.3);}
   </table>
   <div style="font-size:11px;color:var(--dim);margin-top:10px;line-height:1.6">留空则用默认命名。示例：<br><span style="font-family:var(--mono);color:var(--acc-l)">{日期}_{底图}_{素材}_{序号}</span><br>→ 20260728_保温杯_Pochacco_001.png</div>
   <div class="mbtns"><button class="bp" onclick="closeTpl()">知道了</button></div>
+</div></div>
+<div id="lib-ov" class="ov"><div class="ov-card wide">
+  <div class="ov-t">🗂 素材库 <span id="lib-info" style="font-size:11px;color:var(--dim);font-weight:400"></span></div>
+  <div class="lib-tabs">
+    <button class="lib-tab act" data-k="sticker" onclick="switchLibTab('sticker')">🎨 素材</button>
+    <button class="lib-tab" data-k="base" onclick="switchLibTab('base')">🖼 底图</button>
+    <button class="lib-tab" data-k="logo" onclick="switchLibTab('logo')">🏷 Logo</button>
+    <input type="text" id="lib-search" placeholder="搜索…" oninput="renderLibrary()">
+    <button class="bi" onclick="cleanOrphanAssets()" title="删除所有项目都未使用的素材">🧹 清理未用</button>
+    <button class="bp" onclick="G('lib-file').click()">＋ 上传到库</button>
+    <input type="file" id="lib-file" accept="image/*" multiple style="display:none" onchange="uploadToLibrary(this)">
+  </div>
+  <div id="lib-grid"></div>
+  <div style="font-size:11px;color:var(--dim);margin-top:8px">点击素材加入当前项目 · 素材库为所有项目共享</div>
+  <div class="mbtns"><button class="bg" onclick="closeLibrary()">关闭</button></div>
 </div></div>
 <div id="tag-ov" class="ov"><div class="ov-card">
   <div class="ov-t">🏷 项目分类 <span id="tag-proj" style="font-size:11px;color:var(--dim);font-weight:400"></span></div>
@@ -566,6 +607,8 @@ input[type=range].tl::-moz-range-thumb{background:var(--teal);}
 .dd-tagbtn{background:transparent;border:1px solid var(--bd);color:var(--dim);font-size:11px;cursor:pointer;padding:3px 6px;border-radius:5px;flex-shrink:0;transition:all .12s;}
 .dd-item:hover .dd-tagbtn{border-color:var(--acc);color:var(--acc-l);}
 .dd-tagbtn:hover{color:var(--acc-l);background:var(--surf);}
+.dd-delbtn{background:transparent;border:1px solid var(--bd);color:var(--dim);font-size:11px;cursor:pointer;padding:3px 6px;border-radius:5px;flex-shrink:0;transition:all .12s;}
+.dd-delbtn:hover{border-color:var(--err);color:var(--err);background:rgba(220,80,80,.1);}
 .dd-tagbar{display:flex;flex-wrap:wrap;align-items:center;gap:4px;padding:4px 5px 7px;margin-bottom:4px;border-bottom:1px solid var(--bd);}
 .dd-tagtip{font-size:10px;color:var(--mut);line-height:1.4;}
 .tag-box{display:flex;flex-wrap:wrap;gap:5px;min-height:28px;padding:6px;background:var(--surf3);border:1px solid var(--bd);border-radius:6px;}
@@ -574,6 +617,69 @@ input[type=range].tl::-moz-range-thumb{background:var(--teal);}
 .tag-b.sel{background:var(--acc);border-color:var(--acc);color:#fff;}
 .tag-b.sel:hover{background:var(--err);border-color:var(--err);}
 .tag-empty{font-size:10px;color:var(--mut);padding:3px;}
+.lib-tabs{display:flex;gap:6px;align-items:center;margin-bottom:10px;flex-wrap:wrap;}
+.lib-tab{font-size:12px;padding:5px 12px;border-radius:6px;background:var(--surf3);border:1px solid var(--bd);color:var(--dim);cursor:pointer;}
+.lib-tab:hover{border-color:var(--acc);color:var(--acc-l);}
+.lib-tab.act{background:var(--acc);border-color:var(--acc);color:#fff;}
+#lib-search{flex:1;min-width:80px;background:var(--surf3);color:var(--txt);border:1px solid var(--bd);border-radius:6px;padding:5px 9px;font-size:11px;outline:none;}
+#lib-search:focus{border-color:var(--acc);}
+#lib-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:10px;max-height:52vh;overflow-y:auto;padding:2px;}
+.lib-i{position:relative;display:flex;flex-direction:column;gap:4px;cursor:pointer;border:1px solid var(--bd);border-radius:8px;padding:5px;background:var(--surf3);transition:all .12s;}
+.lib-i:hover{border-color:var(--acc);transform:translateY(-2px);}
+.lib-i.used{border-color:var(--acc);}
+.lib-th{width:100%;aspect-ratio:1;border-radius:5px;overflow:hidden;background:repeating-conic-gradient(#3a3833 0 25%,#2a2825 0 50%) 0 0/10px 10px;display:flex;align-items:center;justify-content:center;}
+.lib-th img{width:100%;height:100%;object-fit:contain;display:block;}
+.lib-nm{font-size:9.5px;color:var(--dim);text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.lib-del{position:absolute;top:-6px;right:-6px;width:19px;height:19px;border-radius:50%;background:var(--surf2);border:1px solid var(--bd);color:var(--dim);font-size:10px;cursor:pointer;display:none;align-items:center;justify-content:center;z-index:2;}
+.lib-i:hover .lib-del{display:flex;}
+.lib-del:hover{background:var(--err);border-color:var(--err);color:#fff;}
+.lib-used-b{position:absolute;top:3px;left:3px;font-size:8px;padding:1px 4px;border-radius:4px;background:var(--acc);color:#fff;z-index:2;}
+.lib-empty{grid-column:1/-1;padding:30px;text-align:center;font-size:12px;color:var(--mut);}
+/* 库中未加入项:与项目项同网格,弱化显示 */
+.libi{position:relative;aspect-ratio:1;border:1px dashed var(--bd);border-radius:6px;overflow:hidden;cursor:pointer;background:repeating-conic-gradient(#3a3833 0 25%,#2a2825 0 50%) 0 0/9px 9px;opacity:.62;transition:all .13s;}
+.libi:hover{opacity:1;border-color:var(--acc);border-style:solid;transform:translateY(-2px);}
+.libi img{width:100%;height:100%;object-fit:contain;display:block;}
+.libi-plus{position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:rgba(155,108,240,.32);font-size:16px;color:#fff;}
+.libi:hover .libi-plus{display:flex;}
+.libi-del{position:absolute;top:-5px;right:-5px;width:17px;height:17px;border-radius:50%;background:var(--surf2);border:1px solid var(--bd);color:var(--dim);font-size:9px;cursor:pointer;display:none;align-items:center;justify-content:center;z-index:3;}
+.libi:hover .libi-del{display:flex;}
+.libi.adding{opacity:.25;pointer-events:none;}
+.libi{overflow:visible;}
+.libi img{border-radius:5px;}
+.libi-del:hover{background:var(--err);border-color:var(--err);color:#fff;}
+/* 紧凑 Logo 区 */
+.logosec.folded .ub{display:none;}
+.logosec.folded .ls-tg{transform:none;}
+.lg-sum{font-size:9.5px;color:var(--mut);font-family:var(--mono);}
+.lg-sum.on{color:var(--acc-l);}
+#logo-sec-tg{margin-left:auto;}
+.lgrow{display:flex;align-items:center;gap:7px;padding:5px 0;border-bottom:1px solid var(--bd);}
+.lgrow:last-of-type{border-bottom:none;}
+.logo-b.sm{width:34px;height:34px;flex-shrink:0;}
+.lg-m{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;}
+.lg-m .logo-nm{font-size:10.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.lg-tags .tag{font-size:8px;padding:0 4px;}
+.lg-lib{margin-top:7px;grid-template-columns:repeat(auto-fill,minmax(42px,1fr))!important;}
+.lgrow.drop-active{outline:2px dashed var(--acc);outline-offset:2px;border-radius:5px;}
+.ls-tg{background:transparent;border:none;color:var(--dim);font-size:11px;cursor:pointer;padding:0 3px;}
+/* 面板收放 */
+.pane-tg{position:fixed;top:0;bottom:0;z-index:120;width:9px;background:transparent;border:none;color:var(--dim);cursor:col-resize;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:0;transition:background .12s;user-select:none;}
+.pane-tg::before{content:'';position:absolute;top:0;bottom:0;width:1px;background:var(--bd);}
+.pane-tg:hover{background:rgba(155,108,240,.14);}
+.pane-tg:hover::before{background:var(--acc);width:2px;}
+.pane-tg.dragging{background:rgba(155,108,240,.22);}
+.pane-tg .pt-a,.pane-tg .pt-g{position:relative;z-index:1;background:var(--surf2);border:1px solid var(--bd);border-radius:4px;width:15px;display:flex;align-items:center;justify-content:center;font-size:10px;}
+.pane-tg .pt-a{height:26px;cursor:pointer;}
+.pane-tg .pt-g{height:20px;color:var(--mut);font-size:9px;letter-spacing:-1px;}
+.pane-tg:hover .pt-a{color:var(--acc-l);border-color:var(--acc);}
+#tg-left{left:var(--lw);border-radius:0 5px 5px 0;}
+#tg-right{right:var(--rw);border-radius:5px 0 0 5px;}
+#app.lhide #left{width:0;border-right:none;}
+#app.lhide #tg-left{left:0;width:14px;}
+#app.lhide #tg-left .pt-g,#app.rhide #tg-right .pt-g{display:none;}
+#app.rhide #edit{width:0;border-left:none;}
+#app.rhide #tg-right{right:0;width:14px;}
+#left,#edit{transition:width .18s;}
 .dd-tag{font-size:10px;padding:2px 8px;border-radius:10px;background:var(--surf3);border:1px solid var(--bd);color:var(--dim);cursor:pointer;white-space:nowrap;}
 .dd-tag:hover{border-color:var(--acc);color:var(--acc-l);}
 .dd-tag.on{background:var(--acc);border-color:var(--acc);color:#fff;}
@@ -726,14 +832,15 @@ async function loadFiles(kind, input) {
   for (const f of files) {
     try {
       const { img, name: rawName, blob } = await loadImageFile(f);
+      const aid = await libraryAdd(kind === 'base' ? 'base' : kind === 'sticker' ? 'sticker' : 'logo', rawName, blob);
       if (kind === 'base') {
         const name = uniqueName(S.bases, rawName);
-        S.bases.push({ id: uid++, name, img, blob, checked: true, sx: 1, sy: 1, taper: 0, skx: 0, sky: 0, warp: null, adj: defAdj() });
+        S.bases.push({ id: uid++, name, aid, img, blob, checked: true, sx: 1, sy: 1, taper: 0, skx: 0, sky: 0, warp: null, adj: defAdj() });
         if (S.activeBase < 0) S.activeBase = 0;
       } else if (kind === 'sticker') {
         const id = uid++;
         const name = uniqueName(S.stks, rawName);
-        const st = { id, name, img, blob, checked: true, x: 0, y: 0, scale: S.init.stk, sx: 1, sy: 1, rot: 0, op: 100, crop: null, curve: 0, cvv: 0, gloss: 0, glp: 34, warp: null, skx: 0, sky: 0, taper: 0 };
+        const st = { id, name, aid, img, blob, checked: true, x: 0, y: 0, scale: S.init.stk, sx: 1, sy: 1, rot: 0, op: 100, crop: null, curve: 0, cvv: 0, gloss: 0, glp: 34, warp: null, skx: 0, sky: 0, taper: 0 };
         S.stks.push(st);
         S.activeStk = id;
         const lay = presets[curPreset] && presets[curPreset].layouts && presets[curPreset].layouts[rawName];
@@ -741,7 +848,7 @@ async function loadFiles(kind, input) {
         else centerStk(st);
       } else { // brand / ip
         const L = S.logos[kind];
-        L.img = img; L.name = rawName; L.blob = blob; L.en = true;
+        L.img = img; L.name = rawName; L.blob = blob; L.aid = aid; L.en = true;
         L.scale = S.init[kind]; 
         placeLogoDefault(kind);
       }
@@ -768,7 +875,15 @@ function centerStk(s) {
   let sc = s.scale;
   if (sw * sc / 100 > W * 0.9 || sh * sc / 100 > H * 0.9) sc = Math.min(W * 0.6 / sw, H * 0.6 / sh) * 100;
   s.scale = Math.round(sc * 10) / 10;
-  s.x = Math.round(W / 2); s.y = Math.round(H / 2);
+  let x = Math.round(W / 2), y = Math.round(H / 2);
+  // 阶梯错开:避免多个新素材完全重叠在正中心
+  const step = Math.max(16, Math.round(Math.min(W, H) * 0.045));
+  let guard = 0;
+  while (guard++ < 24 && S.stks.some(o => o !== s && Math.abs(o.x - x) < step * 0.7 && Math.abs(o.y - y) < step * 0.7)) {
+    x += step; y += step;
+    if (x > W * 0.88 || y > H * 0.88) { x = Math.round(W * 0.5 - step * (guard % 5)); y = Math.round(H * 0.5 - step * (guard % 5)); }
+  }
+  s.x = clamp(x, 0, W); s.y = clamp(y, 0, H);
 }
 function uniqueName(list, name) {
   if (!list.some(x => x.name === name)) return name;
@@ -843,6 +958,16 @@ function renderStkGrid() {
     d.title = s.name + '（双击裁切）';
     d.onclick = () => { if (!s.checked) s.checked = true; S.activeStk = s.id; refreshAll(); };
     d.ondblclick = () => { if (!s.checked) s.checked = true; S.activeStk = s.id; refreshAll(); enterCropMode(); };
+    d.oncontextmenu = ev => {   // 右键复制一份实例(同素材不同参数,做变体)
+      ev.preventDefault();
+      snapshot();
+      const nid = uid++;
+      const cp = { ...s, id: nid, name: uniqueName(S.stks, s.name.replace(/\(\d+\)$/, '')), _fx: null, _fxk: null, _cb: null, _cbk: null, _wc: null, _wk: null, crop: s.crop ? { ...s.crop } : null, warp: s.warp ? s.warp.slice() : null };
+      S.stks.push(cp); S.activeStk = nid;
+      centerStk(cp);
+      refreshAll();
+      notify('已复制一份实例（可独立调参数）', 'ok');
+    };
     d.draggable = true;
     d.ondragstart = e => { e.dataTransfer.setData('text/plain', String(i)); e.dataTransfer.effectAllowed = 'move'; };
     d.ondragover = e => { e.preventDefault(); d.classList.add('drag-over'); };
@@ -871,6 +996,7 @@ function renderStkGrid() {
   updGrpCt();
 }
 function renderLogoBoxes() {
+  setTimeout(updLogoSummary, 0);
   ['brand', 'ip'].forEach(k => {
     const L = S.logos[k], box = G(k + '-box');
     box.innerHTML = '';
@@ -1844,9 +1970,15 @@ function renderCanvas() {
   scheduleBgCheck();
   const cmA = printCm(activeStkObj());
   G('cm-hint').textContent = cmA ? `印花约 ${cmA.w.toFixed(1)}×${cmA.h.toFixed(1)}cm` : '';
+  const ci = G('canvas-info');
+  if (ci && !S.crop) {
+    const nb = checkedBases().length, ns = S.stks.filter(x => x.checked).length;
+    ci.textContent = `${outSize().W}×${outSize().H} · ${Math.round(S.pv * 100)}% · ${nb}底图/${ns}素材`;
+  }
 }
 function refreshAll() {
   if (typeof scheduleSave === 'function') scheduleSave();
+  if (typeof renderLibStrips === 'function') renderLibStrips();
   renderBaseGrid(); renderStkGrid(); renderLogoBoxes();
   syncStkPanel(); syncAdjPanel(); syncLogoPanel('brand'); syncLogoPanel('ip');
   renderCanvas();
@@ -1882,8 +2014,9 @@ function drawCompareHalf(W, H) {
 }
 
 /* ---------- 预览缩放 ---------- */
-function pvZoom(f) { S.pv = clamp(S.pv * f, 0.05, 8); renderCanvas(); }
+function pvZoom(f) { pvAuto = false; S.pv = clamp(S.pv * f, 0.05, 8); renderCanvas(); }
 function pvFit() {
+  pvAuto = true;
   const wrap = G('cwrap'), { W, H } = outSize();
   S.pv = clamp(Math.min((wrap.clientWidth - 48) / W, (wrap.clientHeight - 48) / H), 0.05, 4);
   renderCanvas();
@@ -2283,6 +2416,10 @@ window.addEventListener('keydown', e => {
     if (kk === 'c' && !e.shiftKey) { e.preventDefault(); return toggleCompare(); }
     if (kk === 'g') { e.preventDefault(); return G('gal-ov').classList.contains('on') ? closeGallery() : openGallery(); }
     if (kk === 'w') { e.preventDefault(); return toggleWarpMode(); }
+    if (kk === 'l') { e.preventDefault(); return G('lib-ov').classList.contains('on') ? closeLibrary() : openLibrary(); }
+    if (kk === 'a') { e.preventDefault(); return selectAllStickers(); }
+    if (e.key === '[') { e.preventDefault(); return togglePane('left'); }
+    if (e.key === ']') { e.preventDefault(); return togglePane('right'); }
   }
   if (e.key === 'Escape') {
     if (G('kb-ov').classList.contains('on')) return closeKb();
@@ -2290,6 +2427,7 @@ window.addEventListener('keydown', e => {
     if (G('gal-ov').classList.contains('on')) return closeGallery();
     if (G('tpl-ov').classList.contains('on')) return closeTpl();
     if (G('tag-ov').classList.contains('on')) return closeTagEditor();
+    if (G('lib-ov').classList.contains('on')) return closeLibrary();
     if (S.pickBody) return cancelBodyPick();
     if (S.warpMode) { S.warpMode = false; G('warp-btn').classList.remove('act'); renderCanvas(); return; }
     if (S.crop) exitCropMode(); else { S.activeStk = null; S.activeLogo = null; refreshAll(); }
@@ -2361,6 +2499,7 @@ function sendBackward() {
 /* ---------- 裁切模式 ---------- */
 function enterCropMode() {
   const a = activeStkObj(); if (!a) return notify('请先选中素材', 'err');
+  if (S.warpMode) { S.warpMode = false; G('warp-btn').classList.remove('act'); }
   snapshot();
   const iw = a.img.naturalWidth, ih = a.img.naturalHeight;
   const k = a.scale / 100; // 全图显示比例（忽略拉伸/旋转，裁切在原图空间）
@@ -2494,7 +2633,7 @@ function drawCropLayer() {
 }
 
 /* ---------- 拖放上传 ---------- */
-[['drop-base', 'base'], ['drop-stk', 'sticker'], ['drop-brand', 'brand'], ['drop-ip', 'ip']].forEach(([id, kind]) => {
+[['drop-base', 'base'], ['drop-stk', 'sticker'], ['drop-brand-in', 'brand'], ['drop-ip-in', 'ip']].forEach(([id, kind]) => {
   const el = G(id);
   el.addEventListener('dragover', e => { if (![...e.dataTransfer.types].includes('Files')) return; e.preventDefault(); el.classList.add('drop-active'); });
   el.addEventListener('dragleave', () => el.classList.remove('drop-active'));
@@ -2510,7 +2649,7 @@ G('cwrap').addEventListener('drop', e => { if (![...e.dataTransfer.types].includ
 </script>
 <script>
 /* ---------- 工作区持久化 (IndexedDB) ---------- */
-const WS_DB = 'tmc_workspace', WS_STORE = 'ws';
+const WS_DB = 'tmc_workspace', WS_STORE = 'ws', AS_STORE = 'assets';
 /* 多项目:每个项目一个 key = 'proj:<名称>' */
 let projects = [], curProj = '默认项目';
 try { projects = JSON.parse(store.get('tm_projects') || '[]'); } catch (e) { projects = []; }
@@ -2676,6 +2815,9 @@ async function buildProjMenu() {
     const tg = document.createElement('button'); tg.className = 'dd-tagbtn'; tg.textContent = '🏷'; tg.title = '编辑分类标签';
     tg.onclick = ev => { ev.stopPropagation(); editProjTags(name); };
     it.appendChild(tg);
+    const dl = document.createElement('button'); dl.className = 'dd-delbtn'; dl.textContent = '🗑'; dl.title = '删除该项目';
+    dl.onclick = ev => { ev.stopPropagation(); deleteProject(name); };
+    it.appendChild(dl);
     if (name === curProj) { const c = document.createElement('span'); c.className = 'dd-chk'; c.textContent = '✓'; it.appendChild(c); }
     holder.appendChild(it);
     projFirstImage(name).then(url => {
@@ -2730,6 +2872,32 @@ function uniqueProjName(base) {
   while (projects.includes(base + ' 副本' + i)) i++;
   return base + ' 副本' + i;
 }
+async function deleteProject(name) {
+  if (projects.length <= 1) return notify('至少保留一个项目', 'err');
+  let info = '';
+  try {
+    const d = await idbGet(projKey(name));
+    if (d) info = `\n\n包含 ${(d.bases || []).length} 底图 · ${(d.stks || []).length} 素材的编辑内容`;
+  } catch (e) {}
+  if (!confirm(`删除项目「${name}」？${info}\n\n素材库中的图片不受影响，其它项目仍可使用。此操作无法撤销。`)) return;
+  try {
+    await idbDel(projKey(name));
+    delete projTags[name]; saveProjTags();
+    delete prevCache[name];
+    const wasCur = name === curProj;
+    projects.splice(projects.indexOf(name), 1);
+    if (wasCur) {
+      clearTimeout(saveT);
+      curProj = projects[0];
+      saveProjList();
+      resetState();
+      await restoreWorkspace();
+      refreshAll(); pvFit();
+    } else saveProjList();
+    renderProjSel(); buildProjMenu();
+    notify(`已删除「${name}」` + (wasCur ? ` → 切换到「${curProj}」` : ''), 'ok');
+  } catch (e) { console.error(e); notify('删除失败', 'err'); }
+}
 async function duplicateProject() {
   const src = curProj;
   const name = (prompt('复制项目为：', uniqueProjName(src)) || '').trim();
@@ -2742,7 +2910,7 @@ async function duplicateProject() {
     if (!data) return notify('源项目为空，无法复制', 'err');
     // 逐字段浅拷贝:保留 Blob 引用(JSON 往返会摧毁 Blob),嵌套对象单独克隆
     const copy = {
-      v: data.v, ts: Date.now(),
+      v: 3, ts: Date.now(),
       bases: (data.bases || []).map(b => ({ ...b, adj: { ...b.adj }, warp: b.warp ? b.warp.slice() : null, manualBody: b.manualBody ? { ...b.manualBody } : null })),
       stks: (data.stks || []).map(st => ({ ...st, warp: st.warp ? st.warp.slice() : null, crop: st.crop ? { ...st.crop } : null })),
       logos: {
@@ -2780,11 +2948,94 @@ function invalidateProjPreview(name) { if (name) delete prevCache[name]; else pr
 function idbOpen() {
   return new Promise((res, rej) => {
     if (!window.indexedDB) return rej('no idb');
-    const r = indexedDB.open(WS_DB, 1);
-    r.onupgradeneeded = () => r.result.createObjectStore(WS_STORE);
+    const r = indexedDB.open(WS_DB, 2);
+    r.onupgradeneeded = e => {
+      const db = r.result;
+      if (!db.objectStoreNames.contains(WS_STORE)) db.createObjectStore(WS_STORE);
+      if (!db.objectStoreNames.contains(AS_STORE)) db.createObjectStore(AS_STORE, { keyPath: 'id' });
+    };
     r.onsuccess = () => res(r.result);
     r.onerror = () => rej(r.error);
   });
+}
+/* ================= 共享素材库（跨项目复用，仿 Canva）=================
+   图片本体只存一份在 assets 库;每个项目只保存「引用(aid) + 编辑参数」。
+   复制项目 = 复制引用清单,不复制图片,所以又快又不会丢。 */
+const assetCache = new Map();      // aid → { id, kind, name, blob, img, tags }
+function newAid() { return 'a' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
+function assetPut(rec) {
+  return idbOpen().then(db => new Promise((res, rej) => {
+    const tx = db.transaction(AS_STORE, 'readwrite');
+    tx.objectStore(AS_STORE).put(rec);
+    tx.oncomplete = () => res(rec); tx.onerror = () => rej(tx.error);
+  }));
+}
+function assetGetRaw(id) {
+  return idbOpen().then(db => new Promise((res, rej) => {
+    const rq = db.transaction(AS_STORE).objectStore(AS_STORE).get(id);
+    rq.onsuccess = () => res(rq.result); rq.onerror = () => rej(rq.error);
+  }));
+}
+function assetAll() {
+  return idbOpen().then(db => new Promise((res, rej) => {
+    const rq = db.transaction(AS_STORE).objectStore(AS_STORE).getAll();
+    rq.onsuccess = () => res(rq.result || []); rq.onerror = () => rej(rq.error);
+  }));
+}
+function assetDel(id) {
+  return idbOpen().then(db => new Promise((res, rej) => {
+    const tx = db.transaction(AS_STORE, 'readwrite');
+    tx.objectStore(AS_STORE).delete(id);
+    tx.oncomplete = res; tx.onerror = () => rej(tx.error);
+  }));
+}
+/* 内容指纹:大小 + 首尾字节采样,用于素材去重 */
+async function blobFingerprint(blob) {
+  try {
+    const buf = new Uint8Array(await blob.arrayBuffer());
+    let h = 2166136261 >>> 0;
+    const step = Math.max(1, Math.floor(buf.length / 512));
+    for (let i = 0; i < buf.length; i += step) { h ^= buf[i]; h = Math.imul(h, 16777619) >>> 0; }
+    return buf.length + ':' + h.toString(36);
+  } catch (e) { return null; }
+}
+/* 存入素材库(按内容指纹去重,重复上传不会占两份空间) */
+async function libraryAdd(kind, name, blob) {
+  const fp = await blobFingerprint(blob);
+  try {
+    const all = await assetAll();
+    const dup = all.find(a => a.kind === kind && ((fp && a.fp === fp) || (a.name === name && a.blob && blob.size && a.blob.size === blob.size)));
+    if (dup) {
+      const cached = assetCache.get(dup.id);
+      assetCache.set(dup.id, { ...dup, img: cached ? cached.img : null });
+      return dup.id;
+    }
+  } catch (e) {}
+  const rec = { id: newAid(), kind, name, blob, fp, tags: [], ts: Date.now() };
+  await assetPut(rec);
+  assetCache.set(rec.id, { ...rec, img: null });
+  invalidateLibCache();
+  return rec.id;
+}
+/* 取素材(含解码后的 Image),带内存缓存 */
+async function assetLoad(id) {
+  let c = assetCache.get(id);
+  if (c && c.img) return c;
+  if (!c) {
+    const rec = await assetGetRaw(id);
+    if (!rec) return null;
+    c = { ...rec, img: null };
+  }
+  if (!c.img) c.img = await blobToImg(c.blob);
+  if (!c.img) return null;
+  assetCache.set(id, c);
+  return c;
+}
+let libCacheList = null;
+function invalidateLibCache() { libCacheList = null; }
+async function libraryList(kind) {
+  if (!libCacheList) libCacheList = await assetAll();
+  return libCacheList.filter(a => !kind || a.kind === kind).sort((x, y) => y.ts - x.ts);
 }
 function idbPut(val, key) {
   return idbOpen().then(db => new Promise((res, rej) => {
@@ -2837,11 +3088,11 @@ function applyExportSettings(o) {
 }
 async function saveWorkspace() {
   try {
-    const pickL = k => { const L = S.logos[k]; return { blob: L.blob || null, name: L.name, en: L.en, x: L.x, y: L.y, scale: L.scale, op: L.op, sx: L.sx || 1, sy: L.sy || 1, taper: L.taper || 0, skx: L.skx || 0, sky: L.sky || 0, warp: L.warp ? L.warp.slice() : null, rot: L.rot || 0 }; };
+    const pickL = k => { const L = S.logos[k]; return { aid: L.aid || null, blob: L.aid ? null : (L.blob || null), name: L.name, en: L.en, x: L.x, y: L.y, scale: L.scale, op: L.op, sx: L.sx || 1, sy: L.sy || 1, taper: L.taper || 0, skx: L.skx || 0, sky: L.sky || 0, warp: L.warp ? L.warp.slice() : null, rot: L.rot || 0 }; };
     await idbPut({
-      v: 1, ts: Date.now(),
-      bases: S.bases.map(b => ({ name: b.name, blob: b.blob, checked: b.checked !== false, manualBody: b.manualBody || null, sx: b.sx || 1, sy: b.sy || 1, taper: b.taper || 0, skx: b.skx || 0, sky: b.sky || 0, warp: b.warp ? b.warp.slice() : null, adj: { ...b.adj } })),
-      stks: S.stks.map(st => ({ name: st.name, blob: st.blob, checked: st.checked, x: st.x, y: st.y, scale: st.scale, sx: st.sx, sy: st.sy, rot: st.rot, op: st.op, curve: st.curve || 0, cvv: st.cvv || 0, gloss: st.gloss || 0, glp: st.glp === undefined ? 34 : st.glp, warp: st.warp ? st.warp.slice() : null, taper: st.taper || 0, skx: st.skx || 0, sky: st.sky || 0, crop: st.crop ? { ...st.crop } : null })),
+      v: 3, ts: Date.now(),
+      bases: S.bases.map(b => ({ name: b.name, aid: b.aid || null, blob: b.aid ? null : b.blob, checked: b.checked !== false, manualBody: b.manualBody || null, sx: b.sx || 1, sy: b.sy || 1, taper: b.taper || 0, skx: b.skx || 0, sky: b.sky || 0, warp: b.warp ? b.warp.slice() : null, adj: { ...b.adj } })),
+      stks: S.stks.map(st => ({ name: st.name, aid: st.aid || null, blob: st.aid ? null : st.blob, checked: st.checked, x: st.x, y: st.y, scale: st.scale, sx: st.sx, sy: st.sy, rot: st.rot, op: st.op, curve: st.curve || 0, cvv: st.cvv || 0, gloss: st.gloss || 0, glp: st.glp === undefined ? 34 : st.glp, warp: st.warp ? st.warp.slice() : null, taper: st.taper || 0, skx: st.skx || 0, sky: st.sky || 0, crop: st.crop ? { ...st.crop } : null })),
       logos: { brand: pickL('brand'), ip: pickL('ip') },
       init: { ...S.init }, size: G('size-sel').value, cw: +G('cw-in').value, ch: +G('ch-in').value,
       dia: +G('cup-dia').value, tpl: G('name-tpl').value,
@@ -2863,21 +3114,40 @@ function blobToImg(blob) {
 async function restoreWorkspace() {
   try {
     const d = await idbGet();
-    if (!d || (!d.bases.length && !d.stks.length && !d.logos.brand.blob && !d.logos.ip.blob)) return false;
-    for (const b of d.bases) {
-      const img = await blobToImg(b.blob);
-      if (img) S.bases.push({ id: uid++, name: b.name, img, blob: b.blob, checked: b.checked !== false, manualBody: b.manualBody || null, sx: b.sx || 1, sy: b.sy || 1, taper: b.taper || 0, skx: b.skx || 0, sky: b.sky || 0, warp: b.warp || null, adj: b.adj });
+    if (!d) return false;
+    const has = (d.bases || []).length || (d.stks || []).length ||
+      (d.logos && ((d.logos.brand || {}).blob || (d.logos.brand || {}).aid || (d.logos.ip || {}).blob || (d.logos.ip || {}).aid));
+    if (!has) return false;
+    let migrated = 0;
+    /* 统一取图:优先 aid(素材库);老项目带 blob 的自动搬进库并回填 aid */
+    const resolve = async (rec, kind) => {
+      if (rec.aid) {
+        const a = await assetLoad(rec.aid);
+        return a ? { img: a.img, blob: a.blob, aid: rec.aid, name: rec.name || a.name } : null;
+      }
+      if (rec.blob) {
+        const aid = await libraryAdd(kind, rec.name || '未命名', rec.blob);
+        migrated++;
+        const a = await assetLoad(aid);
+        return a ? { img: a.img, blob: a.blob, aid, name: rec.name || a.name } : null;
+      }
+      return null;
+    };
+    for (const b of d.bases || []) {
+      const r = await resolve(b, 'base');
+      if (r) S.bases.push({ id: uid++, name: r.name, aid: r.aid, img: r.img, blob: r.blob, checked: b.checked !== false, manualBody: b.manualBody || null, sx: b.sx || 1, sy: b.sy || 1, taper: b.taper || 0, skx: b.skx || 0, sky: b.sky || 0, warp: b.warp || null, adj: b.adj || defAdj() });
     }
     if (S.bases.length) S.activeBase = 0;
-    for (const st of d.stks) {
-      const img = await blobToImg(st.blob);
-      if (img) S.stks.push({ id: uid++, img, blob: st.blob, ...st, _fx: null, _fxk: null, _cb: null, _cbk: null, _wc: null, _wk: null });
+    for (const st of d.stks || []) {
+      const r = await resolve(st, 'sticker');
+      if (r) S.stks.push({ ...st, id: uid++, name: r.name, aid: r.aid, img: r.img, blob: r.blob, _fx: null, _fxk: null, _cb: null, _cbk: null, _wc: null, _wk: null });
     }
     for (const k of ['brand', 'ip']) {
-      const L = d.logos[k];
-      const img = await blobToImg(L.blob);
-      if (img) Object.assign(S.logos[k], { img, blob: L.blob, name: L.name, en: L.en, x: L.x, y: L.y, scale: L.scale, op: L.op, sx: L.sx || 1, sy: L.sy || 1, taper: L.taper || 0, skx: L.skx || 0, sky: L.sky || 0, warp: L.warp || null, rot: L.rot || 0, _wc: null, _wk: null });
+      const L = (d.logos || {})[k]; if (!L) continue;
+      const r = await resolve(L, 'logo');
+      if (r) Object.assign(S.logos[k], { img: r.img, blob: r.blob, aid: r.aid, name: L.name, en: L.en, x: L.x, y: L.y, scale: L.scale, op: L.op, sx: L.sx || 1, sy: L.sy || 1, taper: L.taper || 0, skx: L.skx || 0, sky: L.sky || 0, warp: L.warp || null, rot: L.rot || 0, _wc: null, _wk: null });
     }
+    if (migrated) setTimeout(() => saveWorkspace(), 300); // 迁移后回写 aid
     if (d.init) S.init = { ...S.init, ...d.init };
     if (d.dia) G('cup-dia').value = d.dia;
     if (d.tpl !== undefined) G('name-tpl').value = d.tpl;
@@ -3108,7 +3378,13 @@ function capBytes() {
   const mb = clamp(+G('cap-mb').value || 2, 0.1, 50);
   return Math.round(mb * 1024 * 1024);
 }
-function fmtSize(b) { return b >= 1048576 ? (b / 1048576).toFixed(2) + 'MB' : Math.round(b / 1024) + 'KB'; }
+function fmtSize(b) { return b >= 1048576 ? (b / 1048576).toFixed(2) + 'MB' : b >= 1024 ? Math.round(b / 1024) + 'KB' : b + 'B'; }
+/* 素材体积:优先 blob.size,回退指纹中记录的字节数 */
+function assetBytes(a) {
+  if (a && a.blob && a.blob.size) return a.blob.size;
+  if (a && a.fp) { const n = parseInt(a.fp.split(':')[0]); if (isFinite(n)) return n; }
+  return 0;
+}
 /* 缩放画布到指定比例 */
 function scaleCanvas(src, k) {
   const w = Math.max(1, Math.round(src.width * k)), h = Math.max(1, Math.round(src.height * k));
@@ -3322,6 +3598,270 @@ async function doExportToFolder() {
   } catch (e) { return; } // 用户取消
   await runExport({ dir });
 }
+/* ---------- 侧栏内嵌素材库条（常驻可见，不必开弹窗） ---------- */
+let logoSecOff = false;
+function toggleLogoSec(e) {
+  if (e && e.target && e.target.tagName === 'INPUT') return;
+  logoSecOff = !logoSecOff;
+  G('drop-brand').classList.toggle('folded', logoSecOff);
+  G('logo-sec-tg').textContent = logoSecOff ? '▸' : '▾';
+  store.set('tm_logosec', logoSecOff ? '1' : '0');
+}
+function updLogoSummary() {
+  const on = ['brand', 'ip'].filter(k => S.logos[k].img && S.logos[k].en);
+  const el = G('logo-sum');
+  if (!el) return;
+  el.textContent = on.length ? on.map(k => k === 'brand' ? '品牌' : 'IP').join('+') + ' 已启用' : '未启用';
+  el.className = on.length ? 'lg-sum on' : 'lg-sum';
+}
+function renderLibStrips() { appendLibItems('base'); appendLibItems('sticker'); appendLibItems('logo'); }
+/* 把库中「未加入当前项目」的素材直接续在同一网格里,点击即加入 */
+const stripUrls2 = [];
+const libRenderGen = { base: 0, sticker: 0, logo: 0 };
+async function appendLibItems(kind) {
+  const gid = kind === 'base' ? 'base-grid' : kind === 'sticker' ? 'stk-grid' : 'logo-grid';
+  const g = G(gid);
+  if (!g) return;
+  const gen = ++libRenderGen[kind];          // 本次渲染代号
+  let list = [];
+  try { list = await libraryList(kind); } catch (e) {}
+  if (gen !== libRenderGen[kind]) return;     // 期间又触发了新渲染 → 丢弃本次,避免重复插入
+  g.querySelectorAll('.libi').forEach(e => e.remove());  // 清空放在 await 之后,杜绝竞态
+  const used = new Set(kind === 'base' ? S.bases.map(b => b.aid)
+    : kind === 'sticker' ? S.stks.map(t => t.aid)
+    : [S.logos.brand.aid, S.logos.ip.aid]);
+  const avail = list.filter(a => !used.has(a.id));
+  const cntEl = G(kind === 'base' ? 'lib-n-base' : kind === 'sticker' ? 'lib-n-sticker' : 'lib-n-logo');
+  if (cntEl) cntEl.textContent = list.length;
+  if (gen !== libRenderGen[kind]) return;
+  avail.forEach(a => {
+    const d = document.createElement('div');
+    d.className = 'libi';
+    d.title = a.name + '（点击加入项目）';
+    d.onclick = () => {
+      if (d.dataset.busy) return;         // 防连点重复添加
+      d.dataset.busy = '1';
+      d.classList.add('adding');
+      d.remove();                          // 立即从库区移除,给出即时反馈
+      addFromLibrary(a.id);
+    };
+    const im = document.createElement('img');
+    const u = URL.createObjectURL(a.blob);
+    stripUrls2.push(u);
+    if (stripUrls2.length > 150) URL.revokeObjectURL(stripUrls2.shift());
+    im.src = u; d.appendChild(im);
+    const pl = document.createElement('span'); pl.className = 'libi-plus'; pl.textContent = '＋'; d.appendChild(pl);
+    const del = document.createElement('button'); del.className = 'libi-del'; del.textContent = '✕';
+    del.title = '从素材库永久删除';
+    del.onclick = ev => { ev.stopPropagation(); deleteFromLibrary(a.id, a.name); };
+    d.appendChild(del);
+    g.appendChild(d);
+  });
+  if (kind !== 'logo') {
+    const emp = G(kind === 'base' ? 'base-empty' : 'stk-empty');
+    const hasAny = (kind === 'base' ? S.bases.length : S.stks.length) || avail.length;
+    if (emp) emp.style.display = hasAny ? 'none' : 'block';
+  }
+}
+/* ---------- 面板收放 ---------- */
+const PANE_MIN = 190, PANE_MAX = 520;
+function paneArrow(side, hidden) {
+  const el = G('tg-' + side).querySelector('.pt-a');
+  if (el) el.textContent = side === 'left' ? (hidden ? '›' : '‹') : (hidden ? '‹' : '›');
+}
+function togglePane(side) {
+  const app = G('app'), cls = side === 'left' ? 'lhide' : 'rhide';
+  const on = app.classList.toggle(cls);
+  paneArrow(side, on);
+  store.set('tm_pane_' + side, on ? '1' : '0');
+  setTimeout(() => { pvFit(); positionFloatTb(); }, 200);
+}
+function setPaneWidth(side, px) {
+  const w = clamp(Math.round(px), PANE_MIN, PANE_MAX);
+  document.documentElement.style.setProperty(side === 'left' ? '--lw' : '--rw', w + 'px');
+  store.set('tm_panew_' + side, String(w));
+  return w;
+}
+/* 拖动边条调整宽度;未拖动则视为点击 → 折叠 */
+['left', 'right'].forEach(side => {
+  const bar = G('tg-' + side);
+  let st = null;
+  bar.addEventListener('mousedown', e => {
+    const collapsed = G('app').classList.contains(side === 'left' ? 'lhide' : 'rhide');
+    const cur = parseInt(getComputedStyle(document.documentElement).getPropertyValue(side === 'left' ? '--lw' : '--rw')) || 300;
+    st = { x0: e.clientX, w0: cur, moved: false, collapsed };  // 折叠状态也记录,mouseup 才能展开
+    bar.classList.add('dragging');
+    if (!collapsed) document.body.style.cursor = 'col-resize';
+    e.preventDefault();
+  });
+  window.addEventListener('mousemove', e => {
+    if (!st) return;
+    const d = e.clientX - st.x0;
+    if (Math.abs(d) > 3) st.moved = true;
+    if (st.collapsed) {
+      // 折叠状态下向外拖 → 直接拉出面板
+      const out = side === 'left' ? d : -d;
+      if (out > 24) {
+        G('app').classList.remove(side === 'left' ? 'lhide' : 'rhide');
+        paneArrow(side, false);
+        store.set('tm_pane_' + side, '0');
+        st.collapsed = false; st.x0 = e.clientX; st.w0 = PANE_MIN;
+        setPaneWidth(side, PANE_MIN);
+        document.body.style.cursor = 'col-resize';
+      }
+      return;
+    }
+    setPaneWidth(side, side === 'left' ? st.w0 + d : st.w0 - d);
+    pvFit();
+  });
+  window.addEventListener('mouseup', () => {
+    if (!st) return;
+    const moved = st.moved;
+    st = null;
+    bar.classList.remove('dragging');
+    document.body.style.cursor = '';
+    if (!moved) togglePane(side);          // 没拖动 → 当作点击切换(收起或展开)
+    else { pvFit(); positionFloatTb(); }
+  });
+  bar.addEventListener('dblclick', () => { setPaneWidth(side, side === 'left' ? 300 : 258); pvFit(); }); // 双击复位
+});
+
+/* ---------- 素材库 UI ---------- */
+let libTab = 'sticker';
+function openLibrary(kind) {
+  if (kind) libTab = kind;
+  document.querySelectorAll('.lib-tab').forEach(b => b.classList.toggle('act', b.dataset.k === libTab));
+  G('lib-search').value = '';
+  G('lib-ov').classList.add('on');
+  renderLibrary();
+}
+function closeLibrary() { G('lib-ov').classList.remove('on'); }
+function switchLibTab(k) { libTab = k; openLibrary(k); }
+async function renderLibrary() {
+  const grid = G('lib-grid');
+  grid.innerHTML = '<div class="lib-empty">加载中…</div>';
+  const kw = G('lib-search').value.trim().toLowerCase();
+  let list = await libraryList(libTab);
+  if (kw) list = list.filter(a => a.name.toLowerCase().includes(kw));
+  const bytes = list.reduce((a, x) => a + assetBytes(x), 0);
+  G('lib-info').textContent = `${list.length} 个${{ sticker: '素材', base: '底图', logo: 'Logo' }[libTab]}` + (bytes ? ` · ${fmtSize(bytes)}` : '');
+  grid.innerHTML = '';
+  if (!list.length) {
+    const e = document.createElement('div'); e.className = 'lib-empty';
+    e.textContent = kw ? '没有匹配的素材' : '素材库为空 — 点「＋ 上传到库」添加';
+    grid.appendChild(e);
+    return;
+  }
+  const usedIds = new Set([...S.bases.map(b => b.aid), ...S.stks.map(t => t.aid), S.logos.brand.aid, S.logos.ip.aid].filter(Boolean));
+  list.forEach(a => {
+    const d = document.createElement('div');
+    d.className = 'lib-i' + (usedIds.has(a.id) ? ' used' : '');
+    d.title = a.name + '（点击加入当前项目）';
+    d.onclick = () => addFromLibrary(a.id);
+    if (usedIds.has(a.id)) { const u = document.createElement('span'); u.className = 'lib-used-b'; u.textContent = '已用'; d.appendChild(u); }
+    const th = document.createElement('div'); th.className = 'lib-th';
+    const im = document.createElement('img'); im.src = URL.createObjectURL(a.blob);
+    im.onload = () => setTimeout(() => URL.revokeObjectURL(im.src), 1000);
+    th.appendChild(im); d.appendChild(th);
+    const nm = document.createElement('div'); nm.className = 'lib-nm'; nm.textContent = a.name; d.appendChild(nm);
+    const del = document.createElement('button'); del.className = 'lib-del'; del.textContent = '✕';
+    del.title = '从素材库永久删除';
+    del.onclick = ev => { ev.stopPropagation(); deleteFromLibrary(a.id, a.name); };
+    d.appendChild(del);
+    grid.appendChild(d);
+  });
+}
+/* 扫描所有项目,删除无人引用的素材 */
+async function cleanOrphanAssets() {
+  setProg(true, '扫描引用…', 20);
+  try {
+    const used = new Set();
+    for (const pn of projects) {
+      const d = pn === curProj ? null : await idbGet(projKey(pn));
+      if (pn === curProj) {
+        S.bases.forEach(b => b.aid && used.add(b.aid));
+        S.stks.forEach(t => t.aid && used.add(t.aid));
+        ['brand', 'ip'].forEach(k => S.logos[k].aid && used.add(S.logos[k].aid));
+      } else if (d) {
+        (d.bases || []).forEach(b => b.aid && used.add(b.aid));
+        (d.stks || []).forEach(t => t.aid && used.add(t.aid));
+        const lg = d.logos || {};
+        ['brand', 'ip'].forEach(k => lg[k] && lg[k].aid && used.add(lg[k].aid));
+      }
+    }
+    const all = await assetAll();
+    const orphans = all.filter(a => !used.has(a.id));
+    setProg(false);
+    if (!orphans.length) return notify('没有未使用的素材', 'ok');
+    const bytes = orphans.reduce((a, x) => a + assetBytes(x), 0);
+    if (!confirm(`发现 ${orphans.length} 个素材未被任何项目使用（约 ${fmtSize(bytes)}）。\n\n全部删除？此操作无法撤销。`)) return;
+    for (const o of orphans) { await assetDel(o.id); assetCache.delete(o.id); }
+    invalidateLibCache();
+    renderLibrary(); renderLibStrips();
+    notify(`已清理 ${orphans.length} 个，释放 ${fmtSize(bytes)}`, 'ok');
+  } catch (e) { setProg(false); console.error(e); notify('清理失败', 'err'); }
+}
+async function uploadToLibrary(input) {
+  const files = [...(input.files || [])];
+  input.value = '';
+  if (!files.length) return;
+  let n = 0;
+  for (const f of files) {
+    try {
+      const { blob, name } = await loadImageFile(f);
+      await libraryAdd(libTab, name, blob);
+      n++;
+    } catch (e) {}
+  }
+  invalidateLibCache();
+  renderLibrary(); renderLibStrips();
+  if (n) notify(`已添加 ${n} 个到素材库`, 'ok');
+}
+/* 从库加入当前项目 */
+const addingAssets = new Set();
+async function addFromLibrary(aid) {
+  if (addingAssets.has(aid)) return;      // 同一素材正在加入 → 忽略重复请求
+  addingAssets.add(aid);
+  try { await addFromLibraryInner(aid); }
+  finally { setTimeout(() => addingAssets.delete(aid), 250); }
+}
+async function addFromLibraryInner(aid) {
+  const a = await assetLoad(aid);
+  if (!a) return notify('素材加载失败', 'err');
+  snapshot();
+  if (a.kind === 'base') {
+    S.bases.push({ id: uid++, name: uniqueName(S.bases, a.name), aid, img: a.img, blob: a.blob, checked: true, sx: 1, sy: 1, taper: 0, skx: 0, sky: 0, warp: null, adj: defAdj() });
+    if (S.activeBase < 0) S.activeBase = 0;
+  } else if (a.kind === 'sticker') {
+    const id = uid++;
+    const st = { id, name: uniqueName(S.stks, a.name), aid, img: a.img, blob: a.blob, checked: true, x: 0, y: 0, scale: S.init.stk, sx: 1, sy: 1, rot: 0, op: 100, crop: null, curve: 0, cvv: 0, gloss: 0, glp: 34, warp: null, taper: 0, skx: 0, sky: 0 };
+    S.stks.push(st); S.activeStk = id;
+    const lay = presets[curPreset] && presets[curPreset].layouts && presets[curPreset].layouts[a.name];
+    if (lay) Object.assign(st, lay); else centerStk(st);
+  } else {
+    // 优先填空位;两个都已占用才询问替换哪个
+    let k = !S.logos.brand.img ? 'brand' : !S.logos.ip.img ? 'ip'
+      : (confirm(`两个 Logo 位都已占用，替换哪个？\n\n确定 = 品牌 Logo（${S.logos.brand.name}）\n取消 = IP Logo（${S.logos.ip.name}）`) ? 'brand' : 'ip');
+    const L = S.logos[k];
+    Object.assign(L, { img: a.img, blob: a.blob, aid, name: a.name, en: true, scale: S.init[k] });
+    placeLogoDefault(k);
+  }
+  refreshAll();
+  notify(`已加入「${a.name}」`, 'ok');
+  renderLibrary();
+}
+async function deleteFromLibrary(aid, name) {
+  const inUse = S.bases.some(b => b.aid === aid) || S.stks.some(t => t.aid === aid) ||
+    S.logos.brand.aid === aid || S.logos.ip.aid === aid;
+  const msg = `从素材库永久删除「${name}」？` + (inUse ? '\n\n⚠ 当前项目正在使用它，画布上的内容会保留但下次打开会丢失。' : '\n\n其它项目若引用了它也会丢失。');
+  if (!confirm(msg)) return;
+  await assetDel(aid);
+  assetCache.delete(aid);
+  invalidateLibCache();
+  renderLibrary(); renderLibStrips();
+  notify('已从素材库删除', 'ok');
+}
+
 /* ---------- 快捷键面板 ---------- */
 function openKb() { G('kb-ov').classList.add('on'); }
 function closeKb() { G('kb-ov').classList.remove('on'); }
@@ -3510,6 +4050,7 @@ G('kb-ov').addEventListener('click', e => { if (e.target === G('kb-ov')) closeKb
 G('gal-ov').addEventListener('click', e => { if (e.target === G('gal-ov')) closeGallery(); });
 G('tpl-ov').addEventListener('click', e => { if (e.target === G('tpl-ov')) closeTpl(); });
 G('tag-ov').addEventListener('click', e => { if (e.target === G('tag-ov')) closeTagEditor(); });
+G('lib-ov').addEventListener('click', e => { if (e.target === G('lib-ov')) closeLibrary(); });
 G('tag-input').addEventListener('keydown', e => {
   if (e.key === 'Enter') { e.preventDefault(); addTagFromInput(); }
   if (e.key === 'Escape') { e.preventDefault(); closeTagEditor(); }
@@ -3518,7 +4059,12 @@ async function exportAll() { gateExport(doExportAll); }
 async function exportToFolder() { gateExport(doExportToFolder); }
 
 /* ---------- 初始化 ---------- */
-window.addEventListener('resize', () => { positionFloatTb(); });
+window.addEventListener('resize', () => { positionFloatTb(); pvFitIfAuto(); });
+window.addEventListener('beforeunload', e => {
+  if (exporting) { e.preventDefault(); e.returnValue = ''; return ''; }   // 导出中误关提示
+});
+let pvAuto = true;
+function pvFitIfAuto() { if (pvAuto) setTimeout(pvFit, 60); }
 G('cwrap').addEventListener('scroll', positionFloatTb);
 G('modal-input').addEventListener('keydown', e => { if (e.key === 'Enter') confirmModal(); if (e.key === 'Escape') closeModal(); });
 G('modal-bg').addEventListener('click', e => { if (e.target === G('modal-bg')) closeModal(); });
@@ -3532,6 +4078,14 @@ G('modal-bg').addEventListener('click', e => { if (e.target === G('modal-bg')) c
   onInitScale('ip', S.init.ip);
   applyPresetData(presets[curPreset]);
   renderPresetChips();
+  ['left', 'right'].forEach(sd => {
+    const w = +store.get('tm_panew_' + sd);
+    if (w) setPaneWidth(sd, w);
+    const hid = store.get('tm_pane_' + sd) === '1';
+    if (hid) G('app').classList.add(sd === 'left' ? 'lhide' : 'rhide');
+    paneArrow(sd, hid);
+  });
+  if (store.get('tm_logosec') === '1') { logoSecOff = true; G('drop-brand').classList.add('folded'); G('logo-sec-tg').textContent = '▸'; }
   onZipToggle();
   onPrintToggle();
   onCapChange();
