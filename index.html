@@ -168,6 +168,10 @@ main{padding:14px;max-width:1400px;margin:0 auto}
 .profit-pill.lose{background:var(--loss-bg);color:var(--loss);border-color:color-mix(in srgb,var(--loss) 22%,transparent)}
 .profit-pill.low{background:var(--warn-bg);color:var(--warn);border-color:color-mix(in srgb,var(--warn) 22%,transparent)}
 .profit-pill.none{background:var(--bg-2);color:var(--ink3)}
+.pf2{display:flex;flex-direction:column;gap:4px}
+.pf2 .profit-pill{padding:4px 8px;font-size:12px}
+.pf2 .profit-pill span{font-size:11px;opacity:.85}
+.pf2 .profit-pill b{font-size:12.5px}
 .profit-pill b{font-size:14px}
 .empty{grid-column:1/-1;text-align:center;color:var(--ink2);padding:56px 12px;line-height:2}
 #moreSentinel{text-align:center;color:var(--ink3);padding:18px 0;font-size:12.5px}
@@ -310,6 +314,9 @@ main{padding:14px;max-width:1400px;margin:0 auto}
 
 /* 拿货单：打勾 / 进度 / 分组 */
 .pk-tools{display:flex;gap:8px;align-items:center}
+.pk-tools2{display:flex;gap:6px;flex-wrap:wrap}
+.pk-tools2 .chip{font-size:12.5px;padding:6px 11px}
+.pk-tools2 .chip.on{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:700}
 .pk-tick{width:28px;height:28px;flex:0 0 auto;border-radius:50%;border:2px solid var(--line-2);
   background:var(--card);color:#fff;font-size:14px;font-weight:800;line-height:1;
   display:flex;align-items:center;justify-content:center;transition:all .15s}
@@ -318,6 +325,10 @@ main{padding:14px;max-width:1400px;margin:0 auto}
 .pk-row.done{background:var(--green-bg)}
 .pk-row.done .pk-info b{text-decoration:line-through;opacity:.6}
 .pk-row.done img,.pk-row.done .pk-ph{opacity:.55}
+.pk-gtick{width:20px;height:20px;flex:0 0 auto;border-radius:5px;border:1.5px solid var(--line-2);
+  background:var(--card);color:#fff;font-size:12px;font-weight:800;line-height:1;
+  display:flex;align-items:center;justify-content:center;margin-right:2px}
+.pk-gtick.on{background:var(--green);border-color:var(--green)}
 .pk-gh .pk-gt{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .pk-gh .pk-gp{font-size:12px;font-weight:600;color:var(--ink2);background:var(--bg-2);
   border-radius:999px;padding:2px 9px;margin-right:9px;flex:0 0 auto}
@@ -383,10 +394,16 @@ main{padding:14px;max-width:1400px;margin:0 auto}
 .rv-num .s2{font-size:11px;color:var(--ink2);text-align:right}
 
 /* 拿货地点 */
-.pk-loc{border:1px solid var(--accent-line);background:var(--accent-soft);border-radius:12px;
-  padding:11px 13px;display:flex;flex-direction:column;gap:9px}
-.pk-loc-h{font-size:13px;font-weight:750;color:var(--accent-dark);display:flex;align-items:center;gap:8px}
-.pk-loc-h span{font-weight:400;font-size:12px;color:var(--ink2);margin-left:auto}
+.pk-loc{border:1px solid var(--accent-line);background:var(--accent-soft);border-radius:10px;
+  padding:7px 11px;flex:0 0 auto}
+.pk-loc[open]{padding-bottom:10px;display:flex;flex-direction:column;gap:8px}
+.pk-loc-h{font-size:12.5px;font-weight:700;color:var(--accent-dark);cursor:pointer;
+  list-style:none;display:flex;align-items:center;gap:6px}
+.pk-loc-h::-webkit-details-marker{display:none}
+.pk-loc-h::after{content:"▾";margin-left:auto;opacity:.6;transition:transform .18s}
+.pk-loc[open] .pk-loc-h::after{transform:rotate(180deg)}
+.pk-loc-h span{font-weight:600;font-size:12.5px;color:var(--accent-dark);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .pk-loc .catline .chip{background:var(--card);font-size:13px;padding:6px 13px}
 .pk-loc .catline .chip.on{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:700}
 .pk-loc input{border:1px solid var(--line);border-radius:9px;padding:8px 11px;background:var(--card);
@@ -406,12 +423,12 @@ main{padding:14px;max-width:1400px;margin:0 auto}
   font-size:13px;font-weight:700;position:sticky;top:0;z-index:2;display:flex;justify-content:space-between;align-items:center;
   border-bottom:1px solid var(--line)}
 .pk-gh span{color:var(--accent-dark);font-variant-numeric:tabular-nums}
-.pk-row{display:flex;align-items:center;gap:10px;padding:8px 10px;border-top:1px solid var(--line)}
+.pk-row{display:flex;align-items:center;gap:9px;padding:6px 9px;border-top:1px solid var(--line)}
 .pk-row:first-of-type{border-top:none}
-.pk-row img{width:46px;height:46px;object-fit:contain;background:var(--bg-2);border-radius:8px;flex:0 0 auto;
+.pk-row img{width:36px;height:36px;object-fit:contain;background:var(--bg-2);border-radius:7px;flex:0 0 auto;
   cursor:zoom-in;border:1px solid var(--line)}
-.pk-ph{width:46px;height:46px;border-radius:8px;background:var(--bg-2);display:flex;align-items:center;
-  justify-content:center;font-size:20px;color:var(--ink3);flex:0 0 auto}
+.pk-ph{width:36px;height:36px;border-radius:7px;background:var(--bg-2);display:flex;align-items:center;
+  justify-content:center;font-size:16px;color:var(--ink3);flex:0 0 auto}
 .pk-info{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
 .pk-info b{font-size:14.5px;font-weight:700;line-height:1.25;word-break:break-word;letter-spacing:-.01em}
 .pk-meta{font-size:11.5px;color:var(--ink2);line-height:1.35}
@@ -432,15 +449,16 @@ main{padding:14px;max-width:1400px;margin:0 auto}
 @media(max-width:640px){
   .modal-tall{max-height:100vh;height:100vh;border-radius:0}
   /* 手机：单行不换行，信息压到两行内 */
-  .pk-row{flex-wrap:nowrap;gap:7px;padding:7px 8px}
+  .pk-row{flex-wrap:nowrap;gap:6px;padding:5px 7px}
   .pk-info{flex:1 1 auto;min-width:0}
-  .pk-info b{font-size:13.5px}
-  .pk-meta{font-size:10.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .pk-row img,.pk-ph{width:38px;height:38px}
-  .pk-tick{width:24px;height:24px;font-size:12px}
-  .pk-qty button{width:28px;height:30px;font-size:16px}
-  .pk-qty input{width:38px;height:30px;font-size:13.5px}
-  .pk-sub{min-width:0;flex:0 0 auto;text-align:right;font-size:12px}
+  .pk-info b{font-size:13px;line-height:1.2}
+  .pk-meta{font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.25}
+  .pk-row img,.pk-ph{width:32px;height:32px;border-radius:6px}
+  .pk-tick{width:22px;height:22px;font-size:11px;border-width:1.5px}
+  .pk-qty button{width:26px;height:27px;font-size:15px}
+  .pk-qty input{width:34px;height:27px;font-size:13px}
+  .pk-sub{min-width:0;flex:0 0 auto;text-align:right;font-size:11.5px}
+  .pk-gh{padding:5px 9px;font-size:12px}
 }
 
 /* 去重面板 */
@@ -684,6 +702,13 @@ kbd{background:var(--bg-2);border:1px solid var(--line-2);border-bottom-width:2p
   .logo{font-size:15px}
   #btnAdd,#btnSet{display:none}
   .hd-row2{padding:2px 10px 6px}
+  /* 触摸区够大但不吃掉列表空间：视觉 34px，靠外扩点击区补足 */
+  .hd-row2 .chip{padding:7px 14px;font-size:13.5px;position:relative}
+  .hd-row2 .chip::after{content:"";position:absolute;left:0;right:0;top:-5px;bottom:-5px}
+  .search{padding:9px 12px}
+  #btnTheme{padding:8px 12px}
+  .sheet-opts .chip{padding:10px 16px;font-size:14px;min-height:42px}
+  .dlg-opts button{padding:10px 15px;min-height:42px}
   .hd-row3{padding:0 10px 8px;gap:6px;flex-wrap:nowrap;overflow-x:auto}
   .hd-row3::-webkit-scrollbar{display:none}
   .deskonly,#syncDot.deskonly,#syncDot{display:none !important}
@@ -733,7 +758,7 @@ kbd{background:var(--bg-2);border:1px solid var(--line-2);border-bottom-width:2p
     <div class="logo">进货<em>价格本</em></div>
     <div class="search">
       <span>🔍</span>
-      <input id="q" type="text" placeholder="搜索型号 / 备注…">
+      <input id="q" type="text" placeholder="搜索型号 / 备注…" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="search">
       <button class="clr" id="qClr">✕</button>
     </div>
     <button class="icon-btn primary" id="btnAdd">＋ 新增</button>
@@ -858,16 +883,16 @@ kbd{background:var(--bg-2);border:1px solid var(--line-2);border-bottom-width:2p
       </div>
       <div class="f-row">
         <div class="field"><label>类目</label><select id="fCat"></select></div>
-        <div class="field"><label>批发起订量</label><input id="fMoq" type="number" min="0" placeholder="如 1000"></div>
+        <div class="field"><label>批发起订量</label><input id="fMoq" type="number" inputmode="numeric" min="0" placeholder="如 1000"></div>
       </div>
       <div class="f-row">
-        <div class="field"><label>大量价（批发进货 R$）</label><input id="fBulk" type="number" step="0.01" min="0" placeholder="0.00"></div>
-        <div class="field"><label>少量价（零售拿货 R$）</label><input id="fSmall" type="number" step="0.01" min="0" placeholder="0.00"></div>
+        <div class="field"><label>大量价（批发进货 R$）</label><input id="fBulk" type="number" inputmode="decimal" step="0.01" min="0" placeholder="0.00"></div>
+        <div class="field"><label>少量价（零售拿货 R$）</label><input id="fSmall" type="number" inputmode="decimal" step="0.01" min="0" placeholder="0.00"></div>
       </div>
       <div class="diff-live"><span>差额（少量 − 大量）</span><b class="num" id="fDiff">—</b></div>
       <div class="f-row">
         <div class="field"><label>贴纸成本 R$（电器类留空）</label><input id="fSticker" type="number" step="0.01" min="0" placeholder="0"></div>
-        <div class="field"><label>🛒 补货数量（填了进拿货单）</label><input id="fRestock" type="number" min="0" placeholder="不补货留空"></div>
+        <div class="field"><label>🛒 补货数量（填了进拿货单）</label><input id="fRestock" type="number" inputmode="numeric" min="0" placeholder="不补货留空"></div>
       </div>
       <div class="field">
         <label>📍 进货地点（拿货单按此分组）</label>
@@ -961,17 +986,22 @@ kbd{background:var(--bg-2);border:1px solid var(--line-2);border-bottom-width:2p
   <div class="modal modal-tall">
     <div class="m-head"><span>拿货单</span><button class="x" data-close>✕</button></div>
     <div class="m-body">
-      <div class="pk-loc">
-        <div class="pk-loc-h">📍 拿货地点<span id="pkLocHint"></span></div>
+      <details class="pk-loc" id="pkLocBox">
+        <summary class="pk-loc-h">📍 <span id="pkLocHint">未选地点</span></summary>
         <div class="catline" id="pkLocChips"></div>
-        <input id="pkLocFree" placeholder="其他地点 / 摊位号 / 备注（可留空）">
-      </div>
+        <input id="pkLocFree" placeholder="其他地点 / 摊位号（可留空）">
+      </details>
       <div class="pk-tools">
         <div class="seg2" id="pkGroup" style="flex:1">
           <button data-pg="loc">📍 按地点</button>
           <button data-pg="brand">🏷 按品牌</button>
         </div>
-        <button class="icon-btn" id="btnPickReset" title="清除所有打勾">↺ 重置打勾</button>
+      </div>
+      <div class="pk-tools2">
+        <button class="chip" data-pkall="1">☑ 全选</button>
+        <button class="chip" data-pkall="0">☐ 全不选</button>
+        <button class="chip" data-pkall="x">⇄ 反选</button>
+        <button class="chip" id="pkOnlyTodo">👀 只看未拿</button>
       </div>
       <div style="font-size:12px;color:var(--ink2)">数量可直接加减，拿到一样就点左边的圈打勾。改完自动保存。</div>
       <div id="pickList"></div>
@@ -1324,17 +1354,31 @@ function costOf(p){
   if(bulk!=null) return {cost:bulk, basis:'bulk'};
   return {cost:null,basis:null};
 }
-function profitOf(p,pfId){
+function profitOf(p,pfId,which){
   const pf=settings.platforms.find(x=>x.id===pfId); if(!pf)return null;
   const sell=n(p.sellPrices&&p.sellPrices[pfId]);
-  const {cost,basis}=costOf(p);
+  let cost,basis;
+  if(which==='small'){ cost=n(p.small); basis='small'; }
+  else if(which==='bulk'){ cost=n(p.bulk); basis='bulk'; }
+  else { const c=costOf(p); cost=c.cost; basis=c.basis; }
   if(sell==null||cost==null)return null;
   const net=netOf(sell,cost,n(p.sticker)||0,pf,n(p.aff));
   return{net,margin:sell>0?net/sell:0,basis};
 }
-const fmt=v=>v==null?'—':(Math.round(v*100)/100).toFixed(2);
+/* 全 App 统一巴西数字格式：1.234,56 */
+const fmt=v=>v==null?'—':(Math.round(v*100)/100)
+  .toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
 
 /* ================= 渲染 ================= */
+/* 图片加载失败 → 不留空白 */
+document.addEventListener('error',e=>{
+  const t=e.target;
+  if(t&&t.tagName==='IMG'&&!t.dataset.failed){
+    t.dataset.failed='1';
+    t.style.cssText+=';object-fit:contain;background:var(--bg-2)';
+    t.removeAttribute('src');
+  }
+},true);
 function imgURL(p){
   if(!p.img)return p.imgUrl||null;
   if(!urlCache.has(p.id))urlCache.set(p.id,URL.createObjectURL(p.img));
@@ -1413,8 +1457,15 @@ function cardHTML(p){
         <div class="prow${d==null?' empty-row':''}"><span class="lbl">差额</span><span class="val num ${d!=null&&d>0?'diff-pos':''}">${d==null?'—':(d>0?'+':'')+fmt(d)}</span></div>
         <div class="sellrow">
           <div class="prow"><span class="lbl">售价</span><span class="val num">${fmt(sell)}</span></div>
-          ${pr?`<div class="profit-pill ${pr.net<0?'lose':(pr.margin*100<settings.targetMargin?'low':'win')}"><span>净利<small style="opacity:.7">${pr.basis==='small'?'少量价':'大量价'}</small></span><b class="num">${fmt(pr.net)} · ${(pr.margin*100).toFixed(1)}%</b></div>`
-              :`<div class="profit-pill none"><span>净利</span><b>缺售价或进货价</b></div>`}
+          ${(()=>{
+            const _pf=settings.activePlatform;
+            const ps=profitOf(p,_pf,'small'), pb=profitOf(p,_pf,'bulk');
+            if(!ps&&!pb)return `<div class="profit-pill none"><span>净利</span><b>缺售价或进货价</b></div>`;
+            const cls=r=>r.net<0?'lose':(r.margin*100<settings.targetMargin?'low':'win');
+            const one=(r,lb)=>`<div class="profit-pill ${cls(r)}"><span>${lb}</span><b class="num">${fmt(r.net)} · ${(r.margin*100).toFixed(1)}%</b></div>`;
+            if(ps&&pb)return `<div class="pf2">${one(ps,'少量')}${one(pb,'大量')}</div>`;
+            return one(ps||pb, ps?'少量价':'大量价');
+          })()}
         </div>
       </div>
     </div>`;
@@ -1818,11 +1869,14 @@ function renderPickList(){
   const gb=settings.pickGroupBy||'loc';
   const gEl=$('pkGroup');
   if(gEl)gEl.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.pg===gb));
-  const items=products.filter(p=>p.restock&&p.restock>0);
+  const allItems=products.filter(p=>p.restock&&p.restock>0);
+  const items=_pkOnlyTodo?allItems.filter(p=>!p.picked):allItems;
   const el=$('pickList'), tot=$('pickTotal');
   $('pickText').value=buildPickList();
   if(!items.length){
-    el.innerHTML='<div class="empty">还没有商品标记补货<br>在列表长按（手机）或按 <kbd>S</kbd> 进入选择模式 → 勾选商品 → 补货数量</div>';
+    el.innerHTML=_pkOnlyTodo&&allItems.length
+      ? '<div class="empty">🎉 全部拿完了！<br>点上面「👀 只看未拿」可以看回全部</div>'
+      : '<div class="empty">还没有商品标记补货<br>在列表长按（手机）或按 <kbd>S</kbd> 进入选择模式 → 勾选商品 → 补货数量</div>';
     tot.style.display='none'; return;
   }
   tot.style.display='';
@@ -1854,26 +1908,29 @@ function renderPickList(){
         ${u?`<img src="${u}" alt="" data-pkimg>`:'<span class="pk-ph">📦</span>'}
         <div class="pk-info">
           <b>${esc(p.model)}</b>
-          <span class="pk-meta">${price!=null?'@ R$ '+price.toFixed(2):'⚠ 无进价'}${p.moq?' · 起订 '+p.moq:''}${low?' · <b style="color:var(--warn)">低于起订量</b>':''}${sec?'<br>'+esc(sec):''}</span>
+          <span class="pk-meta">${price!=null?'@ R$ '+fmt(price):'⚠ 无进价'}${p.moq?' · 起订 '+p.moq:''}${low?' · <b style="color:var(--warn)">低于起订量</b>':''}${sec?'<br>'+esc(sec):''}</span>
         </div>
         <div class="pk-qty">
           <button type="button" data-pkstep="-1">−</button>
-          <input type="number" min="0" step="1" value="${p.restock}" data-pkq>
+          <input type="number" inputmode="numeric" min="0" step="1" value="${p.restock}" data-pkq>
           <button type="button" data-pkstep="1">＋</button>
         </div>
-        <div class="pk-sub num">${price!=null?'R$ '+sub.toFixed(2):'—'}</div>
+        <div class="pk-sub num">${price!=null?'R$ '+fmt(sub):'—'}</div>
       </div>`;
     }).join('');
     out+=`<div class="pk-g"><div class="pk-gh">
+        <button class="pk-gtick${gdone===list.length?' on':''}" data-gtick="${esc(k)}"
+          title="整组打勾 / 取消">${gdone===list.length?'✓':''}</button>
         <span class="pk-gt">${esc(k)}</span>
         <span class="pk-gp">${gdone}/${list.length}</span>
-        <span>R$ ${gsub.toFixed(2)}</span>
+        <span>R$ ${fmt(gsub)}</span>
       </div>${rows}</div>`;
   }
   el.innerHTML=out;
-  const pct=items.length?Math.round(doneCnt/items.length*100):0;
-  tot.innerHTML=`<span>合计 ${qty} 件 · 已拿 ${doneCnt}/${items.length}
-      <span class="pk-bar"><i style="width:${pct}%"></i></span></span><b>R$ ${total.toFixed(2)}</b>`;
+  const doneAll=allItems.filter(p=>p.picked).length;
+  const pct=allItems.length?Math.round(doneAll/allItems.length*100):0;
+  tot.innerHTML=`<span>合计 ${qty} 件 · 已拿 ${doneAll}/${allItems.length}
+      <span class="pk-bar"><i style="width:${pct}%"></i></span></span><b>R$ ${fmt(total)}</b>`;
 }
 async function setPickQty(id,val){
   const p=products.find(x=>x.id===id); if(!p)return;
@@ -1926,10 +1983,10 @@ function buildPickList(){
       const sub=price!=null?price*p.restock:null;
       if(sub!=null)total+=sub;
       totalQty+=p.restock;
-      out+='  '+p.model+'  ×'+p.restock+(price!=null?'  @'+price.toFixed(2)+'  = '+sub.toFixed(2):'  (无进价)')+(p.moq?'  (起订'+p.moq+')':'')+'\n';
+      out+='  '+p.model+'  ×'+p.restock+(price!=null?'  @'+fmt(price)+'  = '+fmt(sub):'  (无进价)')+(p.moq?'  (起订'+p.moq+')':'')+'\n';
     }
   }
-  out+='\n合计: '+totalQty+' 件, 约 R$ '+total.toFixed(2);
+  out+='\n合计: '+totalQty+' 件, 约 R$ '+fmt(total);
   return out;
 }
 function fmtHV(v){return v==null?'空':(''+v);}
@@ -1971,7 +2028,7 @@ $('pkGroup').addEventListener('click',async e=>{
   $('pkGroup').querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.pg===g));
   renderPickList();
 });
-$('btnPickReset').addEventListener('click',async()=>{
+$('btnPickReset')&&$('btnPickReset').addEventListener('click',async()=>{
   const on=products.filter(p=>p.picked);
   if(!on.length){toast('没有打勾的商品');return;}
   for(const p of on){p.picked=false;p.updatedAt=Date.now();await idbPut('products',p);cloudPushOne(p);}
@@ -2141,6 +2198,7 @@ function openDlg({title,msg,icon,iconType,yes,no,danger,input,options,value}){
     if(input){ inp.style.display=''; inp.value=value!=null?value:'';
       inp.placeholder=typeof input==='string'?input:'';
       inp.type=(input==='number')?'number':'text';
+    if(input==='number')inp.setAttribute('inputmode','decimal'); else inp.removeAttribute('inputmode');
       setTimeout(()=>{inp.focus();inp.select();},60);
     } else inp.style.display='none';
     $('dlgMask').classList.add('show');
@@ -2462,7 +2520,7 @@ async function saveTrip(){
     await idbPut('products',p); cloudPushOne(p);
   }
   closeMasks(); render(); syncState();
-  toast(`已存档：${trip.qty} 件 · R$ ${trip.total.toFixed(2)}`,'ok','查看',()=>{renderTrips();$('tripMask').classList.add('show');});
+  toast(`已存档：${trip.qty} 件 · R$ ${fmt(trip.total)}`,'ok','查看',()=>{renderTrips();$('tripMask').classList.add('show');});
 }
 $('btnPickSave')&&$('btnPickSave').addEventListener('click',saveTrip);
 
@@ -2479,18 +2537,18 @@ async function renderTrips(){
   const sum=trips.reduce((s,t)=>s+t.total,0);
   const qty=trips.reduce((s,t)=>s+t.qty,0);
   const last=trips[0];
-  st.innerHTML=`共 <b>${trips.length}</b> 次拿货 · 累计 <b>${qty}</b> 件 · <b>R$ ${sum.toFixed(2)}</b><br>`+
+  st.innerHTML=`共 <b>${trips.length}</b> 次拿货 · 累计 <b>${qty}</b> 件 · <b>R$ ${fmt(sum)}</b><br>`+
     `最近一次：${new Date(last.at).toLocaleDateString()}${last.locs?' · '+esc(last.locs):''}`;
   el.innerHTML=trips.map(t=>`
     <div class="trip" data-tid="${t.id}">
       <div class="trip-h">
         <span class="d">${new Date(t.at).toLocaleDateString()}</span>
         ${t.locs?`<span class="l">📍 ${esc(t.locs)}</span>`:''}
-        <span class="v">${t.qty} 件 · R$ ${t.total.toFixed(2)}</span>
+        <span class="v">${t.qty} 件 · R$ ${fmt(t.total)}</span>
       </div>
       <div class="trip-b">
         ${t.lines.map(l=>`<div class="ln"><span><b>${esc(l.model)}</b> ×${l.qty}${l.loc?' · '+esc(l.loc):''}</span>
-          <span class="num">${l.price!=null?'@'+l.price.toFixed(2)+' = R$ '+l.sub.toFixed(2):'—'}</span></div>`).join('')}
+          <span class="num">${l.price!=null?'@'+fmt(l.price)+' = R$ '+fmt(l.sub):'—'}</span></div>`).join('')}
         <div class="ln" style="border-top:1px solid var(--line);margin-top:4px">
           <button class="icon-btn" data-trepeat="${t.id}" style="font-size:12px;padding:5px 10px">↻ 再拿一次</button>
           <button class="icon-btn" data-tdel="${t.id}" style="font-size:12px;padding:5px 10px;color:var(--loss)">删除记录</button>
@@ -3127,6 +3185,50 @@ async function openTool(which){
       {title:label+' 打不开',icon:'🔗'});
   }
 }
+
+
+/* ---- 拿货单：批量打勾 ---- */
+let _pkOnlyTodo=false;
+async function setPickedBulk(list,val){
+  for(const p of list){ p.picked=val; p.updatedAt=Date.now(); await idbPut('products',p); cloudPushOne(p); }
+}
+$('pickList')&&$('pickList').addEventListener('click',async e=>{
+  const gt=e.target.closest('[data-gtick]');
+  if(!gt){ return; }
+  e.stopPropagation();
+  const key=gt.dataset.gtick;
+  const byLoc=settings.pickGroupBy!=='brand';
+  const items=products.filter(p=>p.restock&&p.restock>0).filter(p=>{
+    const k=byLoc?(p.loc||'📍 未设地点'):((p.brand||'(无品牌)')+' / '+(p.category||'未分类'));
+    return k===key;
+  });
+  if(!items.length)return;
+  const allDone=items.every(p=>p.picked);
+  await setPickedBulk(items,!allDone);
+  haptic(10); renderPickList();
+  toast(allDone?`已取消「${key}」的 ${items.length} 项`:`「${key}」${items.length} 项已打勾`,'ok');
+},true);
+
+document.addEventListener('click',async e=>{
+  const b=e.target.closest('[data-pkall]');
+  if(b){
+    const mode=b.dataset.pkall;
+    const items=products.filter(p=>p.restock&&p.restock>0);
+    if(!items.length){toast('拿货单是空的','warn');return;}
+    if(mode==='x'){ for(const p of items){p.picked=!p.picked;p.updatedAt=Date.now();await idbPut('products',p);cloudPushOne(p);} }
+    else await setPickedBulk(items, mode==='1');
+    haptic(10); renderPickList();
+    toast(mode==='1'?`全部 ${items.length} 项已打勾`:(mode==='0'?'已清除全部打勾':'已反选'),'ok');
+    return;
+  }
+  const t=e.target.closest('#pkOnlyTodo');
+  if(t){
+    _pkOnlyTodo=!_pkOnlyTodo;
+    t.classList.toggle('on',_pkOnlyTodo);
+    renderPickList();
+    toast(_pkOnlyTodo?'只显示还没拿的':'显示全部','ok');
+  }
+});
 
 /* ============ 拿货地点 ============ */
 function locsText(){
@@ -3889,7 +3991,7 @@ async function cloudPushAll(force){
     await idbPut('settings',settings);
     const secs=((Date.now()-startAt)/1000).toFixed(1);
     sbStatus('✔ 已上传 '+done+' 件'+(imgs?'（含 '+imgs+' 张图）':'')+'，用时 '+secs+' 秒');
-  }catch(err){sbStatus('✕ '+err.message);}
+  }catch(err){ cloudErr(err,'上传'); }
   finally{ if(btn)btn.textContent=oldTxt; }
 }
 async function cloudPullMerge(){
@@ -3951,7 +4053,16 @@ async function cloudPullMerge(){
     sbStatus(msg);
     if(added+updated2+merged===0)toast('本地已是最新，没有新数据','ok');
     else toast(`同步完成：新增 ${added} · 更新 ${updated2}`+(merged?` · 合并 ${merged}`:''),'ok');
-  }catch(err){sbStatus('✕ '+err.message);}
+  }catch(err){ cloudErr(err,'下载'); }
+}
+
+/* 云同步出错时的统一提示：区分「没网」和「真出错」，两种都要让用户看见 */
+function cloudErr(err,what){
+  const off=!navigator.onLine || /Failed to fetch|NetworkError|ERR_/i.test(err&&err.message||'');
+  const msg = off ? `离线中，${what}失败。改动已存在本机，联网后会自动同步。`
+                  : `${what}失败：${(err&&err.message||err).toString().slice(0,60)}`;
+  sbStatus('✕ '+msg);
+  toast(msg, off?'warn':'err', null, null, off?4000:7000);
 }
 async function cloudTest(){
   const url=settings.cloud.url, key=settings.cloud.key;
