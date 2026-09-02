@@ -7,12 +7,12 @@
 <style>
 :root{
   --bg:#1a1917;--surf:#222120;--surf2:#2d2b29;--surf3:#383530;
-  --bd:#44403c;--bdhi:#78716c;
+  --bd:#514c47;--bdhi:#8a8279;
   --acc:#9b6cf0;--acc-l:#c4a7ff;--acc-d:rgba(155,108,240,.15);--acc-g:rgba(155,108,240,.08);
   --warm:#d97706;--warm-d:rgba(217,119,6,.14);
   --teal:#14b8a6;--teal-d:rgba(20,184,166,.14);
   --ok:#4ade80;--err:#f87171;
-  --txt:#ede9e3;--dim:#78716c;--mut:#44403c;
+  --txt:#f5f2ee;--dim:#b9b2a8;--mut:#8a8279;
   --r:7px;--rl:12px;
   --mono:'JetBrains Mono','Courier New',monospace;
   --lw:300px;--rw:258px;
@@ -57,12 +57,12 @@ html,body{height:100%;background:var(--bg);color:var(--txt);
 .pb-act:hover{color:var(--txt);border-color:var(--bdhi);}
 .pb-act.save{color:var(--acc-l);border-color:var(--acc);background:var(--acc-d);}
 .pb-act.del:hover{color:var(--err);border-color:var(--err);}
-.ps{flex:1;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:9px;}
-.ps::-webkit-scrollbar{width:4px;}
-.ps::-webkit-scrollbar-thumb{background:var(--bdhi);border-radius:2px;}
+.ps{flex:1 1 0%;min-height:0;overflow-y:auto;overflow-x:hidden;padding:10px;display:flex;flex-direction:column;gap:9px;}
+.ps::-webkit-scrollbar{width:10px;}
+.ps::-webkit-scrollbar-thumb{background:var(--bdhi);border-radius:5px;border:2px solid var(--surf);min-height:30px;}
 .usec{background:var(--surf2);border:1px solid var(--bd);border-radius:var(--rl);overflow:hidden;transition:border-color .13s,background .13s;}
 .usec.drop-active{border-color:var(--acc);background:rgba(155,108,240,.06);}
-.uh{padding:9px 12px;background:var(--surf3);border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+.uh{padding:7px 10px;background:var(--surf3);border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:5px;flex-wrap:wrap;}
 .ut{font-size:10px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--dim);flex:1;}
 .tag{font-size:10px;font-family:var(--mono);padding:1px 7px;line-height:18px;border-radius:4px;}
 .tag.cnt{color:var(--dim);border:1px solid var(--bd);}
@@ -76,7 +76,10 @@ button{cursor:pointer;border:none;border-radius:var(--r);font-size:13px;font-fam
 .bp.tl{background:var(--teal);color:#1a1917;}
 .bg{background:transparent;color:var(--dim);border:1px solid var(--bd);padding:7px 11px;}
 .bg:hover{border-color:var(--bdhi);color:var(--txt);}
-.bd2{background:transparent;color:var(--mut);border:none;padding:3px 6px;font-size:11px;}
+.bd2{background:var(--surf2);color:var(--dim);border:1px solid var(--bd);padding:3px 8px;font-size:10.5px;border-radius:5px;line-height:1.5;}
+.bd2:hover{color:var(--acc-l);border-color:var(--acc);background:var(--acc-d);}
+.bd2.ok:hover{color:var(--ok);border-color:var(--ok);background:rgba(74,222,128,.12);}
+.bd2.danger:hover{color:var(--err);border-color:var(--err);background:rgba(248,113,113,.12);}
 .bd2:hover{color:var(--err);}
 .bd2.ok:hover{color:var(--ok);}
 .bi{background:var(--surf3);color:var(--dim);border:1px solid var(--bd);padding:5px 8px;font-size:11px;border-radius:var(--r);}
@@ -90,9 +93,9 @@ button{cursor:pointer;border:none;border-radius:var(--r);font-size:13px;font-fam
 .bfolder{background:var(--surf3);color:var(--txt);font-weight:600;font-size:13px;padding:8px 0;border-radius:var(--rl);width:100%;margin-bottom:5px;border:1px solid var(--bdhi);}
 .bfolder:hover{border-color:var(--teal);color:var(--teal);background:var(--teal-d);}
 .bfolder:disabled{opacity:.3;cursor:not-allowed;}
-.tg{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;max-height:160px;overflow-y:auto;}
-.tg::-webkit-scrollbar{width:3px;}
-.tg::-webkit-scrollbar-thumb{background:var(--bdhi);}
+.tg{display:grid;grid-template-columns:repeat(auto-fill,minmax(56px,1fr));gap:5px;max-height:230px;overflow-y:auto;padding-right:3px;}
+.tg::-webkit-scrollbar{width:8px;}
+.tg::-webkit-scrollbar-thumb{background:var(--bdhi);border-radius:4px;}
 .emp{font-size:11px;color:var(--mut);text-align:center;padding:13px 8px;border:1px dashed var(--bd);border-radius:var(--r);line-height:1.8;grid-column:1/-1;}
 .ti{position:relative;aspect-ratio:1;background:var(--surf3);border:2px solid transparent;border-radius:var(--r);overflow:hidden;cursor:pointer;transition:border-color .12s;}
 .ti:hover{border-color:var(--bdhi);}
@@ -184,10 +187,10 @@ input[type=number]:focus{border-color:var(--acc);}
 .etab.act{color:var(--acc-l);border-bottom-color:var(--acc);}
 .etab.t-base.act{color:var(--warm);border-bottom-color:var(--warm);}
 .etab.t-brand.act,.etab.t-ip.act{color:var(--teal);border-bottom-color:var(--teal);}
-.tab-pane{flex:1;overflow-y:auto;padding:11px;flex-direction:column;gap:9px;display:none;}
+.tab-pane{flex:1 1 0%;min-height:0;overflow-y:auto;padding:11px;flex-direction:column;gap:9px;display:none;}
 .tab-pane.show{display:flex;}
-.tab-pane::-webkit-scrollbar{width:4px;}
-.tab-pane::-webkit-scrollbar-thumb{background:var(--bdhi);}
+.tab-pane::-webkit-scrollbar{width:10px;}
+.tab-pane::-webkit-scrollbar-thumb{background:var(--bdhi);border-radius:5px;border:2px solid var(--surf);min-height:30px;}
 .sec-title{font-size:10px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--dim);padding-bottom:6px;border-bottom:1px solid var(--bd);margin-bottom:6px;}
 .cr{display:flex;align-items:center;gap:5px;margin-bottom:5px;}
 .cl{font-size:11px;color:var(--dim);width:40px;flex-shrink:0;text-align:right;font-family:var(--mono);}
@@ -240,6 +243,69 @@ input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.3);}
 #modal input[type=text]{width:100%;background:var(--surf3);color:var(--txt);border:1px solid var(--bd);border-radius:var(--r);padding:8px 11px;font-size:14px;font-family:inherit;outline:none;margin-bottom:12px;}
 #modal input[type=text]:focus{border-color:var(--acc);}
 #modal .mbtns{display:flex;gap:8px;justify-content:flex-end;}
+
+/* ===== UI 美感与流畅度 ===== */
+*{-webkit-font-smoothing:antialiased;}
+.ov-card{animation:ovIn .16s cubic-bezier(.2,.9,.3,1);}
+@keyframes ovIn{from{opacity:0;transform:translateY(10px) scale(.985)}to{opacity:1;transform:none}}
+.ov{animation:fadeIn .13s ease;}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+#notif{animation:notifIn .2s cubic-bezier(.2,.9,.3,1);}
+@keyframes notifIn{from{opacity:0;transform:translateX(-50%) translateY(8px)}to{opacity:1;transform:translateX(-50%)}}
+.ti,.sti,.libi,.lib-i,.pm-i,.dd-item,.gal-i{will-change:transform;}
+.ti:hover,.sti:hover{transform:translateY(-2px);box-shadow:0 4px 14px rgba(0,0,0,.28);}
+.bi,.bp,.bg,.bd2,.pb-act,.ft-btn{transition:background .13s,border-color .13s,color .13s,transform .1s;}
+.bi:active,.bp:active,.bg:active,.bd2:active,.pb-act:active,.ft-btn:active{transform:scale(.96);}
+.cr input[type=range]{transition:filter .12s;}
+.cr:hover input[type=range]{filter:brightness(1.15);}
+.usec{transition:border-color .15s;}
+.usec:focus-within{border-color:var(--bdhi);}
+#lib-grid,#pm-grid,#gal-grid,.tg,#proj-dd-menu,.dd-list{scroll-behavior:smooth;}
+.tg::-webkit-scrollbar,#lib-grid::-webkit-scrollbar,#pm-grid::-webkit-scrollbar,.dd-list::-webkit-scrollbar{width:7px;height:7px;}
+.tg::-webkit-scrollbar-thumb,#lib-grid::-webkit-scrollbar-thumb,#pm-grid::-webkit-scrollbar-thumb,.dd-list::-webkit-scrollbar-thumb{background:var(--bd);border-radius:4px;}
+.tg::-webkit-scrollbar-thumb:hover,#lib-grid::-webkit-scrollbar-thumb:hover,#pm-grid::-webkit-scrollbar-thumb:hover{background:var(--bdhi);}
+.tg::-webkit-scrollbar-track{background:transparent;}
+.pm-i,.lib-i{animation:cardIn .2s ease backwards;}
+@keyframes cardIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.pm-i:nth-child(2),.lib-i:nth-child(2){animation-delay:.02s}
+.pm-i:nth-child(3),.lib-i:nth-child(3){animation-delay:.04s}
+.pm-i:nth-child(4),.lib-i:nth-child(4){animation-delay:.06s}
+.pm-i:nth-child(n+5),.lib-i:nth-child(n+5){animation-delay:.08s}
+.tag,.dd-tag,.pm-tl i,.dd-tl-i{transition:all .12s;}
+#prog-wrap{transition:opacity .2s,transform .2s;}
+.ov-t{letter-spacing:.2px;}
+#proj-dd-menu{animation:ovIn .14s cubic-bezier(.2,.9,.3,1);}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--acc);outline-offset:1px;}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important;}}
+
+/* ===== 可读性与按钮可见性 ===== */
+#proj-new,#proj-ren,#proj-dup,#proj-mgr,#proj-exp,#proj-imp,#ws-clear{
+  background:var(--surf3)!important;border:1px solid var(--bd)!important;color:var(--dim)!important;
+  padding:4px 9px!important;font-size:11px!important;border-radius:5px!important;letter-spacing:.2px;}
+#proj-new:hover,#proj-ren:hover,#proj-dup:hover,#proj-mgr:hover,#proj-exp:hover,#proj-imp:hover{
+  color:var(--acc-l)!important;border-color:var(--acc)!important;background:var(--acc-d)!important;}
+#ws-clear:hover{color:var(--err)!important;border-color:var(--err)!important;background:rgba(248,113,113,.12)!important;}
+.pb-act{background:var(--surf3);border:1px solid var(--bd);color:var(--dim);padding:4px 10px;font-size:11px;border-radius:5px;}
+.pb-act:hover{color:var(--acc-l);border-color:var(--acc);background:var(--acc-d);}
+.dd-tagbtn,.dd-delbtn{font-size:10px!important;padding:3px 7px!important;color:var(--dim)!important;}
+.ut{font-size:12px;font-weight:700;color:var(--txt);letter-spacing:.3px;}
+.tag{color:var(--dim);}
+.tag.cnt{background:var(--surf2);border:1px solid var(--bd);color:var(--acc-l);font-weight:600;}
+.emp{color:var(--dim)!important;font-size:10.5px;}
+.cl{color:var(--dim)!important;font-size:11px;}
+.cu{color:var(--mut)!important;}
+.logo-nm,.dd-nm,.pm-nm,.lib-nm{color:var(--txt)!important;}
+.pm-meta,.ls-empty,.lib-empty,.pm-empty,.dd-none{color:var(--dim)!important;}
+#status,#canvas-info,#exp-desc{color:var(--dim)!important;}
+.fl-lbl{color:var(--dim)!important;}
+.mbtns .bg{color:var(--dim);}
+input,select,textarea{color:var(--txt)!important;}
+input::placeholder{color:var(--mut)!important;}
+.libi{opacity:.78;}
+.libi:hover{opacity:1;}
+.ti-n,.sti-n{color:var(--dim)!important;}
+.dd-tl-i,.pm-tl i{color:var(--dim)!important;}
+.kb-tbl td{color:var(--dim);}
 </style></head><body>
 <div id="topbar">
   <div class="logo-dot"></div><span class="logo-text">贴图合成器</span>
@@ -250,14 +316,16 @@ input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.3);}
   <div class="spacer"></div>
   <span id="clip-ind">📋 已复制</span>
   <button id="undo-btn" onclick="undo()" disabled>↩ 撤销</button>
-  <span id="undo-ct"></span><div id="proj-dd"><button id="proj-dd-btn" title="切换项目" onclick="toggleProjDD(event)"><span id="proj-dd-cur">默认项目</span><span id="proj-dd-tag" style="display:none"></span><span class="dd-arr">▾</span></button><div id="proj-dd-menu"></div></div>
-  <button id="proj-new" title="新建项目" onclick="newProject()">＋</button>
-  <button id="proj-ren" title="重命名当前项目" onclick="renameProject()">✎</button>
-  <button id="proj-dup" title="复制当前项目（含全部素材与底图）" onclick="duplicateProject()">⧉</button>
-  <button id="proj-exp" title="导出当前项目为文件（备份/换电脑）" onclick="exportProject()">⤓</button>
-  <button id="proj-imp" title="从文件导入项目" onclick="G('proj-file').click()">⤒</button>
+  <span id="undo-ct"></span><button class="hlp" onclick="showHelp(event,'proj')" style="margin-right:2px">?</button><div id="proj-dd"><button id="proj-dd-btn" title="切换项目" onclick="toggleProjDD(event)"><span id="proj-dd-cur">默认项目</span><span id="proj-stat" title="底图/素材 数量"></span><span id="proj-dd-tag" style="display:none"></span><span class="dd-arr">▾</span></button><div id="proj-dd-menu"></div></div>
+  <button id="proj-new" title="新建项目" onclick="newProject()">＋ 新建</button>
+  <button id="proj-ren" title="重命名当前项目" onclick="renameProject()">改名</button>
+  <button id="proj-dup" title="复制当前项目（含全部素材与底图）" onclick="duplicateProject()">⧉ 副本</button>
+  <button id="proj-mgr" title="项目管理页（P）" onclick="openProjMgr()">▦ 管理</button>
+  <button id="proj-exp" title="导出当前项目为文件（备份/换电脑）" onclick="exportProject()">导出</button>
+  <button id="proj-imp" title="从文件导入项目" onclick="G('proj-file').click()">导入</button>
   <input type="file" id="proj-file" accept=".json,application/json" style="display:none" onchange="importProject(this)">
-  <button id="ws-clear" title="删除当前项目缓存" onclick="clearWorkspaceCache()">🧹</button><span id="status">就绪</span>
+  <button id="theme-btn" title="切换亮色/暗色" onclick="toggleTheme()">☀ 亮色</button>
+  <button id="ws-clear" title="删除当前项目缓存" onclick="clearWorkspaceCache()">🗑 删除</button><span id="status">就绪</span>
 </div>
 <div id="app">
 <div id="tg-left" class="pane-tg" title="点击收起/展开 · 拖动调整宽度（[）"><span class="pt-a">‹</span><span class="pt-g">⋮</span></div>
@@ -269,12 +337,12 @@ input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.3);}
   </div>
   <div class="ps">
     <div class="usec" id="drop-base">
-      <div class="uh"><span class="ut">底图</span><span class="tag cnt" id="base-cnt">0</span><button class="bd2 ok" onclick="selectAllBases()">全选</button><button class="bd2" onclick="startBodyPick()" title="手动框选杯身可印区域">🥤框选</button><button class="bd2" onclick="clearManualBody()" title="恢复自动识别">↺</button><button class="bd2" onclick="clearBases()">清空</button></div>
+      <div class="uh"><span class="ut">底图</span><button class="hlp" onclick="showHelp(event,'body')">?</button><span class="tag cnt" id="base-cnt">0</span><button class="bd2 ok" onclick="selectAllBases()">全选</button><button class="bd2" onclick="startBodyPick()" title="手动框选杯身可印区域">杯身</button><button class="bd2" onclick="clearManualBody()" title="恢复自动识别">自动</button><button class="bd2 danger" onclick="clearBases()">清空</button></div>
       <div class="ub"><div class="br"><button class="bp" onclick="G('inp-base').click()">＋ 上传底图</button><input type="file" id="inp-base" accept="image/*" multiple hidden onchange="loadFiles('base',this)"></div><div class="tg" id="base-grid"><div class="emp" id="base-empty">上传底图 · 自动进库 · 全项目共享</div></div>
 </div>
     </div>
     <div class="usec" id="drop-stk">
-      <div class="uh"><span class="ut">素材</span><span class="tag cnt" id="stk-cnt">0</span><button class="bd2 ok" onclick="selectAllStickers()">全选</button><button class="bd2" onclick="clearStickers()">清空</button><button class="bi" id="grp-btn" onclick="toggleGroupMode()">编组</button></div>
+      <div class="uh"><span class="ut">素材</span><button class="hlp" onclick="showHelp(event,'lib')">?</button><span class="tag cnt" id="stk-cnt">0</span><button class="bd2 ok" onclick="selectAllStickers()">全选</button><button class="bd2 danger" onclick="clearStickers()">清空</button><button class="bi" id="grp-btn" onclick="toggleGroupMode()">编组</button></div>
       <div class="ub">
         <div class="br"><button class="bp" onclick="G('inp-stk').click()">＋ 上传素材</button><input type="file" id="inp-stk" accept="image/*" multiple hidden onchange="loadFiles('sticker',this)"></div>
         <div id="grp-banner"><span>⬡ 编组</span><span id="grp-ct" style="color:var(--acc-l);margin:0 4px">0</span><span>个 · 同步操作</span></div>
@@ -285,17 +353,17 @@ input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.3);}
     </div>
     <div class="usec logosec" id="drop-brand">
       <div class="uh" onclick="toggleLogoSec(event)" style="cursor:pointer">
-        <span class="ut">Logo</span><span class="tag cnt" id="lib-n-logo">0</span>
+        <span class="ut">Logo</span><button class="hlp" onclick="showHelp(event,'lib')">?</button><span class="tag cnt" id="lib-n-logo">0</span>
         <span id="logo-sum"></span>
-        <button class="ls-tg" id="logo-sec-tg">▾</button>
+        <button class="bd2" id="logo-hide-btn" onclick="toggleLogoHidden(event)" title="隐藏/显示整个 Logo 区">隐藏</button><button class="ls-tg" id="logo-sec-tg">▾</button>
       </div>
       <div class="ub" id="logo-body">
         <div class="lgrow" id="drop-brand-in">
           <div class="logo-b sm" id="brand-box"><span class="logo-ni">无</span></div>
           <div class="lg-m"><div class="logo-nm" id="brand-name">未上传</div><div class="lg-tags"><span class="tag warm">品牌 L</span></div></div>
           <label class="tog" title="启用"><input type="checkbox" id="brand-en" onchange="toggleLogoEnable('brand')"><span class="sl"></span></label>
-          <button class="bd2" onclick="G('inp-brand').click()" title="上传">＋</button>
-          <button class="bd2" onclick="clearLogo('brand')" title="清空">✕</button>
+          <button class="bd2" onclick="G('inp-brand').click()" title="上传">上传</button>
+          <button class="bd2 danger" onclick="clearLogo('brand')" title="清空">清空</button>
           <input type="file" id="inp-brand" accept="image/*" hidden onchange="loadFiles('brand',this)">
           <span class="tog-lbl" id="brand-lbl" style="display:none"></span>
         </div>
@@ -303,8 +371,8 @@ input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.3);}
           <div class="logo-b sm" id="ip-box"><span class="logo-ni">无</span></div>
           <div class="lg-m"><div class="logo-nm" id="ip-name">未上传</div><div class="lg-tags"><span class="tag teal">IP R</span></div></div>
           <label class="tog tl" title="启用"><input type="checkbox" id="ip-en" onchange="toggleLogoEnable('ip')"><span class="sl"></span></label>
-          <button class="bd2" onclick="G('inp-ip').click()" title="上传">＋</button>
-          <button class="bd2" onclick="clearLogo('ip')" title="清空">✕</button>
+          <button class="bd2" onclick="G('inp-ip').click()" title="上传">上传</button>
+          <button class="bd2 danger" onclick="clearLogo('ip')" title="清空">清空</button>
           <input type="file" id="inp-ip" accept="image/*" hidden onchange="loadFiles('ip',this)">
           <span class="tog-lbl" id="ip-lbl" style="display:none"></span>
         </div>
@@ -352,7 +420,7 @@ input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.3);}
     <div id="cust-sz"><input type="number" id="cw-in" value="1200" min="100" max="4000" style="width:50px" onchange="renderCanvas()"><span style="color:var(--mut);font-size:11px">×</span><input type="number" id="ch-in" value="1200" min="100" max="4000" style="width:50px" onchange="renderCanvas()"></div>
     <div class="sep"></div>
     <button class="pb-act act" id="snap-btn" title="磁吸对齐（按住 Alt 暂时停用）" onclick="toggleSnap()">🧲 吸附</button>
-    <button class="pb-act" title="快捷键（?）" onclick="openKb()">⌨</button>
+    <button class="pb-act" title="快捷键（?）" onclick="openKb()">⌨ 快捷键</button>
     <div class="sep"></div>
     <button class="pb-act" id="fit-btn" title="智能定位：素材自动吸附杯身中心并按杯宽缩放（F）" onclick="autoFitSticker()">🎯 智能定位</button>
     <button class="pb-act" id="ruler-btn" title="显示印花实际厘米尺寸（R）" onclick="toggleRuler()">📏 尺寸</button>
@@ -385,18 +453,18 @@ input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.3);}
     <div class="cr"><span class="cl">缩放</span><input type="range" id="ss-r" min="5" max="300" oninput="stkCtrl('scale',this.value)"><input type="number" id="ss-n" value="100" min="5" max="300" oninput="stkCtrl('scale',this.value)"><span class="cu">%</span></div>
     <div class="cr"><span class="cl">旋转</span><input type="range" id="sr-r" min="0" max="360" oninput="stkCtrl('rotation',this.value)"><input type="number" id="sr-n" value="0" min="0" max="360" oninput="stkCtrl('rotation',this.value)"><span class="cu">°</span></div>
     <div class="cr"><span class="cl">透明</span><input type="range" id="so-r" min="0" max="100" value="100" oninput="stkCtrl('opacity',this.value)"><input type="number" id="so-n" value="100" min="0" max="100" oninput="stkCtrl('opacity',this.value)"><span class="cu">%</span></div>
-    <div class="cr" style="margin-top:6px"><span class="cl">🥤 曲面</span><input type="range" id="sc-r" class="wm" min="0" max="100" value="0" oninput="stkCtrl('curve',this.value)"><input type="number" id="sc-n" value="0" min="0" max="100" oninput="stkCtrl('curve',this.value)"><span class="cu">%</span></div>
+    <div class="advgrp" id="adv-curve"><div class="advh" onclick="toggleAdv('adv-curve')"><span>🥤 曲面与光泽</span><button class="hlp" onclick="showHelp(event,'curve')">?</button><span class="advarr">▾</span></div><div class="advb"><div class="cr"><span class="cl">曲面</span><input type="range" id="sc-r" class="wm" min="0" max="100" value="0" oninput="stkCtrl('curve',this.value)"><input type="number" id="sc-n" value="0" min="0" max="100" oninput="stkCtrl('curve',this.value)"><span class="cu">%</span></div>
     <div class="cr"><span class="cl">杯口弧</span><input type="range" id="scv-r" class="wm" min="-50" max="50" value="0" oninput="stkCtrl('curveV',this.value)"><input type="number" id="scv-n" value="0" min="-50" max="50" oninput="stkCtrl('curveV',this.value)"><span class="cu">%</span></div>
-    <div style="display:flex;gap:4px;margin-top:4px"><button class="bi" onclick="applyCurvePreset(0,0)">平面</button><button class="bi" onclick="applyCurvePreset(45,8)">马克杯</button><button class="bi" onclick="applyCurvePreset(65,12)">保温杯</button><button class="bi" onclick="applyCurvePreset(80,15)">细瓶身</button></div>
+    <div style="display:flex;gap:4px;margin-top:4px"><button class="bi" onclick="clearCrop()" title="清除裁切,恢复完整图">↺裁切</button><button class="bi" onclick="applyCurvePreset(0,0)">平面</button><button class="bi" onclick="applyCurvePreset(45,8)">马克杯</button><button class="bi" onclick="applyCurvePreset(65,12)">保温杯</button><button class="bi" onclick="applyCurvePreset(80,15)">细瓶身</button></div>
     <div class="cr" style="margin-top:6px"><span class="cl">✨ 光泽</span><input type="range" id="sg-r" class="tl" min="0" max="100" value="0" oninput="stkCtrl('gloss',this.value)"><input type="number" id="sg-n" value="0" min="0" max="100" oninput="stkCtrl('gloss',this.value)"><span class="cu">%</span></div>
     <div class="cr"><span class="cl">高光位</span><input type="range" id="sgp-r" class="tl" min="0" max="100" value="34" oninput="stkCtrl('glossPos',this.value)"><input type="number" id="sgp-n" value="34" min="0" max="100" oninput="stkCtrl('glossPos',this.value)"><span class="cu">%</span></div>
-    <div style="display:flex;gap:4px;margin-top:4px"><button class="bi" onclick="applyGlossPreset(0)">无光</button><button class="bi" onclick="applyGlossPreset(22)">哑光</button><button class="bi" onclick="applyGlossPreset(45)">半光</button><button class="bi" onclick="applyGlossPreset(72)">高光</button></div>
-    <div class="cr" style="margin-top:8px;border-top:1px solid var(--bd);padding-top:8px"><span class="cl">↔ 横拉</span><input type="range" id="ssx-r" min="10" max="300" value="100" oninput="stkCtrl('stretchX',this.value)"><input type="number" id="ssx-n" value="100" min="10" max="300" oninput="stkCtrl('stretchX',this.value)"><span class="cu">%</span></div>
+    <div style="display:flex;gap:4px;margin-top:4px"><button class="bi" onclick="applyGlossPreset(0)">无光</button><button class="bi" onclick="applyGlossPreset(22)">哑光</button><button class="bi" onclick="applyGlossPreset(45)">半光</button><button class="bi" onclick="applyGlossPreset(72)">高光</button></div></div></div>
+    <div class="advgrp" id="adv-warp"><div class="advh" onclick="toggleAdv('adv-warp')"><span>↔ 变形与拉伸</span><button class="hlp" onclick="showHelp(event,'warp')">?</button><span class="advarr">▾</span></div><div class="advb"><div class="cr" ><span class="cl">↔ 横拉</span><input type="range" id="ssx-r" min="10" max="300" value="100" oninput="stkCtrl('stretchX',this.value)"><input type="number" id="ssx-n" value="100" min="10" max="300" oninput="stkCtrl('stretchX',this.value)"><span class="cu">%</span></div>
     <div class="cr"><span class="cl">↕ 竖拉</span><input type="range" id="ssy-r" min="10" max="300" value="100" oninput="stkCtrl('stretchY',this.value)"><input type="number" id="ssy-n" value="100" min="10" max="300" oninput="stkCtrl('stretchY',this.value)"><span class="cu">%</span></div>
-    <div class="cr"><span class="cl">▽ 梯形</span><input type="range" id="stp-r" class="wm" min="-80" max="80" value="0" oninput="stkCtrl('taper',this.value)"><input type="number" id="stp-n" value="0" min="-80" max="80" oninput="stkCtrl('taper',this.value)"><span class="cu">%</span></div>
-    <div class="cr"><span class="cl">⇱ 斜切X</span><input type="range" id="skx-r" class="wm" min="-60" max="60" value="0" oninput="stkCtrl('skewX',this.value)"><input type="number" id="skx-n" value="0" min="-60" max="60" oninput="stkCtrl('skewX',this.value)"><span class="cu">°</span></div>
-    <div class="cr"><span class="cl">⇲ 斜切Y</span><input type="range" id="sky-r" class="wm" min="-60" max="60" value="0" oninput="stkCtrl('skewY',this.value)"><input type="number" id="sky-n" value="0" min="-60" max="60" oninput="stkCtrl('skewY',this.value)"><span class="cu">°</span></div>
-    <div style="display:flex;gap:4px;margin-top:4px"><button class="bi" id="warp-btn" onclick="toggleWarpMode()" title="拖动四角自由透视变形（W）">⬚ 拖角变形</button><button class="bi" onclick="resetWarp()">重置变形</button></div>
+    <div class="cr" style="display:none"><span class="cl">▽ 梯形</span><input type="range" id="stp-r" class="wm" min="-80" max="80" value="0" oninput="stkCtrl('taper',this.value)"><input type="number" id="stp-n" value="0" min="-80" max="80" oninput="stkCtrl('taper',this.value)"><span class="cu">%</span></div>
+    <div class="cr" style="display:none"><span class="cl">⇱ 斜切X</span><input type="range" id="skx-r" class="wm" min="-60" max="60" value="0" oninput="stkCtrl('skewX',this.value)"><input type="number" id="skx-n" value="0" min="-60" max="60" oninput="stkCtrl('skewX',this.value)"><span class="cu">°</span></div>
+    <div class="cr" style="display:none"><span class="cl">⇲ 斜切Y</span><input type="range" id="sky-r" class="wm" min="-60" max="60" value="0" oninput="stkCtrl('skewY',this.value)"><input type="number" id="sky-n" value="0" min="-60" max="60" oninput="stkCtrl('skewY',this.value)"><span class="cu">°</span></div>
+    <div style="display:flex;gap:4px;margin-top:4px"><button class="bi" id="warp-btn" onclick="toggleWarpMode()" title="拖动四角自由透视变形（W）">⬚ 拖角变形</button><button class="bi" onclick="resetWarp()">重置变形</button></div></div></div>
     <div class="sec-title" style="margin-top:3px">对齐</div>
     <div class="ag">
       <button class="bi" onclick="alignStk('tl')">↖</button><button class="bi" onclick="alignStk('tc')">↑</button><button class="bi" onclick="alignStk('tr')">↗</button>
@@ -409,7 +477,7 @@ input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.3);}
     <div id="base-ind">请先选中底图</div>
     <div style="font-size:10px;color:var(--mut);font-family:var(--mono);margin-bottom:5px;line-height:1.8">调色 & 对齐微调 · 橙色条=已调整</div>
     <div class="cr"><span class="cl wm">亮度</span><input type="range" id="adj-br-r" class="wm" min="50" max="150" value="100" oninput="adjCtrl('brightness',this.value)"><input type="number" id="adj-br-n" value="100" oninput="adjCtrl('brightness',this.value)"><span class="cu">%</span></div>
-    <div class="cr"><span class="cl wm">对比</span><input type="range" id="adj-ct-r" class="wm" min="50" max="150" value="100" oninput="adjCtrl('contrast',this.value)"><input type="number" id="adj-ct-n" value="100" oninput="adjCtrl('contrast',this.value)"><span class="cu">%</span></div>
+    <div class="cr"><span class="cl wm">◐ 对比</span><input type="range" id="adj-ct-r" class="wm" min="50" max="150" value="100" oninput="adjCtrl('contrast',this.value)"><input type="number" id="adj-ct-n" value="100" oninput="adjCtrl('contrast',this.value)"><span class="cu">%</span></div>
     <div class="cr"><span class="cl wm">饱和</span><input type="range" id="adj-sa-r" class="wm" min="0" max="200" value="100" oninput="adjCtrl('saturate',this.value)"><input type="number" id="adj-sa-n" value="100" oninput="adjCtrl('saturate',this.value)"><span class="cu">%</span></div>
     <div class="dv" style="margin:4px 0"></div>
     <div class="cr"><span class="cl wm">偏X</span><input type="range" id="adj-ox-r" class="wm" min="-300" max="300" value="0" oninput="adjCtrl('offsetX',this.value)"><input type="number" id="adj-ox-n" value="0" oninput="adjCtrl('offsetX',this.value)"><span class="cu">px</span></div>
@@ -417,9 +485,9 @@ input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.3);}
     <div class="cr"><span class="cl wm">微缩</span><input type="range" id="adj-sc-r" class="wm" min="85" max="115" value="100" step="0.5" oninput="adjCtrl('scaleAdj',this.value)"><input type="number" id="adj-sc-n" value="100" step="0.5" oninput="adjCtrl('scaleAdj',this.value)"><span class="cu">%</span></div>
     <div class="cr" style="margin-top:8px;border-top:1px solid var(--bd);padding-top:8px"><span class="cl">↔ 横拉</span><input type="range" id="bsx-r" min="10" max="300" value="100" oninput="adjCtrl('stretchX',this.value)"><input type="number" id="bsx-n" value="100" min="10" max="300" oninput="adjCtrl('stretchX',this.value)"><span class="cu">%</span></div>
     <div class="cr"><span class="cl">↕ 竖拉</span><input type="range" id="bsy-r" min="10" max="300" value="100" oninput="adjCtrl('stretchY',this.value)"><input type="number" id="bsy-n" value="100" min="10" max="300" oninput="adjCtrl('stretchY',this.value)"><span class="cu">%</span></div>
-    <div class="cr"><span class="cl">▽ 梯形</span><input type="range" id="btp-r" class="wm" min="-80" max="80" value="0" oninput="adjCtrl('taper',this.value)"><input type="number" id="btp-n" value="0" min="-80" max="80" oninput="adjCtrl('taper',this.value)"><span class="cu">%</span></div>
-    <div class="cr"><span class="cl">⇱ 斜切X</span><input type="range" id="bkx-r" class="wm" min="-60" max="60" value="0" oninput="adjCtrl('skewX',this.value)"><input type="number" id="bkx-n" value="0" min="-60" max="60" oninput="adjCtrl('skewX',this.value)"><span class="cu">°</span></div>
-    <div class="cr"><span class="cl">⇲ 斜切Y</span><input type="range" id="bky-r" class="wm" min="-60" max="60" value="0" oninput="adjCtrl('skewY',this.value)"><input type="number" id="bky-n" value="0" min="-60" max="60" oninput="adjCtrl('skewY',this.value)"><span class="cu">°</span></div>
+    <div class="cr" style="display:none"><span class="cl">▽ 梯形</span><input type="range" id="btp-r" class="wm" min="-80" max="80" value="0" oninput="adjCtrl('taper',this.value)"><input type="number" id="btp-n" value="0" min="-80" max="80" oninput="adjCtrl('taper',this.value)"><span class="cu">%</span></div>
+    <div class="cr" style="display:none"><span class="cl">⇱ 斜切X</span><input type="range" id="bkx-r" class="wm" min="-60" max="60" value="0" oninput="adjCtrl('skewX',this.value)"><input type="number" id="bkx-n" value="0" min="-60" max="60" oninput="adjCtrl('skewX',this.value)"><span class="cu">°</span></div>
+    <div class="cr" style="display:none"><span class="cl">⇲ 斜切Y</span><input type="range" id="bky-r" class="wm" min="-60" max="60" value="0" oninput="adjCtrl('skewY',this.value)"><input type="number" id="bky-n" value="0" min="-60" max="60" oninput="adjCtrl('skewY',this.value)"><span class="cu">°</span></div>
     <div style="display:flex;gap:4px;margin-top:4px"><button class="bi" onclick="resetObjWarp('base')">重置变形</button><button class="bi" onclick="copyWarpToAllBases()">应用到全部底图</button></div>
     <div id="adj-status" style="display:none" class="adj-warn">当前底图已有调整 ⚙</div>
     <div class="brow"><button class="bg" onclick="copyAdjToAll()">应用到全部</button><button class="bg" onclick="resetAdj()">↺ 重置</button></div>
@@ -435,9 +503,9 @@ input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.3);}
     <div class="cr" style="margin-top:6px"><span class="cl">↺ 旋转</span><input type="range" id="brt-r" class="wm" min="-180" max="180" value="0" oninput="logoCtrl('brand','rotation',this.value)"><input type="number" id="brt-n" value="0" min="-180" max="180" oninput="logoCtrl('brand','rotation',this.value)"><span class="cu">°</span></div>
     <div class="cr"><span class="cl">↔ 横拉</span><input type="range" id="bsx-r2" min="10" max="300" value="100" oninput="logoCtrl('brand','stretchX',this.value)"><input type="number" id="bsx-n2" value="100" min="10" max="300" oninput="logoCtrl('brand','stretchX',this.value)"><span class="cu">%</span></div>
     <div class="cr"><span class="cl">↕ 竖拉</span><input type="range" id="bsy-r2" min="10" max="300" value="100" oninput="logoCtrl('brand','stretchY',this.value)"><input type="number" id="bsy-n2" value="100" min="10" max="300" oninput="logoCtrl('brand','stretchY',this.value)"><span class="cu">%</span></div>
-    <div class="cr"><span class="cl">▽ 梯形</span><input type="range" id="btp-r2" class="wm" min="-80" max="80" value="0" oninput="logoCtrl('brand','taper',this.value)"><input type="number" id="btp-n2" value="0" min="-80" max="80" oninput="logoCtrl('brand','taper',this.value)"><span class="cu">%</span></div>
-    <div class="cr"><span class="cl">⇱ 斜切X</span><input type="range" id="bkx-r2" class="wm" min="-60" max="60" value="0" oninput="logoCtrl('brand','skewX',this.value)"><input type="number" id="bkx-n2" value="0" min="-60" max="60" oninput="logoCtrl('brand','skewX',this.value)"><span class="cu">°</span></div>
-    <div class="cr"><span class="cl">⇲ 斜切Y</span><input type="range" id="bky-r2" class="wm" min="-60" max="60" value="0" oninput="logoCtrl('brand','skewY',this.value)"><input type="number" id="bky-n2" value="0" min="-60" max="60" oninput="logoCtrl('brand','skewY',this.value)"><span class="cu">°</span></div>
+    <div class="cr" style="display:none"><span class="cl">▽ 梯形</span><input type="range" id="btp-r2" class="wm" min="-80" max="80" value="0" oninput="logoCtrl('brand','taper',this.value)"><input type="number" id="btp-n2" value="0" min="-80" max="80" oninput="logoCtrl('brand','taper',this.value)"><span class="cu">%</span></div>
+    <div class="cr" style="display:none"><span class="cl">⇱ 斜切X</span><input type="range" id="bkx-r2" class="wm" min="-60" max="60" value="0" oninput="logoCtrl('brand','skewX',this.value)"><input type="number" id="bkx-n2" value="0" min="-60" max="60" oninput="logoCtrl('brand','skewX',this.value)"><span class="cu">°</span></div>
+    <div class="cr" style="display:none"><span class="cl">⇲ 斜切Y</span><input type="range" id="bky-r2" class="wm" min="-60" max="60" value="0" oninput="logoCtrl('brand','skewY',this.value)"><input type="number" id="bky-n2" value="0" min="-60" max="60" oninput="logoCtrl('brand','skewY',this.value)"><span class="cu">°</span></div>
     <div style="display:flex;gap:4px;margin-top:4px"><button class="bi" onclick="resetObjWarp('brand')">重置变形</button></div>
     <div class="ag"><button class="bi act" onclick="alignLogo('brand','tl')">↖</button><button class="bi" onclick="alignLogo('brand','tc')">↑</button><button class="bi" onclick="alignLogo('brand','tr')">↗</button><button class="bi" onclick="alignLogo('brand','ml')">←</button><button class="bi" onclick="alignLogo('brand','cc')">⊕</button><button class="bi" onclick="alignLogo('brand','mr')">→</button><button class="bi" onclick="alignLogo('brand','bl')">↙</button><button class="bi" onclick="alignLogo('brand','bc')">↓</button><button class="bi" onclick="alignLogo('brand','br')">↘</button></div>
   </div>
@@ -452,9 +520,9 @@ input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.3);}
     <div class="cr" style="margin-top:6px"><span class="cl">↺ 旋转</span><input type="range" id="irt-r" class="tl" min="-180" max="180" value="0" oninput="logoCtrl('ip','rotation',this.value)"><input type="number" id="irt-n" value="0" min="-180" max="180" oninput="logoCtrl('ip','rotation',this.value)"><span class="cu">°</span></div>
     <div class="cr"><span class="cl">↔ 横拉</span><input type="range" id="isx-r2" min="10" max="300" value="100" oninput="logoCtrl('ip','stretchX',this.value)"><input type="number" id="isx-n2" value="100" min="10" max="300" oninput="logoCtrl('ip','stretchX',this.value)"><span class="cu">%</span></div>
     <div class="cr"><span class="cl">↕ 竖拉</span><input type="range" id="isy-r2" min="10" max="300" value="100" oninput="logoCtrl('ip','stretchY',this.value)"><input type="number" id="isy-n2" value="100" min="10" max="300" oninput="logoCtrl('ip','stretchY',this.value)"><span class="cu">%</span></div>
-    <div class="cr"><span class="cl">▽ 梯形</span><input type="range" id="itp-r2" class="tl" min="-80" max="80" value="0" oninput="logoCtrl('ip','taper',this.value)"><input type="number" id="itp-n2" value="0" min="-80" max="80" oninput="logoCtrl('ip','taper',this.value)"><span class="cu">%</span></div>
-    <div class="cr"><span class="cl">⇱ 斜切X</span><input type="range" id="ikx-r2" class="tl" min="-60" max="60" value="0" oninput="logoCtrl('ip','skewX',this.value)"><input type="number" id="ikx-n2" value="0" min="-60" max="60" oninput="logoCtrl('ip','skewX',this.value)"><span class="cu">°</span></div>
-    <div class="cr"><span class="cl">⇲ 斜切Y</span><input type="range" id="iky-r2" class="tl" min="-60" max="60" value="0" oninput="logoCtrl('ip','skewY',this.value)"><input type="number" id="iky-n2" value="0" min="-60" max="60" oninput="logoCtrl('ip','skewY',this.value)"><span class="cu">°</span></div>
+    <div class="cr" style="display:none"><span class="cl">▽ 梯形</span><input type="range" id="itp-r2" class="tl" min="-80" max="80" value="0" oninput="logoCtrl('ip','taper',this.value)"><input type="number" id="itp-n2" value="0" min="-80" max="80" oninput="logoCtrl('ip','taper',this.value)"><span class="cu">%</span></div>
+    <div class="cr" style="display:none"><span class="cl">⇱ 斜切X</span><input type="range" id="ikx-r2" class="tl" min="-60" max="60" value="0" oninput="logoCtrl('ip','skewX',this.value)"><input type="number" id="ikx-n2" value="0" min="-60" max="60" oninput="logoCtrl('ip','skewX',this.value)"><span class="cu">°</span></div>
+    <div class="cr" style="display:none"><span class="cl">⇲ 斜切Y</span><input type="range" id="iky-r2" class="tl" min="-60" max="60" value="0" oninput="logoCtrl('ip','skewY',this.value)"><input type="number" id="iky-n2" value="0" min="-60" max="60" oninput="logoCtrl('ip','skewY',this.value)"><span class="cu">°</span></div>
     <div style="display:flex;gap:4px;margin-top:4px"><button class="bi" onclick="resetObjWarp('ip')">重置变形</button></div>
     <div class="ag"><button class="bi" onclick="alignLogo('ip','tl')">↖</button><button class="bi" onclick="alignLogo('ip','tc')">↑</button><button class="bi act" onclick="alignLogo('ip','tr')">↗</button><button class="bi" onclick="alignLogo('ip','ml')">←</button><button class="bi" onclick="alignLogo('ip','cc')">⊕</button><button class="bi" onclick="alignLogo('ip','mr')">→</button><button class="bi" onclick="alignLogo('ip','bl')">↙</button><button class="bi" onclick="alignLogo('ip','bc')">↓</button><button class="bi" onclick="alignLogo('ip','br')">↘</button></div>
   </div>
@@ -470,7 +538,7 @@ input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.3);}
     <button class="bfolder" id="btn-folder" onclick="exportToFolder()">📂 下载到文件夹</button>
     <div class="zip-row"><label class="tog" style="flex-shrink:0"><input type="checkbox" id="zip-toggle" onchange="onZipToggle()"><span class="sl"></span></label><span class="zip-lbl" id="zip-lbl" onclick="G('zip-toggle').click();onZipToggle()">打包为 ZIP</span></div>
     <div id="zip-hint">— 逐个下载 PNG</div>
-    <div class="zip-row"><label class="tog"><input type="checkbox" id="print-toggle" checked onchange="onPrintToggle()"><span class="sl"></span></label><span class="zip-lbl on" id="print-lbl" onclick="G('print-toggle').click()">同时导出印花 PNG（透明底）</span></div>
+    <div class="zip-row"><label class="tog"><input type="checkbox" id="print-toggle" checked onchange="onPrintToggle()"><span class="sl"></span></label><button class="hlp" onclick="showHelp(event,'print')" style="margin-right:4px">?</button><span class="zip-lbl on" id="print-lbl" onclick="G('print-toggle').click()">同时导出印花 PNG（透明底）</span></div>
     <div class="folder-row" id="print-row"><span class="fl-lbl">🏷️</span><input type="text" id="print-name" placeholder="印花文件名（默认：印花）" maxlength="50"><label style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--dim);white-space:nowrap;cursor:pointer;flex-shrink:0"><input type="checkbox" id="print-logo" onchange="updExpDesc()" style="accent-color:#9b6cf0">含Logo</label></div>
     <div class="folder-row" id="print-dim-row"><span class="fl-lbl">📐</span><input type="number" id="print-dpi" value="300" min="72" max="1200" style="width:52px" title="打印精度 DPI" onchange="updPrintDim()"><span style="font-size:10px;color:var(--mut);flex-shrink:0">dpi</span><input type="number" id="print-mmw" placeholder="宽" min="1" max="3000" step="0.1" style="width:56px" title="物理宽度 mm（可选）" onchange="updPrintDim()"><span style="font-size:10px;color:var(--mut)">×</span><input type="number" id="print-mmh" placeholder="高" min="1" max="3000" step="0.1" style="width:56px" title="物理高度 mm（可选）" onchange="updPrintDim()"><span style="font-size:10px;color:var(--mut);flex-shrink:0">mm</span><span id="print-dim-hint" style="font-size:10px;color:var(--dim);font-family:var(--mono);margin-left:auto;flex-shrink:0"></span></div>
     <div class="folder-row"><span class="fl-lbl">🥤</span><span style="font-size:11px;color:var(--dim);flex-shrink:0">杯身直径</span><input type="number" id="cup-dia" value="7.5" min="1" max="40" step="0.1" style="width:56px" title="用于估算印花实际厘米尺寸" onchange="renderCanvas()"><span style="font-size:10px;color:var(--mut);flex-shrink:0">cm</span><span id="cm-hint" style="font-size:10px;color:var(--warm);font-family:var(--mono);margin-left:auto;flex-shrink:0"></span></div>
@@ -488,7 +556,10 @@ input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.3);}
     <tr><td>Ctrl + 滚轮</td><td>预览缩放</td></tr>
     <tr><td>方向键</td><td>微移 1px（Shift = 10px）</td></tr>
     <tr><td>Alt + 拖拽</td><td>暂时停用磁吸</td></tr>
-    <tr><td>双击素材</td><td>进入裁切</td></tr>
+    <tr><td>单击素材</td><td>选中（显示手柄）</td></tr>
+    <tr><td>拖边线</td><td>裁剪图片</td></tr>
+    <tr><td>拖角点</td><td>等比缩放</td></tr>
+    <tr><td>双击素材</td><td>进入拖角变形</td></tr>
     <tr><td>Delete</td><td>删除素材 / 停用 Logo</td></tr>
     <tr><td>Ctrl + Z</td><td>撤销</td></tr>
     <tr><td>Ctrl + C / X / V</td><td>复制 / 剪切 / 粘贴素材</td></tr>
@@ -497,7 +568,8 @@ input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.3);}
     <tr><td>R</td><td>印花厘米标尺</td></tr>
     <tr><td>C</td><td>有无印花对比</td></tr>
     <tr><td>G</td><td>全底图画廊</td></tr>
-    <tr><td>L</td><td>素材库</td></tr>
+    <tr><td>L</td><td>🗂 素材库</td></tr>
+    <tr><td>P</td><td>项目管理页</td></tr>
     <tr><td>A</td><td>全选 / 全不选素材</td></tr>
     <tr><td>右键素材</td><td>复制一份实例</td></tr>
     <tr><td>[ / ]</td><td>收起左 / 右面板</td></tr>
@@ -539,16 +611,41 @@ input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.3);}
     <button class="lib-tab" data-k="base" onclick="switchLibTab('base')">🖼 底图</button>
     <button class="lib-tab" data-k="logo" onclick="switchLibTab('logo')">🏷 Logo</button>
     <input type="text" id="lib-search" placeholder="搜索…" oninput="renderLibrary()">
-    <button class="bi" onclick="cleanOrphanAssets()" title="删除所有项目都未使用的素材">🧹 清理未用</button>
-    <button class="bp" onclick="G('lib-file').click()">＋ 上传到库</button>
+    <button class="bi" onclick="cleanOrphanAssets()" title="删除所有项目都未使用的素材">清理未用</button>
+    <button class="bp" onclick="G('lib-file').click()">上传到库</button>
     <input type="file" id="lib-file" accept="image/*" multiple style="display:none" onchange="uploadToLibrary(this)">
   </div>
   <div id="lib-grid"></div>
   <div style="font-size:11px;color:var(--dim);margin-top:8px">点击素材加入当前项目 · 素材库为所有项目共享</div>
   <div class="mbtns"><button class="bg" onclick="closeLibrary()">关闭</button></div>
 </div></div>
+<div id="pm-ov" class="ov"><div class="ov-card pm-card">
+  <div class="ov-t">▦ 项目管理 <span id="pm-info" style="font-size:11px;color:var(--dim);font-weight:400"></span></div>
+  <div class="pm-bar">
+    <input type="text" id="pm-search" placeholder="搜索项目或标签…" oninput="renderProjMgr()">
+    <select id="pm-sort" onchange="renderProjMgr()">
+      <option value="recent">最近使用</option>
+      <option value="name">名称</option>
+      <option value="size">内容多少</option>
+    </select>
+    <button class="bi" onclick="pmRefresh()" title="重新读取项目数据">↻ 刷新</button>
+    <button class="bp" onclick="pmNew()">新建项目</button>
+  </div>
+  <div id="pm-tags" class="pm-tags"></div>
+  <div class="pm-batch" id="pm-batch">
+    <span>已选 <b id="pm-selN">0</b> 个项目</span>
+    <button onclick="pmBatchTag()">加标签</button>
+    <button onclick="pmBatchTagClear()">清除标签</button>
+    <button class="del" onclick="pmBatchDel()">批量删除</button>
+    <span class="sp"></span>
+    <button onclick="pmSelAll()">全选</button>
+    <button onclick="pmSelNone()">取消选择</button>
+  </div>
+  <div id="pm-grid"></div>
+  <div class="mbtns"><button class="bg" onclick="closeProjMgr()">关闭</button></div>
+</div></div>
 <div id="tag-ov" class="ov"><div class="ov-card">
-  <div class="ov-t">🏷 项目分类 <span id="tag-proj" style="font-size:11px;color:var(--dim);font-weight:400"></span></div>
+  <div class="ov-t">项目分类 <span id="tag-proj" style="font-size:11px;color:var(--dim);font-weight:400"></span></div>
   <div style="font-size:11px;color:var(--dim);margin-bottom:6px">已选标签（点击移除）</div>
   <div id="tag-cur" class="tag-box"></div>
   <div style="font-size:11px;color:var(--dim);margin:10px 0 6px">常用分类（点击添加）</div>
@@ -558,6 +655,7 @@ input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.3);}
   <div class="mbtns"><button class="bg" onclick="closeTagEditor()">取消</button><button class="bp" onclick="saveTagEditor()">保存</button></div>
 </div></div>
 <div id="pick-tip"><span>🥤 拖出杯身可印区域</span><button class="bg" onclick="cancelBodyPick()">取消</button></div>
+<div id="help-pop"></div>
 <div id="notif"></div>
 <style>
 /* ===== UI 打磨补丁 ===== */
@@ -582,7 +680,8 @@ input[type=range].tl::-moz-range-thumb{background:var(--teal);}
 .tg .ti img{transition:transform .15s;}
 .tg .ti:hover img{transform:scale(1.06);}
 #ws-clear,#proj-new,#proj-ren{background:transparent;border:1px solid var(--bd);color:var(--dim);border-radius:var(--r);padding:3px 7px;font-size:12px;cursor:pointer;}
-#proj-new:hover,#proj-ren:hover,#proj-dup:hover{color:var(--acc-l);border-color:var(--acc);}
+#proj-new:hover,#proj-ren:hover,#proj-dup:hover,#proj-mgr:hover{color:var(--acc-l);border-color:var(--acc);}
+#proj-mgr{background:transparent;border:1px solid var(--bd);color:var(--dim);border-radius:var(--r);padding:3px 7px;font-size:12px;cursor:pointer;}
 #proj-dup{background:transparent;border:1px solid var(--bd);color:var(--dim);border-radius:var(--r);padding:3px 7px;font-size:12px;cursor:pointer;}
 #proj-dd{position:relative;display:inline-block;}
 #proj-dd-btn{display:inline-flex;align-items:center;gap:5px;background:var(--surf3);color:var(--txt);border:1px solid var(--bd);border-radius:var(--r);padding:3px 8px;font-size:11px;cursor:pointer;max-width:150px;}
@@ -616,6 +715,30 @@ input[type=range].tl::-moz-range-thumb{background:var(--teal);}
 .tag-b:hover{border-color:var(--acc);color:var(--acc-l);}
 .tag-b.sel{background:var(--acc);border-color:var(--acc);color:#fff;}
 .tag-b.sel:hover{background:var(--err);border-color:var(--err);}
+
+.pm-bar{display:flex;gap:8px;align-items:center;margin-bottom:8px;flex-wrap:wrap;}
+#pm-search{flex:1;min-width:120px;background:var(--surf3);color:var(--txt);border:1px solid var(--bd);border-radius:6px;padding:6px 10px;font-size:12px;outline:none;}
+#pm-search:focus{border-color:var(--acc);}
+#pm-sort{background:var(--surf3);color:var(--txt);border:1px solid var(--bd);border-radius:6px;padding:6px 8px;font-size:11px;outline:none;cursor:pointer;}
+.pm-tags{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px;}
+#pm-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:12px;max-height:56vh;overflow-y:auto;padding:2px;}
+.pm-i{position:relative;display:flex;flex-direction:column;gap:6px;border:1px solid var(--bd);border-radius:9px;padding:8px;background:var(--surf3);transition:all .13s;}
+.pm-i:hover{border-color:var(--acc);transform:translateY(-2px);}
+.pm-i.cur{border-color:var(--acc);background:var(--acc-d);}
+.pm-th{width:100%;aspect-ratio:4/3;border-radius:6px;overflow:hidden;background:repeating-conic-gradient(#3a3833 0 25%,#2a2825 0 50%) 0 0/11px 11px;display:flex;align-items:center;justify-content:center;cursor:pointer;}
+.pm-th img{width:100%;height:100%;object-fit:contain;display:block;}
+.pm-th span{font-size:10px;color:var(--mut);font-family:var(--mono);}
+.pm-nm{font-size:12.5px;font-weight:600;color:var(--txt);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer;}
+.pm-i.cur .pm-nm{color:var(--acc-l);}
+.pm-meta{font-size:10px;color:var(--mut);font-family:var(--mono);}
+.pm-tl{display:flex;flex-wrap:wrap;gap:3px;min-height:16px;}
+.pm-tl i{font-style:normal;font-size:9px;padding:1px 6px;border-radius:7px;background:var(--surf2);border:1px solid var(--bd);color:var(--dim);}
+.pm-acts{display:flex;gap:4px;flex-wrap:wrap;}
+.pm-acts button{flex:1;min-width:0;background:transparent;border:1px solid var(--bd);color:var(--dim);font-size:10px;padding:4px 2px;border-radius:5px;cursor:pointer;transition:all .12s;}
+.pm-acts button:hover{border-color:var(--acc);color:var(--acc-l);}
+.pm-acts button.del:hover{border-color:var(--err);color:var(--err);}
+.pm-badge{position:absolute;top:6px;right:6px;font-size:8.5px;padding:1px 6px;border-radius:6px;background:var(--acc);color:#fff;}
+.pm-empty{grid-column:1/-1;padding:36px;text-align:center;font-size:12px;color:var(--mut);}
 .tag-empty{font-size:10px;color:var(--mut);padding:3px;}
 .lib-tabs{display:flex;gap:6px;align-items:center;margin-bottom:10px;flex-wrap:wrap;}
 .lib-tab{font-size:12px;padding:5px 12px;border-radius:6px;background:var(--surf3);border:1px solid var(--bd);color:var(--dim);cursor:pointer;}
@@ -688,6 +811,7 @@ input[type=range].tl::-moz-range-thumb{background:var(--teal);}
 .dd-search input{width:100%;background:var(--surf3);color:var(--txt);border:1px solid var(--bd);border-radius:6px;padding:5px 8px;font-size:11px;outline:none;box-sizing:border-box;}
 .dd-search input:focus{border-color:var(--acc);}
 .dd-list{max-height:250px;overflow-y:auto;}
+#proj-stat{font-size:9px;font-family:var(--mono);color:var(--mut);flex-shrink:0;}
 #proj-dd-tag{font-size:9px;padding:1px 5px;border-radius:6px;background:var(--acc-d);border:1px solid var(--acc);color:var(--acc-l);flex-shrink:0;max-width:60px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .zip-row input[type=number]{background:var(--surf3);color:var(--txt);border:1px solid var(--bd);border-radius:var(--r);padding:3px 5px;font-size:11px;font-family:var(--mono);outline:none;flex-shrink:0;}
 .zip-row input[type=number]:disabled{opacity:.4;}
@@ -726,6 +850,120 @@ input[type=range].tl::-moz-range-thumb{background:var(--teal);}
 #name-tpl{font-family:var(--mono)!important;font-size:11px!important;}
 #pick-tip{position:fixed;bottom:70px;left:50%;transform:translateX(-50%);background:var(--surf2);border:1px solid var(--teal);border-radius:8px;padding:8px 12px;display:none;align-items:center;gap:10px;font-size:12px;color:var(--txt);z-index:150;box-shadow:0 8px 24px rgba(0,0,0,.45);}
 #pick-tip.on{display:flex;}
+.pm-sel{position:absolute;top:5px;left:5px;width:17px;height:17px;border-radius:4px;background:var(--surf2);border:1.5px solid var(--bdhi);cursor:pointer;z-index:3;display:flex;align-items:center;justify-content:center;transition:all .12s;font-size:10px;color:transparent;}
+.pm-sel:hover{border-color:var(--acc);}
+.pm-sel.on{background:var(--acc);border-color:var(--acc);color:#fff;}
+.pm-i.picked{border-color:var(--acc);box-shadow:0 0 0 1px var(--acc) inset;}
+.pm-batch{display:none;align-items:center;gap:8px;padding:7px 10px;margin-bottom:8px;background:var(--acc-d);border:1px solid var(--acc);border-radius:7px;font-size:12px;flex-wrap:wrap;}
+.pm-batch.on{display:flex;}
+.pm-batch b{color:var(--acc-l);}
+.pm-batch button{background:var(--surf2);border:1px solid var(--bd);color:var(--txt);font-size:11px;padding:4px 10px;border-radius:5px;cursor:pointer;transition:all .12s;}
+.pm-batch button:hover{border-color:var(--acc);color:var(--acc-l);}
+.pm-batch button.del:hover{border-color:var(--err);color:var(--err);background:rgba(220,80,80,.12);}
+.pm-batch .sp{margin-left:auto;}
+
+/* ===== Logo 区隐藏 ===== */
+.usec.hidden-sec .ub{display:none;}
+.usec.hidden-sec{opacity:.55;}
+.usec.hidden-sec .uh{border-bottom:none;}
+/* ===== 亮色模式 ===== */
+body.light{
+  --bg:#f4f2ef;--surf:#ffffff;--surf2:#faf9f7;--surf3:#f0eeea;
+  --bd:#d6d1ca;--bdhi:#a8a29a;
+  --txt:#2a2724;--dim:#5f5952;--mut:#8a8279;
+  --acc:#7c4ddb;--acc-l:#5b2fb8;--acc-d:rgba(124,77,219,.12);--acc-g:rgba(124,77,219,.06);
+  --warm:#b45309;--warm-d:rgba(180,83,9,.12);
+  --teal:#0d9488;--teal-d:rgba(13,148,136,.12);
+  --ok:#16a34a;--err:#dc2626;
+}
+body.light #topbar,body.light #left,body.light #edit{box-shadow:0 1px 3px rgba(0,0,0,.05);}
+body.light #cwrap{background:#e8e5e0;}
+/* 透明棋盘格在亮/暗色下保持一致,避免黑白强对比刺眼 */
+body.light .ov{background:rgba(30,27,24,.35);}
+body.light .ov-card{box-shadow:0 16px 48px rgba(0,0,0,.18);}
+body.light #notif{box-shadow:0 8px 28px rgba(0,0,0,.18);}
+body.light .ti:hover,body.light .sti:hover{box-shadow:0 4px 14px rgba(0,0,0,.12);}
+body.light .pm-batch button,body.light .bd2{background:#fff;}
+body.light .dd-th img,body.light .pm-th img{filter:none;}
+#theme-btn{background:var(--surf3);border:1px solid var(--bd);color:var(--dim);padding:4px 9px;font-size:11px;border-radius:5px;cursor:pointer;}
+#theme-btn:hover{color:var(--acc-l);border-color:var(--acc);}
+
+
+
+/* ================= 项目管理页(全屏) ================= */
+.ov-card.pm-card{width:100vw;max-width:100vw;height:100vh;max-height:100vh;border-radius:0;
+  display:flex;flex-direction:column;padding:14px 18px;overflow:hidden;}
+.pm-card .ov-t,.pm-card .pm-bar,.pm-card .pm-tags,.pm-card .pm-batch,.pm-card .mbtns{flex:0 0 auto;}
+.pm-card #pm-grid{flex:1 1 0%;min-height:0;overflow-y:auto;
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(128px,1fr));gap:9px;align-content:start;max-height:none;padding:2px;}
+.pm-i{position:relative;display:flex;flex-direction:column;gap:4px;border:1px solid var(--bd);
+  border-radius:7px;padding:6px;background:var(--surf3);transition:all .13s;}
+.pm-i:hover{border-color:var(--acc);transform:translateY(-2px);}
+.pm-i.cur{border-color:var(--acc);background:var(--acc-d);}
+.pm-i.picked{border-color:var(--acc);box-shadow:0 0 0 1px var(--acc) inset;}
+.pm-th{width:100%;aspect-ratio:1;border-radius:5px;overflow:hidden;cursor:pointer;
+  background:repeating-conic-gradient(#3a3833 0 25%,#2a2825 0 50%) 0 0/11px 11px;
+  display:flex;align-items:center;justify-content:center;}
+.pm-th img{width:100%;height:100%;object-fit:contain;display:block;}
+.pm-th span{font-size:9px;color:var(--mut);font-family:var(--mono);}
+.pm-nm{font-size:11px;font-weight:600;color:var(--txt);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer;}
+.pm-i.cur .pm-nm{color:var(--acc-l);}
+.pm-meta{font-size:9px;color:var(--dim);font-family:var(--mono);}
+.pm-tl{display:flex;flex-wrap:wrap;gap:3px;min-height:12px;}
+.pm-tl i{font-style:normal;font-size:8px;padding:0 4px;border-radius:6px;background:var(--surf2);border:1px solid var(--bd);color:var(--dim);}
+.pm-acts{display:flex;gap:2px;flex-wrap:wrap;}
+.pm-acts button{flex:1;min-width:0;background:var(--surf2);border:1px solid var(--bd);color:var(--dim);
+  font-size:9px;padding:3px 1px;border-radius:4px;cursor:pointer;transition:all .12s;}
+.pm-acts button:hover{border-color:var(--acc);color:var(--acc-l);}
+.pm-acts button.del:hover{border-color:var(--err);color:var(--err);}
+.pm-badge{position:absolute;top:5px;right:5px;font-size:7.5px;padding:0 4px;border-radius:5px;background:var(--acc);color:#fff;z-index:2;}
+.pm-sel{position:absolute;top:5px;left:5px;width:17px;height:17px;border-radius:4px;background:var(--surf2);
+  border:1.5px solid var(--bdhi);cursor:pointer;z-index:3;display:flex;align-items:center;justify-content:center;
+  transition:all .12s;font-size:10px;color:transparent;}
+.pm-sel:hover{border-color:var(--acc);}
+.pm-sel.on{background:var(--acc);border-color:var(--acc);color:#fff;}
+.pm-empty{grid-column:1/-1;padding:36px;text-align:center;font-size:12px;color:var(--dim);}
+.pm-batch{display:none;align-items:center;gap:8px;padding:7px 10px;margin-bottom:8px;
+  background:var(--acc-d);border:1px solid var(--acc);border-radius:7px;font-size:12px;flex-wrap:wrap;}
+.pm-batch.on{display:flex;}
+.pm-batch b{color:var(--acc-l);}
+.pm-batch button{background:var(--surf2);border:1px solid var(--bd);color:var(--txt);font-size:11px;
+  padding:4px 10px;border-radius:5px;cursor:pointer;transition:all .12s;}
+.pm-batch button:hover{border-color:var(--acc);color:var(--acc-l);}
+.pm-batch button.del:hover{border-color:var(--err);color:var(--err);background:rgba(220,80,80,.12);}
+.pm-batch .sp{margin-left:auto;}
+.pm-card #pm-grid::-webkit-scrollbar{width:10px;}
+.pm-card #pm-grid::-webkit-scrollbar-thumb{background:var(--bdhi);border-radius:5px;border:2px solid var(--surf2);}
+
+
+/* ===== 右侧面板可折叠分组 ===== */
+.advgrp{border:1px solid var(--bd);border-radius:7px;overflow:hidden;background:var(--surf2);}
+.advh{display:flex;align-items:center;gap:6px;padding:7px 9px;background:var(--surf3);cursor:pointer;font-size:11px;font-weight:600;color:var(--txt);user-select:none;}
+.advh:hover{background:var(--acc-d);}
+.advarr{margin-left:auto;font-size:10px;color:var(--dim);transition:transform .15s;}
+.advgrp.off .advarr{transform:rotate(-90deg);}
+.advgrp.off .advb{display:none;}
+.advb{padding:8px 9px;display:flex;flex-direction:column;gap:6px;}
+.hlp{width:16px;height:16px;border-radius:50%;background:var(--surf2);border:1px solid var(--bd);color:var(--dim);
+  font-size:10px;line-height:1;cursor:help;display:flex;align-items:center;justify-content:center;padding:0;flex-shrink:0;}
+.hlp:hover{background:var(--acc);border-color:var(--acc);color:#fff;}
+#help-pop{position:fixed;z-index:400;max-width:280px;background:var(--surf2);border:1px solid var(--acc);
+  border-radius:8px;padding:10px 12px;font-size:11.5px;line-height:1.65;color:var(--txt);
+  box-shadow:0 10px 30px rgba(0,0,0,.45);display:none;}
+#help-pop.on{display:block;}
+#help-pop b{color:var(--acc-l);display:block;margin-bottom:4px;font-size:12px;}
+#help-pop kbd{background:var(--surf3);border:1px solid var(--bd);border-radius:3px;padding:0 4px;font-family:var(--mono);font-size:10px;}
+
+.hlp{display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;border-radius:50%;
+  background:var(--surf2);border:1px solid var(--bd);color:var(--dim);font-size:9.5px;cursor:help;flex-shrink:0;
+  font-weight:700;transition:all .12s;}
+.hlp:hover{background:var(--acc);border-color:var(--acc);color:#fff;}
+
+/* 亮色模式:透明棋盘格沿用暗色配色,避免黑白强对比刺眼 */
+body.light .lib-th,body.light .pm-th,body.light .dd-th,body.light .libi,
+body.light .logo-b,body.light .ls-i,body.light .ep-thumb.ck canvas,body.light .gal-i canvas{
+  background:repeating-conic-gradient(#3a3833 0 25%,#2a2825 0 50%) 0 0/11px 11px;}
+body.light #cwrap{background:#dedbd6;}
 </style>
 <script>
 /* ============================================================
@@ -955,9 +1193,9 @@ function renderStkGrid() {
   S.stks.forEach((s, i) => {
     const d = document.createElement('div');
     d.className = 'sti' + (s.checked ? ' checked' : '') + (s.id === S.activeStk ? ' active' : '');
-    d.title = s.name + '（双击裁切）';
+    d.title = s.name + '（双击变形）';
     d.onclick = () => { if (!s.checked) s.checked = true; S.activeStk = s.id; refreshAll(); };
-    d.ondblclick = () => { if (!s.checked) s.checked = true; S.activeStk = s.id; refreshAll(); enterCropMode(); };
+    d.ondblclick = () => { if (!s.checked) s.checked = true; S.activeStk = s.id; refreshAll(); if (!S.warpMode) toggleWarpMode(); };
     d.oncontextmenu = ev => {   // 右键复制一份实例(同素材不同参数,做变体)
       ev.preventDefault();
       snapshot();
@@ -1083,10 +1321,13 @@ function confirmModal() {
 <script>
 /* ---------- 右侧面板 ---------- */
 function switchTab(t) {
+  const pane = G('tab-' + t);
+  if (!pane) return;                                   // 未知标签名 → 忽略,避免抛错
   document.querySelectorAll('.etab').forEach(e => e.classList.remove('act'));
-  document.querySelector('.etab.t-' + t).classList.add('act');
+  const btn = document.querySelector('.etab.t-' + t);
+  if (btn) btn.classList.add('act');
   document.querySelectorAll('.tab-pane').forEach(e => e.classList.remove('show'));
-  G('tab-' + t).classList.add('show');
+  pane.classList.add('show');
 }
 function onInitScale(kind, v) {
   v = clamp(+v || 5, 5, 300);
@@ -1926,17 +2167,33 @@ function drawSelection() {
   ctx.translate(a.x, a.y); ctx.rotate(a.rot * D2R);
   const lw = 1.5 / S.pv;
   ctx.strokeStyle = '#c4a7ff'; ctx.lineWidth = lw; ctx.setLineDash([6 / S.pv, 4 / S.pv]);
-  ctx.strokeRect(-w / 2, -h / 2, w, h);
+  // 选择框跟随变形后的实际四边形,与变形框严格一致
+  const pts = handlePts(w, h);
+  ctx.beginPath();
+  [0, 2, 7, 5].forEach((i, k) => k ? ctx.lineTo(pts[i].x, pts[i].y) : ctx.moveTo(pts[i].x, pts[i].y));
+  ctx.closePath(); ctx.stroke();
   ctx.setLineDash([]);
   const hs = 7 / S.pv;
-  handlePts(w, h).forEach(p => {
+  pts.forEach(p => {
     ctx.fillStyle = '#1a1917'; ctx.strokeStyle = '#c4a7ff'; ctx.lineWidth = lw;
     ctx.fillRect(p.x - hs / 2, p.y - hs / 2, hs, hs);
     ctx.strokeRect(p.x - hs / 2, p.y - hs / 2, hs, hs);
   });
   ctx.restore();
 }
-function handlePts(w, h) {
+function handlePts(w, h, o) { // 角=缩放, 边=裁剪;有变形时跟随四边形
+  const t = o || activeStkObj();
+  if (t && hasWarp(t)) {
+    const q = effQuad(t);
+    const P = i => ({ x: -w / 2 + q[i * 2] * w, y: -h / 2 + q[i * 2 + 1] * h });
+    const tl = P(0), tr = P(1), br = P(2), bl = P(3);
+    const mid = (a, b) => ({ x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 });
+    return [
+      { k: 'tl', ...tl }, { k: 'tc', ...mid(tl, tr) }, { k: 'tr', ...tr },
+      { k: 'ml', ...mid(tl, bl) }, { k: 'mr', ...mid(tr, br) },
+      { k: 'bl', ...bl }, { k: 'bc', ...mid(bl, br) }, { k: 'br', ...br }
+    ];
+  }
   return [
     { k: 'tl', x: -w / 2, y: -h / 2 }, { k: 'tc', x: 0, y: -h / 2 }, { k: 'tr', x: w / 2, y: -h / 2 },
     { k: 'ml', x: -w / 2, y: 0 }, { k: 'mr', x: w / 2, y: 0 },
@@ -1950,6 +2207,15 @@ function renderCanvas() {
   cv.style.height = (H * S.pv) + 'px';
   drawScene(cv, W, H, S.activeBase, false, whiteBgOn());
   if (S.compare) drawCompareHalf(W, H);
+  if (drag && drag.mode === 'marquee') {
+    ctx.save();
+    ctx.fillStyle = 'rgba(217,119,6,.15)';
+    ctx.fillRect(drag.r.x, drag.r.y, drag.r.w, drag.r.h);
+    ctx.strokeStyle = '#d97706'; ctx.lineWidth = 1.6 / S.pv;
+    ctx.setLineDash([5 / S.pv, 4 / S.pv]);
+    ctx.strokeRect(drag.r.x, drag.r.y, drag.r.w, drag.r.h);
+    ctx.restore();
+  }
   if (S.pickBody && drag && drag.mode === 'pick') {
     ctx.save();
     ctx.fillStyle = 'rgba(20,184,166,.16)';
@@ -2056,6 +2322,7 @@ function hitStk(p) {
   return null;
 }
 function hitHandle(p) {
+  if (S.warpMode) return null;      // 变形模式下不响应裁剪手柄,避免与变形点重叠错位
   const a = activeStkObj(); if (!a) return null;
   const l = toLocal(a, p), hs = 10 / S.pv;
   return handlePts(drawW(a), drawH(a)).find(h => Math.abs(l.x - h.x) <= hs && Math.abs(l.y - h.y) <= hs) || null;
@@ -2166,8 +2433,35 @@ function warpTarget() {
   if (b) return { o: b, kind: 'base' };
   return null;
 }
+/* 变形已是纯轴向拉伸 → 烘焙进 sx/sy + 位置,让变形框与裁剪框/选择框完全重合 */
+function bakeWarp(t) {
+  if (!t || !t.o) return renderCanvas();
+  const o = t.o, fr = warpFrame(t);
+  if (!fr) return renderCanvas();
+  const q = effQuad(o);
+  // 轴向变形下 quad 是矩形:取其归一化边界
+  const x0 = Math.min(q[0], q[6]), x1 = Math.max(q[2], q[4]);
+  const y0 = Math.min(q[1], q[3]), y1 = Math.max(q[5], q[7]);
+  const fw = x1 - x0, fh = y1 - y0;
+  if (!isFinite(fw) || !isFinite(fh) || fw <= 0.01 || fh <= 0.01) return renderCanvas();
+  const dcx = ((x0 + x1) / 2 - 0.5) * fr.w;   // 中心偏移(局部)
+  const dcy = ((y0 + y1) / 2 - 0.5) * fr.h;
+  const rad = (fr.rot || 0) * D2R, cs = Math.cos(rad), sn = Math.sin(rad);
+  const gx = dcx * cs - dcy * sn, gy = dcx * sn + dcy * cs;   // 转到画布坐标
+  o.warp = null; o.taper = 0; o.skx = 0; o.sky = 0;
+  o.sx = clamp((o.sx || 1) * fw, 0.05, 20);
+  o.sy = clamp((o.sy || 1) * fh, 0.05, 20);
+  if (t.kind === 'stk') { o.x = Math.round(o.x + gx); o.y = Math.round(o.y + gy); }
+  else if (t.kind === 'logo') { o.x = Math.round(o.x + gx); o.y = Math.round(o.y + gy); }
+  else { o.adj.ox = Math.round((o.adj.ox || 0) + gx); o.adj.oy = Math.round((o.adj.oy || 0) + gy); }
+  clearWarpCache(o);
+  if (t.kind === 'base') o._body = undefined;
+  if (t.kind === 'logo') syncLogoPanel(t.k); else if (t.kind === 'base') syncAdjPanel();
+  syncStkPanel(); renderCanvas();
+}
 function toggleWarpMode() {
   if (!S.warpMode && !warpTarget()) return notify('请先选中素材、Logo 或底图', 'err');
+  if (S.crop) exitCropMode(true);
   S.warpMode = !S.warpMode;
   G('warp-btn').classList.toggle('act', S.warpMode);
   renderCanvas();
@@ -2201,9 +2495,83 @@ function resetWarp() {
   notify('变形已重置');
 }
 /* 变形角点在素材局部坐标中的位置 */
+/* ---------- 网格变形（mesh warp）:控制点可细分为 2x2 / 3x3 / 4x4 / 5x5 ---------- */
+function meshGrid(o) { return clamp(o && o.meshN || 2, 2, 5); }
+/* 由基础四边形(含梯形/斜切)采样出 n×n 控制点 */
+function meshFromQuad(o, n) {
+  const q = effQuad(o), pts = [];
+  for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) {
+    const u = c / (n - 1), v = r / (n - 1);
+    const tx = q[0] + (q[2] - q[0]) * u, ty = q[1] + (q[3] - q[1]) * u;
+    const bx = q[6] + (q[4] - q[6]) * u, by = q[7] + (q[5] - q[7]) * u;
+    pts.push([tx + (bx - tx) * v, ty + (by - ty) * v]);
+  }
+  return pts;
+}
+/* 当前生效的网格:优先用户手调的 mesh,否则由四边形生成 */
+function meshOf(o) {
+  const n = meshGrid(o);
+  if (o && o.mesh && o.mesh.length === n * n) return { n, pts: o.mesh };
+  return { n, pts: meshFromQuad(o, n) };
+}
+/* 网格内插值:定位所在单元后做双线性 */
+function meshPt(m, u, v) {
+  const n = m.n, seg = n - 1;
+  let cu = clamp(u, 0, 1) * seg, cv = clamp(v, 0, 1) * seg;
+  let ci = Math.min(Math.floor(cu), seg - 1), ri = Math.min(Math.floor(cv), seg - 1);
+  const fu = cu - ci, fv = cv - ri;
+  const P = (r, c) => m.pts[r * n + c];
+  const a = P(ri, ci), b = P(ri, ci + 1), c2 = P(ri + 1, ci + 1), d = P(ri + 1, ci);
+  const tx = a[0] + (b[0] - a[0]) * fu, ty = a[1] + (b[1] - a[1]) * fu;
+  const bx = d[0] + (c2[0] - d[0]) * fu, by = d[1] + (c2[1] - d[1]) * fu;
+  return [tx + (bx - tx) * fv, ty + (by - ty) * fv];
+}
+function meshBounds(m) {
+  const xs = m.pts.map(p => p[0]), ys = m.pts.map(p => p[1]);
+  return { x0: Math.min(...xs), x1: Math.max(...xs), y0: Math.min(...ys), y1: Math.max(...ys) };
+}
+/* 全部控制点(画布局部坐标) */
+function warpPoints(o, fr) {
+  const m = meshOf(o), out = [];
+  m.pts.forEach((p, i) => out.push({
+    i, r: Math.floor(i / m.n), c: i % m.n, n: m.n,
+    x: -fr.w / 2 + p[0] * fr.w, y: -fr.h / 2 + p[1] * fr.h
+  }));
+  return out;
+}
+function setMeshGrid(n) {
+  const t = warpTarget();
+  if (!t) return notify('请先选中要变形的对象', 'err');
+  snapshot();
+  const o = t.o;
+  const cur = meshOf(o);
+  n = clamp(n, 2, 5);
+  if (cur.n !== n) {
+    // 从当前形状重采样,保持已有变形
+    const src = { n: cur.n, pts: cur.pts };
+    const pts = [];
+    for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) pts.push(meshPt(src, c / (n - 1), r / (n - 1)));
+    o.meshN = n; o.mesh = pts;
+  } else { o.meshN = n; o.mesh = cur.pts.slice(); }
+  clearWarpCache(o);
+  document.querySelectorAll('.mesh-b').forEach(b => b.classList.toggle('act', +b.dataset.n === n));
+  renderCanvas();
+  notify(`变形网格 ${n}×${n}（${n * n} 个控制点）`);
+}
 function warpCorners(o, fr) {
   const q = effQuad(o), pts = [];
-  for (let i = 0; i < 4; i++) pts.push({ i, x: -fr.w / 2 + q[i * 2] * fr.w, y: -fr.h / 2 + q[i * 2 + 1] * fr.h });
+  // 0-3:四角(tl,tr,br,bl)
+  for (let i = 0; i < 4; i++) pts.push({ i, kind: 'c', x: -fr.w / 2 + q[i * 2] * fr.w, y: -fr.h / 2 + q[i * 2 + 1] * fr.h });
+  // 4-7:四边中点(拖动时该边两端一起动 → 整条边平移)
+  const mid = (a, b) => ({ x: (pts[a].x + pts[b].x) / 2, y: (pts[a].y + pts[b].y) / 2 });
+  [[0, 1], [1, 2], [2, 3], [3, 0]].forEach(([a, b], k) => {
+    const m = mid(a, b);
+    pts.push({ i: 4 + k, kind: 'e', ends: [a, b], x: m.x, y: m.y });
+  });
+  // 8:中心点(整体平移变形框)
+  const cx = (pts[0].x + pts[1].x + pts[2].x + pts[3].x) / 4;
+  const cy = (pts[0].y + pts[1].y + pts[2].y + pts[3].y) / 4;
+  pts.push({ i: 8, kind: 'm', x: cx, y: cy });
   return pts;
 }
 function toFrameLocal(fr, p) {
@@ -2212,9 +2580,13 @@ function toFrameLocal(fr, p) {
 }
 function hitWarpCorner(p) {
   if (!S.warpMode) return null;
+  // 命中范围收紧,避免在空白处误触(尤其底图变形时角点位于画布四角)
   const t = warpTarget(); if (!t) return null;
   const fr = warpFrame(t); if (!fr) return null;
-  const l = toFrameLocal(fr, p), hs = 12 / S.pv;
+  const fw = Math.abs(fr.w || 0) || 100, fh = Math.abs(fr.h || 0) || 100;
+  // 命中半径随缩放放大,但不超过目标框的 18%,避免小缩放时吞掉整块空白
+  const hs = Math.min(12 / S.pv, Math.max(6, Math.min(fw, fh) * 0.18));
+  const l = toFrameLocal(fr, p);
   const c = warpCorners(t.o, fr).find(c2 => Math.abs(l.x - c2.x) <= hs && Math.abs(l.y - c2.y) <= hs);
   return c ? { ...c, t, fr } : null;
 }
@@ -2225,15 +2597,36 @@ function drawWarpHandles() {
   const pts = warpCorners(t.o, fr);
   ctx.save();
   ctx.translate(fr.cx, fr.cy); ctx.rotate((fr.rot || 0) * D2R);
+  // 四角连成变形框
   ctx.strokeStyle = '#d97706'; ctx.lineWidth = 1.6 / S.pv;
   ctx.beginPath();
-  pts.forEach((c, i) => i ? ctx.lineTo(c.x, c.y) : ctx.moveTo(c.x, c.y));
+  for (let i = 0; i < 4; i++) i ? ctx.lineTo(pts[i].x, pts[i].y) : ctx.moveTo(pts[i].x, pts[i].y);
   ctx.closePath(); ctx.stroke();
-  const hs = 9 / S.pv;
+  // 内部十字辅助线(过中心点),便于判断弯折
+  const m = pts[8];
+  ctx.strokeStyle = 'rgba(217,119,6,.35)'; ctx.lineWidth = 1 / S.pv;
+  ctx.setLineDash([4 / S.pv, 4 / S.pv]);
+  ctx.beginPath();
+  ctx.moveTo(pts[4].x, pts[4].y); ctx.lineTo(pts[6].x, pts[6].y);
+  ctx.moveTo(pts[7].x, pts[7].y); ctx.lineTo(pts[5].x, pts[5].y);
+  ctx.stroke(); ctx.setLineDash([]);
+  const R = 5.5 / S.pv;
   pts.forEach(c => {
-    ctx.fillStyle = '#d97706';
-    ctx.beginPath(); ctx.arc(c.x, c.y, hs / 2, 0, Math.PI * 2); ctx.fill();
-    ctx.strokeStyle = '#1a1917'; ctx.lineWidth = 1.5 / S.pv; ctx.stroke();
+    ctx.lineWidth = 1.6 / S.pv;
+    ctx.strokeStyle = '#1a1917';
+    if (c.kind === 'c') {              // 角点:实心圆(最大)
+      ctx.fillStyle = '#d97706';
+      ctx.beginPath(); ctx.arc(c.x, c.y, R, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    } else if (c.kind === 'e') {       // 边中点:方块
+      const q2 = R * 1.6;
+      ctx.fillStyle = '#f0a33a';
+      ctx.fillRect(c.x - q2 / 2, c.y - q2 / 2, q2, q2);
+      ctx.strokeRect(c.x - q2 / 2, c.y - q2 / 2, q2, q2);
+    } else {                            // 中心点:空心圆
+      ctx.fillStyle = '#1a1917';
+      ctx.beginPath(); ctx.arc(c.x, c.y, R * .9, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = '#d97706'; ctx.stroke();
+    }
   });
   ctx.restore();
 }
@@ -2250,7 +2643,7 @@ cv.addEventListener('mousedown', e => {
   const wc = hitWarpCorner(p);
   if (wc) {
     snapshot();
-    drag = { mode: 'warp', c: wc.i, t: wc.t, fr: wc.fr, q0: effQuad(wc.t.o), p0: p, alt: e.altKey };
+    drag = { mode: 'warp', c: wc.i, kind: wc.kind, ends: wc.ends, t: wc.t, fr: wc.fr, q0: effQuad(wc.t.o), p0: p, alt: e.altKey };
     cv.classList.add('grabbing');
     return;
   }
@@ -2265,7 +2658,8 @@ cv.addEventListener('mousedown', e => {
   if (h) {
     const a = activeStkObj();
     snapshot();
-    drag = { mode: 'handle', h: h.k, s: a, start: { ...a }, p0: p };
+    drag = { mode: 'handle', h: h.k, s: a, start: { ...a }, p0: p,
+      crop0: a.crop ? { ...a.crop } : { x: 0, y: 0, w: a.img.naturalWidth, h: a.img.naturalHeight } };
     cv.classList.add('grabbing');
     return;
   }
@@ -2307,19 +2701,62 @@ window.addEventListener('mousemove', e => {
     syncStkPanel(); renderCanvas();
   } else if (drag.mode === 'handle') {
     const s = drag.s, st = drag.start, l = toLocal({ ...s, x: st.x, y: st.y, rot: st.rot }, p);
-    const sw = srcW(s), sh = srcH(s);
+    // 基准必须取自「起拖时」的裁切框,否则拖动中 crop 变化会让基准漂移
+    const c0b = drag.crop0 || { x: 0, y: 0, w: s.img.naturalWidth, h: s.img.naturalHeight };
+    const sw = c0b.w, sh = c0b.h;
     const bw = sw * st.scale / 100, bh = sh * st.scale / 100; // 未拉伸基准
     const corner = ['tl', 'tr', 'bl', 'br'].includes(drag.h);
     if (corner) { // 角：等比缩放
       const d = Math.max(Math.abs(l.x) / (bw * st.sx / 2), Math.abs(l.y) / (bh * st.sy / 2));
       s.scale = clamp(st.scale * d, 5, 300);
       showDragInfo('缩放 ' + Math.round(s.scale) + '%');
-    } else { // 边：单轴拉伸
-      if (drag.h === 'ml' || drag.h === 'mr') s.sx = clamp(Math.abs(l.x) * 2 / bw, 0.1, 5);
-      else s.sy = clamp(Math.abs(l.y) * 2 / bh, 0.1, 5);
-      showDragInfo(`拉伸 ${Math.round(s.sx * 100)}% × ${Math.round(s.sy * 100)}%`);
+    } else { // 边：裁剪（对边固定，像 Canva 拖边裁图）
+      const c0 = drag.crop0;                       // 起拖时的源图裁切框
+      const iw = s.img.naturalWidth, ih = s.img.naturalHeight;
+      const dw0 = bw * st.sx, dh0 = bh * st.sy;    // 起拖时显示尺寸
+      const kx = c0.w / dw0, ky = c0.h / dh0;      // 显示像素 → 源图像素
+      const nc = { ...c0 };
+      let dx = 0, dy = 0;                          // 中心补偿(保持对边不动)
+      if (drag.h === 'mr' || drag.h === 'ml') {
+        // 不取绝对值:指针越过中心时宽度应继续变小,而不是反弹变大
+        let nw = drag.h === 'mr' ? (l.x + dw0 / 2) : (dw0 / 2 - l.x);
+        if (drag.h === 'mr') {
+          const maxW = (iw - c0.x) / kx;           // 右侧最多还原到原图边缘
+          nw = clamp(nw, 8, maxW);
+          nc.w = Math.max(1, Math.round(nw * kx));
+          dx = (nw - dw0) / 2;
+        } else {
+          const maxW = (c0.x + c0.w) / kx;         // 左侧最多还原到原图边缘
+          nw = clamp(nw, 8, maxW);
+          nc.w = Math.max(1, Math.round(nw * kx));
+          nc.x = Math.round(c0.x + c0.w - nc.w);
+          dx = -(nw - dw0) / 2;
+        }
+      } else {
+        let nh = drag.h === 'bc' ? (l.y + dh0 / 2) : (dh0 / 2 - l.y);
+        if (drag.h === 'bc') {
+          const maxH = (ih - c0.y) / ky;
+          nh = clamp(nh, 8, maxH);
+          nc.h = Math.max(1, Math.round(nh * ky));
+          dy = (nh - dh0) / 2;
+        } else {
+          const maxH = (c0.y + c0.h) / ky;
+          nh = clamp(nh, 8, maxH);
+          nc.h = Math.max(1, Math.round(nh * ky));
+          nc.y = Math.round(c0.y + c0.h - nc.h);
+          dy = -(nh - dh0) / 2;
+        }
+      }
+      s.crop = nc;
+      // 补偿中心,使对侧边缘保持不动(考虑旋转)
+      const rad = st.rot * D2R, cs = Math.cos(rad), sn = Math.sin(rad);
+      s.x = Math.round(st.x + dx * cs - dy * sn);
+      s.y = Math.round(st.y + dx * sn + dy * cs);
+      s._fxk = null; s._cbk = null; s._wk = null;
+      clearWarpCache(s);            // 裁剪改变了框尺寸 → 变形框同步重算
+      showDragInfo(`裁剪 ${nc.w} × ${nc.h}px`);
     }
-    if (S.group) grpTargets().forEach(t => { if (t !== s) { t.scale = s.scale; t.sx = s.sx; t.sy = s.sy; } });
+    if (S.group && corner) grpTargets().forEach(t => { if (t !== s) { t.scale = s.scale; t.sx = s.sx; t.sy = s.sy; } });
     syncStkPanel(); renderCanvas();
   } else if (drag.mode === 'logo-move') {
     const L = S.logos[drag.k];
@@ -2345,15 +2782,38 @@ window.addEventListener('mousemove', e => {
     const l0 = toFrameLocal(fr, drag.p0), l1 = toFrameLocal(fr, p);
     const du = (l1.x - l0.x) / fr.w, dv = (l1.y - l0.y) / fr.h;
     const q = drag.q0.slice();
-    if (drag.alt) { for (let i = 0; i < 4; i++) { q[i * 2] += du; q[i * 2 + 1] += dv; } }
-    else { q[drag.c * 2] += du; q[drag.c * 2 + 1] += dv; }
+    const mv2 = i => { q[i * 2] += du; q[i * 2 + 1] += dv; };
+    let label;
+    // 只做轴向拉伸/收缩:不产生斜切,四边始终保持水平/垂直
+    const axH = i => { q[i * 2] += du; };          // 只改 x
+    const axV = i => { q[i * 2 + 1] += dv; };      // 只改 y
+    if (drag.alt || drag.kind === 'm') {           // 中心点 / Alt:整体平移
+      for (let i = 0; i < 4; i++) mv2(i);
+      label = '整体';
+    } else if (drag.kind === 'e') {                // 边中点:整条边平移(单轴)
+      const k = drag.c - 4;
+      if (k === 0) { [0, 1].forEach(axV); label = '上边'; }
+      else if (k === 1) { [1, 2].forEach(axH); label = '右边'; }
+      else if (k === 2) { [2, 3].forEach(axV); label = '下边'; }
+      else { [3, 0].forEach(axH); label = '左边'; }
+    } else {                                       // 角点:同时拉两条邻边(仍保持矩形)
+      const c = drag.c;
+      const hPair = [[0, 3], [1, 2], [1, 2], [0, 3]][c];   // 同侧左右边
+      const vPair = [[0, 1], [0, 1], [2, 3], [2, 3]][c];   // 同侧上下边
+      hPair.forEach(axH); vPair.forEach(axV);
+      label = ['左上', '右上', '右下', '左下'][c];
+    }
     for (let i = 0; i < 8; i++) q[i] = clamp(q[i], -1.5, 2.5);
-    o.warp = q; o.taper = 0; o.skx = 0; o.sky = 0; // 拖角后并入 warp,避免叠加歧义
+    o.warp = q; o.taper = 0; o.skx = 0; o.sky = 0; // 拖点后并入 warp,避免叠加歧义
     clearWarpCache(o);
     if (t.kind === 'base') o._body = undefined;
-    showDragInfo(`角${drag.c + 1} ${(du * 100).toFixed(0)}%, ${(dv * 100).toFixed(0)}%`);
+    showDragInfo(`${label} ${(du * 100).toFixed(0)}%, ${(dv * 100).toFixed(0)}%`);
     if (t.kind === 'logo') syncLogoPanel(t.k); else if (t.kind === 'base') syncAdjPanel();
     syncStkPanel(); renderCanvas();
+  } else if (drag.mode === 'marquee') {
+    drag.r = { x: Math.min(drag.p0.x, p.x), y: Math.min(drag.p0.y, p.y), w: Math.abs(p.x - drag.p0.x), h: Math.abs(p.y - drag.p0.y) };
+    showDragInfo(`✂ 裁切 ${Math.round(drag.r.w)} × ${Math.round(drag.r.h)}`);
+    renderCanvas();
   } else if (drag.mode === 'pick') {
     drag.r = { x: Math.min(drag.p0.x, p.x), y: Math.min(drag.p0.y, p.y), w: Math.abs(p.x - drag.p0.x), h: Math.abs(p.y - drag.p0.y) };
     showDragInfo(`${Math.round(drag.r.w)} × ${Math.round(drag.r.h)}`);
@@ -2362,6 +2822,12 @@ window.addEventListener('mousemove', e => {
 });
 window.addEventListener('mouseup', () => {
   if (drag && drag.mode === 'pick') { const r = drag.r; drag = null; hideDragInfo(); return finishBodyPick(r); }
+  if (drag && drag.mode === 'marquee') {
+    const r = drag.r; drag = null; hideDragInfo();
+    if (r.w > 8 && r.h > 8) cropToRect(r); else renderCanvas();
+    return;
+  }
+  if (drag && drag.mode === 'warp') { const d0 = drag; drag = null; cv.classList.remove('grabbing'); hideDragInfo(); bakeWarp(d0.t); scheduleSave(); return; }
   if (drag) {
     drag = null; cv.classList.remove('grabbing'); hideDragInfo();
     if (S.guides.length) { S.guides = []; renderCanvas(); }
@@ -2370,8 +2836,9 @@ window.addEventListener('mouseup', () => {
 });
 cv.addEventListener('dblclick', e => {
   if (S.crop) return;
+  { const q = canvasPt(e); if (!hitStk(q) && !hitLogo(q)) { pvFit(); return; } }
   const s = hitStk(canvasPt(e));
-  if (s) { S.activeStk = s.id; refreshAll(); enterCropMode(); }
+  if (s) { S.activeStk = s.id; S.activeLogo = null; refreshAll(); if (!S.warpMode) toggleWarpMode(); }
 });
 cv.addEventListener('mousemove', e => {
   if (drag || S.crop) return;
@@ -2417,6 +2884,7 @@ window.addEventListener('keydown', e => {
     if (kk === 'g') { e.preventDefault(); return G('gal-ov').classList.contains('on') ? closeGallery() : openGallery(); }
     if (kk === 'w') { e.preventDefault(); return toggleWarpMode(); }
     if (kk === 'l') { e.preventDefault(); return G('lib-ov').classList.contains('on') ? closeLibrary() : openLibrary(); }
+    if (kk === 'p') { e.preventDefault(); return G('pm-ov').classList.contains('on') ? closeProjMgr() : openProjMgr(); }
     if (kk === 'a') { e.preventDefault(); return selectAllStickers(); }
     if (e.key === '[') { e.preventDefault(); return togglePane('left'); }
     if (e.key === ']') { e.preventDefault(); return togglePane('right'); }
@@ -2428,6 +2896,7 @@ window.addEventListener('keydown', e => {
     if (G('tpl-ov').classList.contains('on')) return closeTpl();
     if (G('tag-ov').classList.contains('on')) return closeTagEditor();
     if (G('lib-ov').classList.contains('on')) return closeLibrary();
+    if (G('pm-ov').classList.contains('on')) return closeProjMgr();
     if (S.pickBody) return cancelBodyPick();
     if (S.warpMode) { S.warpMode = false; G('warp-btn').classList.remove('act'); renderCanvas(); return; }
     if (S.crop) exitCropMode(); else { S.activeStk = null; S.activeLogo = null; refreshAll(); }
@@ -2513,6 +2982,51 @@ function enterCropMode() {
   document.querySelectorAll('.ar-btn').forEach(b => b.classList.remove('act'));
   document.querySelector('.ar-btn').classList.add('act');
   renderCanvas();
+}
+function clearCrop() {
+  const a = activeStkObj(); if (!a) return notify('请先选中素材', 'err');
+  if (!a.crop) return notify('该素材未裁切');
+  snapshot();
+  a.crop = null; a._fxk = null; a._cbk = null; a._wk = null;
+  syncStkPanel(); renderCanvas();
+  notify('已恢复完整图', 'ok');
+}
+/* 把活跃素材裁切到画布上的指定矩形(与素材相交部分) */
+function cropToRect(r) {
+  let a = activeStkObj();
+  if (!a) {
+    for (let i = S.stks.length - 1; i >= 0; i--) {
+      const s2 = S.stks[i];
+      if (!s2.checked) continue;
+      const w2 = drawW(s2), h2 = drawH(s2);
+      if (r.x < s2.x + w2 / 2 && r.x + r.w > s2.x - w2 / 2 && r.y < s2.y + h2 / 2 && r.y + r.h > s2.y - h2 / 2) {
+        a = s2; S.activeStk = s2.id; refreshAll(); break;
+      }
+    }
+  }
+  if (!a) { notify('选框内没有素材', 'err'); return renderCanvas(); }
+  if (a.rot) { notify('已旋转的素材请用 ✂ 裁切面板', 'err'); return renderCanvas(); }
+  const w = drawW(a), h = drawH(a);
+  const L = a.x - w / 2, T = a.y - h / 2;
+  // 交集(画布坐标)
+  const x0 = Math.max(r.x, L), y0 = Math.max(r.y, T);
+  const x1 = Math.min(r.x + r.w, L + w), y1 = Math.min(r.y + r.h, T + h);
+  if (x1 - x0 < 4 || y1 - y0 < 4) { notify('选区与素材没有重叠', 'err'); return renderCanvas(); }
+  snapshot();
+  const cr = a.crop || { x: 0, y: 0, w: a.img.naturalWidth, h: a.img.naturalHeight };
+  const kx = cr.w / w, ky = cr.h / h;              // 画布像素 → 源图像素
+  const nc = {
+    x: Math.round(cr.x + (x0 - L) * kx),
+    y: Math.round(cr.y + (y0 - T) * ky),
+    w: Math.max(1, Math.round((x1 - x0) * kx)),
+    h: Math.max(1, Math.round((y1 - y0) * ky))
+  };
+  a.crop = nc;
+  a.x = Math.round((x0 + x1) / 2);                 // 中心移到裁切区中心
+  a.y = Math.round((y0 + y1) / 2);
+  a._fxk = null; a._cbk = null; a._wk = null;
+  syncStkPanel(); renderCanvas();
+  notify(`已裁切至 ${nc.w}×${nc.h}px`, 'ok');
 }
 function exitCropMode(silent) {
   if (!S.crop) return;
@@ -2734,6 +3248,8 @@ function filteredProjects() {
 function renderProjSel() {
   const cur = G('proj-dd-cur');
   if (cur) cur.textContent = curProj;
+  const st2 = G('proj-stat');
+  if (st2) st2.textContent = `${S.bases.length}/${S.stks.length}`;
   const tg = G('proj-dd-tag');
   if (tg) {
     const t = tagsOf(curProj);
@@ -2812,10 +3328,10 @@ async function buildProjMenu() {
       box.appendChild(tw);
     }
     it.appendChild(box);
-    const tg = document.createElement('button'); tg.className = 'dd-tagbtn'; tg.textContent = '🏷'; tg.title = '编辑分类标签';
+    const tg = document.createElement('button'); tg.className = 'dd-tagbtn'; tg.textContent = '标签'; tg.title = '编辑分类标签';
     tg.onclick = ev => { ev.stopPropagation(); editProjTags(name); };
     it.appendChild(tg);
-    const dl = document.createElement('button'); dl.className = 'dd-delbtn'; dl.textContent = '🗑'; dl.title = '删除该项目';
+    const dl = document.createElement('button'); dl.className = 'dd-delbtn'; dl.textContent = '删'; dl.title = '删除该项目';
     dl.onclick = ev => { ev.stopPropagation(); deleteProject(name); };
     it.appendChild(dl);
     if (name === curProj) { const c = document.createElement('span'); c.className = 'dd-chk'; c.textContent = '✓'; it.appendChild(c); }
@@ -3202,10 +3718,12 @@ function updPrintDim() {
   scheduleSave();
 }
 function printFileName(st) {
-  const nm = (G('print-name').value.trim() || '印花').replace(/[\\/:*?"<>|]/g, '_');
+  const custom = G('print-name').value.trim();
+  const nm = (custom || curProj || '印花').replace(/[\\/:*?"<>|]/g, '_');
   const d = printDims();
   const dim = (d.mmw ? `_${d.mmw}x${d.mmh}mm` : '') + `_${d.dpi}dpi`;
-  return `${expPrefix()}${nm}${st ? '_' + st.name : ''}${dim}.png`;
+  const pre = custom ? expPrefix() : (G('folder-name').value.trim() ? expPrefix() : '');
+  return `${pre}${nm}_印花${st ? '_' + st.name : ''}${dim}.png`;
 }
 /* PNG 写入 pHYs 块 → 文件携带真实 DPI 元数据,印刷软件可直接识别 */
 const CRC_T = (() => {
@@ -3243,7 +3761,10 @@ function renderPrintCanvas(only) {
     x.save();
     x.globalAlpha = st.op / 100;
     x.translate(st.x, st.y); x.rotate(st.rot * D2R);
-    x.drawImage(st.img, (st.crop || { x: 0 }).x || 0, (st.crop || { y: 0 }).y || 0, srcW(st), srcH(st), -drawW(st) / 2, -drawH(st) / 2, drawW(st), drawH(st)); // 印花始终平面(供印刷)
+    // 印花输出未裁剪的完整原图(印刷需要完整图案),按画布上的显示比例放置
+    const fw = st.img.naturalWidth, fh = st.img.naturalHeight;
+    const k = (st.scale / 100) * (st.sx || 1), k2 = (st.scale / 100) * (st.sy || 1);
+    x.drawImage(st.img, 0, 0, fw, fh, -fw * k / 2, -fh * k2 / 2, fw * k, fh * k2);
     x.restore();
   });
   if (G('print-logo').checked) {
@@ -3291,8 +3812,8 @@ function onZipToggle() {
   G('zip-hint').textContent = on ? '— 打包为一个 ZIP 文件' : '— 逐个下载 PNG';
 }
 function expPrefix() {
-  const folder = G('folder-name').value.trim();
-  return folder ? folder + '_' : '';
+  const folder = G('folder-name').value.trim() || curProj || '';   // 未填则用项目名
+  return folder ? folder.replace(/[\\\\/:*?\"<>|]/g, '_') + '_' : '';
 }
 function tplVars(b, st, idx) {
   const d = new Date();
@@ -3600,7 +4121,22 @@ async function doExportToFolder() {
 }
 /* ---------- 侧栏内嵌素材库条（常驻可见，不必开弹窗） ---------- */
 let logoSecOff = false;
+function toggleTheme() {
+  const on = document.body.classList.toggle('light');
+  G('theme-btn').textContent = on ? '\u6697\u8272' : '\u4eae\u8272';
+  store.set('tm_theme', on ? 'light' : 'dark');
+  renderCanvas();
+}
+function toggleLogoHidden(e) {
+  if (e) e.stopPropagation();
+  const el = G('drop-brand');
+  const on = el.classList.toggle('hidden-sec');
+  G('logo-hide-btn').textContent = on ? '\u663e\u793a' : '\u9690\u85cf';
+  store.set('tm_logohide', on ? '1' : '0');
+  notify(on ? 'Logo \u533a\u5df2\u9690\u85cf' : 'Logo \u533a\u5df2\u663e\u793a');
+}
 function toggleLogoSec(e) {
+  if (e && e.target && e.target.id === 'logo-hide-btn') return;
   if (e && e.target && e.target.tagName === 'INPUT') return;
   logoSecOff = !logoSecOff;
   G('drop-brand').classList.toggle('folded', logoSecOff);
@@ -3850,17 +4386,332 @@ async function addFromLibraryInner(aid) {
   notify(`已加入「${a.name}」`, 'ok');
   renderLibrary();
 }
+/* 从所有项目记录里抹掉对该素材的引用(含老格式内嵌 blob),
+   否则删除后重新打开旧项目时会被"迁移"逻辑重新写回素材库 */
+async function purgeAssetRefs(aid) {
+  let touched = 0;
+  for (const pn of projects) {
+    if (pn === curProj) continue;
+    try {
+      const d = await idbGet(projKey(pn));
+      if (!d) continue;
+      const before = JSON.stringify([(d.bases || []).length, (d.stks || []).length]);
+      d.bases = (d.bases || []).filter(b => b.aid !== aid);
+      d.stks = (d.stks || []).filter(t => t.aid !== aid);
+      ['brand', 'ip'].forEach(k => {
+        const L = d.logos && d.logos[k];
+        if (L && L.aid === aid) { L.aid = null; L.blob = null; L.en = false; L.name = ''; }
+      });
+      // 老格式:内嵌 blob 且无 aid 的同名条目也一并清掉,防止复活
+      if (JSON.stringify([(d.bases || []).length, (d.stks || []).length]) !== before) {
+        await idbPut(d, projKey(pn));
+        touched++;
+      }
+    } catch (e) {}
+  }
+  // 当前项目
+  S.bases = S.bases.filter(b => b.aid !== aid);
+  S.stks = S.stks.filter(t => t.aid !== aid);
+  ['brand', 'ip'].forEach(k => {
+    if (S.logos[k].aid === aid) Object.assign(S.logos[k], { img: null, blob: null, aid: null, name: '', en: false });
+  });
+  if (S.activeBase >= S.bases.length) S.activeBase = S.bases.length ? 0 : -1;
+  if (!S.stks.some(t => t.id === S.activeStk)) S.activeStk = null;
+  return touched;
+}
 async function deleteFromLibrary(aid, name) {
   const inUse = S.bases.some(b => b.aid === aid) || S.stks.some(t => t.aid === aid) ||
     S.logos.brand.aid === aid || S.logos.ip.aid === aid;
-  const msg = `从素材库永久删除「${name}」？` + (inUse ? '\n\n⚠ 当前项目正在使用它，画布上的内容会保留但下次打开会丢失。' : '\n\n其它项目若引用了它也会丢失。');
+  const msg = `\u6c38\u4e45\u5220\u9664\u300c${name}\u300d\uff1f\n\n` +
+    `\u26a0 \u4e0d\u53ef\u64a4\u9500\uff0c\u4e0d\u4fdd\u7559\u4efb\u4f55\u5907\u4efd\u3002\n` +
+    `\u5c06\u4ece\u7d20\u6750\u5e93\u53ca\u6240\u6709\u9879\u76ee\u4e2d\u5f7b\u5e95\u6e05\u9664\u3002\n` +
+    (inUse ? `\n\u26a0 \u5f53\u524d\u9879\u76ee\u6b63\u5728\u4f7f\u7528\u5b83\u3002\n` : '') +
+    `\n\u5efa\u8bae\uff1a\u5148\u7528\u9876\u680f\u300c\u5bfc\u51fa\u300d\u5907\u4efd\u9879\u76ee\u3002`;
   if (!confirm(msg)) return;
-  await assetDel(aid);
-  assetCache.delete(aid);
-  invalidateLibCache();
-  renderLibrary(); renderLibStrips();
-  notify('已从素材库删除', 'ok');
+  setProg(true, '\u6e05\u9664\u4e2d\u2026', 30);
+  try {
+    await assetDel(aid);
+    assetCache.delete(aid);
+    // 关键:同时清除所有项目记录里的引用与内嵌 blob,
+    // 否则下次打开项目时旧数据会被迁移逻辑重新灌回素材库(看起来像"又回来了")
+    let cleaned = 0;
+    for (const pn of projects) {
+      try {
+        const d = await idbGet(projKey(pn));
+        if (!d) continue;
+        let ch = false;
+        const strip = arr => (arr || []).filter(r => {
+          if (r.aid === aid) { ch = true; return false; }
+          if (!r.aid && r.blob) { r.blob = null; ch = true; }   // 无 aid 的遗留 blob 一并清掉
+          return true;
+        });
+        d.bases = strip(d.bases);
+        d.stks = strip(d.stks);
+        ['brand', 'ip'].forEach(k => {
+          const L = (d.logos || {})[k];
+          if (L && (L.aid === aid || (!L.aid && L.blob))) {
+            d.logos[k] = { ...L, aid: null, blob: null, img: undefined, en: false, name: '' };
+            ch = true;
+          }
+        });
+        if (ch) { await idbPut(d, projKey(pn)); cleaned++; }
+      } catch (e) {}
+    }
+    // 当前项目内存态同步移除
+    S.bases = S.bases.filter(b => b.aid !== aid);
+    S.stks = S.stks.filter(t => t.aid !== aid);
+    ['brand', 'ip'].forEach(k => {
+      if (S.logos[k].aid === aid) Object.assign(S.logos[k], { img: null, blob: null, aid: null, name: '', en: false });
+    });
+    if (S.activeBase >= S.bases.length) S.activeBase = S.bases.length - 1;
+    if (!S.stks.some(t => t.id === S.activeStk)) S.activeStk = null;
+    invalidateLibCache();
+    invalidateProjPreview();
+    renderLibrary(); refreshAll();
+    setProg(false);
+    notify(`\u5df2\u5f7b\u5e95\u5220\u9664\uff08\u540c\u65f6\u6e05\u7406 ${cleaned} \u4e2a\u9879\u76ee\u7684\u5f15\u7528\uff09`, 'err');
+  } catch (e) { setProg(false); console.error(e); notify('\u5220\u9664\u5931\u8d25', 'err'); }
 }
+
+/* ---------- 项目管理页 ---------- */
+const pmPicked = new Set();
+function pmUpdBatchBar() {
+  const bar = G('pm-batch');
+  if (!bar) return;
+  bar.classList.toggle('on', pmPicked.size > 0);
+  const n = G('pm-selN'); if (n) n.textContent = pmPicked.size;
+}
+function pmTogglePick(name, el) {
+  if (pmPicked.has(name)) pmPicked.delete(name); else pmPicked.add(name);
+  if (el) {
+    el.classList.toggle('on', pmPicked.has(name));
+    const card = el.closest('.pm-i');
+    if (card) card.classList.toggle('picked', pmPicked.has(name));
+  }
+  pmUpdBatchBar();
+}
+function pmSelAll() {
+  document.querySelectorAll('#pm-grid .pm-i').forEach(c => {
+    const n = c.dataset.name; if (n) pmPicked.add(n);
+    c.classList.add('picked');
+    const s2 = c.querySelector('.pm-sel'); if (s2) s2.classList.add('on');
+  });
+  pmUpdBatchBar();
+}
+function pmSelNone() {
+  pmPicked.clear();
+  document.querySelectorAll('#pm-grid .pm-i').forEach(c => {
+    c.classList.remove('picked');
+    const s2 = c.querySelector('.pm-sel'); if (s2) s2.classList.remove('on');
+  });
+  pmUpdBatchBar();
+}
+function pmBatchTag() {
+  if (!pmPicked.size) return;
+  const v = prompt(`\u4e3a\u9009\u4e2d\u7684 ${pmPicked.size} \u4e2a\u9879\u76ee\u6dfb\u52a0\u6807\u7b7e\uff08\u9017\u53f7\u5206\u9694\uff09\n\n\u5e38\u7528\uff1a` + PRESET_TAGS.join('\u3001'), '');
+  if (v === null) return;
+  const add = v.split(/[,\uff0c;\uff1b]/).map(t => t.trim()).filter(Boolean);
+  if (!add.length) return;
+  pmPicked.forEach(n => setProjTags(n, [...tagsOf(n), ...add]));
+  renderProjMgr();
+  notify(`\u5df2\u4e3a ${pmPicked.size} \u4e2a\u9879\u76ee\u6dfb\u52a0\u6807\u7b7e`, 'ok');
+}
+function pmBatchTagClear() {
+  if (!pmPicked.size) return;
+  if (!confirm(`\u6e05\u9664\u9009\u4e2d\u7684 ${pmPicked.size} \u4e2a\u9879\u76ee\u7684\u5168\u90e8\u6807\u7b7e\uff1f`)) return;
+  pmPicked.forEach(n => setProjTags(n, []));
+  renderProjMgr();
+  notify('\u6807\u7b7e\u5df2\u6e05\u9664', 'ok');
+}
+async function pmBatchDel() {
+  if (!pmPicked.size) return;
+  const names = [...pmPicked];
+  const keep = projects.filter(n => !pmPicked.has(n));
+  if (!keep.length) return notify('\u81f3\u5c11\u4fdd\u7559\u4e00\u4e2a\u9879\u76ee', 'err');
+  if (!confirm(`\u5220\u9664\u9009\u4e2d\u7684 ${names.length} \u4e2a\u9879\u76ee\uff1f\n\n${names.slice(0, 8).join('\u3001')}${names.length > 8 ? ' \u2026' : ''}\n\n\u7d20\u6750\u5e93\u4e0d\u53d7\u5f71\u54cd\u3002\u6b64\u64cd\u4f5c\u65e0\u6cd5\u64a4\u9500\u3002`)) return;
+  let ok = 0;
+  for (const n of names) {
+    try {
+      await idbDel(projKey(n));
+      delete projTags[n]; delete prevCache[n];
+      const i = projects.indexOf(n); if (i >= 0) projects.splice(i, 1);
+      ok++;
+    } catch (e) {}
+  }
+  saveProjTags();
+  if (!projects.includes(curProj)) {
+    clearTimeout(saveT);
+    curProj = projects[0]; saveProjList();
+    resetState(); await restoreWorkspace(); refreshAll(); pvFit();
+  } else saveProjList();
+  pmPicked.clear();
+  renderProjSel(); renderProjMgr();
+  notify(`\u5df2\u5220\u9664 ${ok} \u4e2a\u9879\u76ee`, 'ok');
+}
+
+let pmTagFilter = '';
+async function openProjMgr() {
+  clearTimeout(saveT);
+  try { await saveWorkspace(); } catch (e) {}   // 先落盘,否则当前项目统计/缩略图是旧的
+  invalidateProjPreview(curProj);
+  G('pm-ov').classList.add('on');
+  G('pm-search').value = ''; pmTagFilter = '';
+  pmPicked.clear(); pmUpdBatchBar();
+  renderProjMgr();
+}
+function closeProjMgr() { G('pm-ov').classList.remove('on'); }
+async function pmNew() { await newProject(); renderProjMgr(); }
+async function projStats(name) {
+  if (name === curProj) return { b: S.bases.length, s: S.stks.length, ts: Date.now() };
+  try {
+    const d = await idbGet(projKey(name));
+    if (!d) return { b: 0, s: 0, ts: 0 };
+    return { b: (d.bases || []).length, s: (d.stks || []).length, ts: d.ts || 0 };
+  } catch (e) { return { b: 0, s: 0, ts: 0 }; }
+}
+async function renderProjMgr() {
+  const grid = G('pm-grid');
+  grid.innerHTML = '<div class="pm-empty">加载中…</div>';
+  // 标签筛选条
+  const tb = G('pm-tags'); tb.innerHTML = '';
+  const tags = allTags();
+  if (tags.length) {
+    const mk = (label, val) => {
+      const c = document.createElement('button');
+      c.className = 'dd-tag' + (pmTagFilter === val ? ' on' : '');
+      c.textContent = label;
+      c.onclick = () => { pmTagFilter = pmTagFilter === val ? '' : val; renderProjMgr(); };
+      return c;
+    };
+    tb.appendChild(mk('全部', ''));
+    tags.forEach(t => tb.appendChild(mk(t, t)));
+  }
+  const kw = G('pm-search').value.trim().toLowerCase();
+  let list = projects.filter(n =>
+    (!pmTagFilter || tagsOf(n).includes(pmTagFilter)) &&
+    (!kw || n.toLowerCase().includes(kw) || tagsOf(n).some(t => t.toLowerCase().includes(kw))));
+  const stats = {};
+  for (const n of list) stats[n] = await projStats(n);
+  const sort = G('pm-sort').value;
+  list.sort((a, b) => sort === 'name' ? a.localeCompare(b, 'zh')
+    : sort === 'size' ? (stats[b].b + stats[b].s) - (stats[a].b + stats[a].s)
+    : (stats[b].ts || 0) - (stats[a].ts || 0));
+  G('pm-info').textContent = `${list.length} / ${projects.length} 个项目`;
+  [...pmPicked].forEach(n => { if (!projects.includes(n)) pmPicked.delete(n); });
+  pmUpdBatchBar();
+  grid.innerHTML = '';
+  if (!list.length) {
+    const e = document.createElement('div'); e.className = 'pm-empty';
+    e.textContent = kw || pmTagFilter ? '没有匹配的项目' : '还没有项目';
+    grid.appendChild(e); return;
+  }
+  for (const name of list) {
+    const st = stats[name];
+    const d = document.createElement('div');
+    d.className = 'pm-i' + (name === curProj ? ' cur' : '') + (pmPicked.has(name) ? ' picked' : '');
+    d.dataset.name = name;
+    const sel = document.createElement('div');
+    sel.className = 'pm-sel' + (pmPicked.has(name) ? ' on' : '');
+    sel.textContent = '\u2713'; sel.title = '\u9009\u4e2d\u4ee5\u6279\u91cf\u64cd\u4f5c';
+    sel.onclick = ev => { ev.stopPropagation(); pmTogglePick(name, sel); };
+    d.appendChild(sel);
+    if (name === curProj) { const b = document.createElement('span'); b.className = 'pm-badge'; b.textContent = '当前'; d.appendChild(b); }
+    const th = document.createElement('div'); th.className = 'pm-th';
+    th.innerHTML = '<span>···</span>';
+    th.onclick = () => pmOpen(name);
+    d.appendChild(th);
+    const nm = document.createElement('div'); nm.className = 'pm-nm'; nm.textContent = name;
+    nm.onclick = () => pmOpen(name);
+    d.appendChild(nm);
+    const meta = document.createElement('div'); meta.className = 'pm-meta';
+    meta.textContent = `${st.b} 底图 · ${st.s} 素材`;
+    d.appendChild(meta);
+    const tl = document.createElement('div'); tl.className = 'pm-tl';
+    tagsOf(name).forEach(t => { const i = document.createElement('i'); i.textContent = t; tl.appendChild(i); });
+    d.appendChild(tl);
+    const acts = document.createElement('div'); acts.className = 'pm-acts';
+    const mkb = (txt, title, fn, cls) => {
+      const b = document.createElement('button'); b.textContent = txt; b.title = title;
+      if (cls) b.className = cls;
+      b.onclick = ev => { ev.stopPropagation(); fn(); };
+      return b;
+    };
+    acts.appendChild(mkb('打开', '切换到该项目', () => pmOpen(name)));
+    acts.appendChild(mkb('标签', '编辑分类标签', () => editProjTags(name)));
+    acts.appendChild(mkb('副本', '复制项目', () => pmDup(name)));
+    acts.appendChild(mkb('改名', '重命名', () => pmRename(name)));
+    acts.appendChild(mkb('删除', '删除项目', () => pmDel(name), 'del'));
+    d.appendChild(acts);
+    grid.appendChild(d);
+    projFirstImage(name).then(url => {
+      th.innerHTML = url ? `<img src="${url}" alt="">` : '<span>无图</span>';
+    });
+  }
+}
+async function pmOpen(name) {
+  if (name !== curProj) await switchToProj(name);
+  closeProjMgr();
+}
+/* 手动刷新页面数据 */
+async function pmRefresh() {
+  clearTimeout(saveT);
+  try { await saveWorkspace(); } catch (e) {}
+  invalidateProjPreview();
+  await renderProjMgr();
+  notify('已刷新');
+}
+async function pmDup(name) {
+  if (name !== curProj) await switchToProj(name);
+  await duplicateProject();
+  renderProjMgr();
+}
+async function pmRename(name) {
+  const was = curProj;
+  if (name !== curProj) await switchToProj(name);
+  await renameProject();
+  if (was !== name && projects.includes(was)) await switchToProj(was);
+  renderProjMgr();
+}
+async function pmDel(name) { await deleteProject(name); renderProjMgr(); }
+
+/* ---------- 可折叠分组 + 帮助说明 ---------- */
+function restoreAdv() {
+  document.querySelectorAll('.advgrp[id]').forEach(g => {
+    if (store.get('tm_adv_' + g.id) === '1') g.classList.add('off');
+  });
+}
+function toggleAdv(id) {
+  const el = G(id); if (!el) return;
+  const off = el.classList.toggle('off');
+  store.set('tm_adv_' + id, off ? '1' : '0');
+}
+const HELP = {
+  curve: ['曲面与光泽', '让平面印花贴合圆柱杯身。<br><b style="display:inline;color:var(--dim)">曲面</b> 包裹强度，杯子越圆值越大（马克杯约 45，保温杯约 65）。<br><b style="display:inline;color:var(--dim)">杯口弧</b> 模拟俯视时的弧线。<br><b style="display:inline;color:var(--dim)">光泽</b> 釉面反光，<b style="display:inline;color:var(--dim)">高光位</b> 对齐底图光源方向。<br>印花导出不含这些效果。'],
+  warp: ['变形与拉伸', '横拉/竖拉调整宽高比例。<br>画布上<b style="display:inline;color:var(--dim)">双击素材</b>或按 <kbd>W</kbd> 进入拖角变形：拖角点、边中点或中心点做轴向拉伸，松手后自动并入缩放。'],
+  crop: ['裁剪', '选中素材后<b style="display:inline;color:var(--dim)">拖动边线</b>即可裁剪（对边固定，和 Canva 一致），拖<b style="display:inline;color:var(--dim)">角点</b>是等比缩放。<br>「↺裁切」恢复完整图。印花导出始终使用未裁剪原图。'],
+  lib: ['素材库', '图片只存一份，所有项目共享。<br>侧栏虚线框的是库里还没用的素材，点一下加入当前项目；点 ✕ 是<b style="display:inline;color:var(--dim)">彻底删除</b>（同时清除所有项目的引用，不会再恢复）。'],
+  proj: ['项目', '每个项目保存自己的画布布局和导出设置，素材库共享。<br>复制项目会连同编辑好的作品一起复制。<br>按 <kbd>P</kbd> 打开管理页可批量打标签、批量删除。'],
+  print: ['印花导出', '印花是<b style="display:inline;color:var(--dim)">透明底完整原图</b>，供印刷使用，不含曲面/光泽/裁剪。<br>填写 dpi 与物理尺寸后，文件会写入真实 DPI 元数据，印刷软件可直接识别。'],
+  size: ['输出与大小', '可选平台规格（Shopee / TikTok / Mercado Livre）。<br>勾选大小上限后，超标文件会先降质量（不低于 65%），仍超标则降分辨率，保证画质。'],
+  body: ['杯身识别', '用于「智能定位」和厘米标尺。<br>白瓶浅底对比度低时可能识别不准，点「杯身」手动拖框指定可印区域，点「自动」恢复。']
+};
+let helpTimer = null;
+function showHelp(e, key) {
+  if (e) e.stopPropagation();
+  const d = HELP[key]; if (!d) return;
+  const pop = G('help-pop');
+  pop.innerHTML = `<b>${d[0]}</b>${d[1]}`;
+  pop.classList.add('on');
+  const r = e.target.getBoundingClientRect();
+  const w2 = 280;
+  pop.style.left = Math.max(8, Math.min(r.left - w2 / 2 + 8, window.innerWidth - w2 - 10)) + 'px';
+  pop.style.top = (r.bottom + 8) + 'px';
+  clearTimeout(helpTimer);
+  setTimeout(() => document.addEventListener('click', hideHelp, { once: true }), 0);
+}
+function hideHelp() { G('help-pop').classList.remove('on'); }
+
+
 
 /* ---------- 快捷键面板 ---------- */
 function openKb() { G('kb-ov').classList.add('on'); }
@@ -4051,6 +4902,7 @@ G('gal-ov').addEventListener('click', e => { if (e.target === G('gal-ov')) close
 G('tpl-ov').addEventListener('click', e => { if (e.target === G('tpl-ov')) closeTpl(); });
 G('tag-ov').addEventListener('click', e => { if (e.target === G('tag-ov')) closeTagEditor(); });
 G('lib-ov').addEventListener('click', e => { if (e.target === G('lib-ov')) closeLibrary(); });
+G('pm-ov').addEventListener('click', e => { if (e.target === G('pm-ov')) closeProjMgr(); });
 G('tag-input').addEventListener('keydown', e => {
   if (e.key === 'Enter') { e.preventDefault(); addTagFromInput(); }
   if (e.key === 'Escape') { e.preventDefault(); closeTagEditor(); }
@@ -4085,7 +4937,11 @@ G('modal-bg').addEventListener('click', e => { if (e.target === G('modal-bg')) c
     if (hid) G('app').classList.add(sd === 'left' ? 'lhide' : 'rhide');
     paneArrow(sd, hid);
   });
+  if (store.get('tm_theme') === 'light') { document.body.classList.add('light'); G('theme-btn').textContent = '\u6697\u8272'; }
+  if (store.get('tm_logohide') === '1') { G('drop-brand').classList.add('hidden-sec'); G('logo-hide-btn').textContent = '\u663e\u793a'; }
   if (store.get('tm_logosec') === '1') { logoSecOff = true; G('drop-brand').classList.add('folded'); G('logo-sec-tg').textContent = '▸'; }
+  ['adv-curve','adv-warp'].forEach(id => { if (store.get('tm_adv_' + id) === '1') { const el = G(id); if (el) el.classList.add('off'); } });
+  restoreAdv();
   onZipToggle();
   onPrintToggle();
   onCapChange();
