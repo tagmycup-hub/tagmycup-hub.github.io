@@ -325,7 +325,7 @@ input::placeholder{color:var(--mut)!important;}
   <button id="proj-imp" title="从文件导入项目" onclick="G('proj-file').click()">导入</button>
   <input type="file" id="proj-file" accept=".json,application/json" style="display:none" onchange="importProject(this)">
   <button id="theme-btn" title="切换亮色/暗色" onclick="toggleTheme()">☀ 亮色</button>
-  <button id="ws-clear" title="删除当前项目缓存" onclick="clearWorkspaceCache()">🗑 删除</button><span id="status">就绪</span>
+  <button id="ws-clear" title="删除当前项目缓存" onclick="clearWorkspaceCache()">🗑 删除</button><span id="save-dot"></span><span id="status">就绪</span>
 </div>
 <div id="app">
 <div id="tg-left" class="pane-tg" title="点击收起/展开 · 拖动调整宽度（[）"><span class="pt-a">‹</span><span class="pt-g">⋮</span></div>
@@ -423,6 +423,7 @@ input::placeholder{color:var(--mut)!important;}
     <button class="pb-act" title="快捷键（?）" onclick="openKb()">⌨ 快捷键</button>
     <div class="sep"></div>
     <button class="pb-act" id="fit-btn" title="智能定位：素材自动吸附杯身中心并按杯宽缩放（F）" onclick="autoFitSticker()">🎯 智能定位</button>
+    <button class="pb-act" id="grid-btn" title="画布网格（Shift+G）" onclick="toggleGrid()">⌗ 网格</button>
     <button class="pb-act" id="ruler-btn" title="显示印花实际厘米尺寸（R）" onclick="toggleRuler()">📏 尺寸</button>
     <button class="pb-act" id="cmp-btn" title="对比有无印花（C）" onclick="toggleCompare()">◐ 对比</button>
     <button class="pb-act" onclick="openGallery()" title="全底图画廊预览（G）">▦ 画廊</button>
@@ -471,7 +472,7 @@ input::placeholder{color:var(--mut)!important;}
       <button class="bi" onclick="alignStk('ml')">←</button><button class="bi act" onclick="alignStk('cc')">⊕</button><button class="bi" onclick="alignStk('mr')">→</button>
       <button class="bi" onclick="alignStk('bl')">↙</button><button class="bi" onclick="alignStk('bc')">↓</button><button class="bi" onclick="alignStk('br')">↘</button>
     </div>
-    <div class="brow"><button class="bg" onclick="applyToAll()">同步全部</button><button class="bg" onclick="resetActiveStkToPreset()">↺ 重置</button></div>
+    <div class="advgrp" id="adv-multi"><div class="advh" onclick="toggleAdv('adv-multi')"><span>▤ 多素材排布</span><button class="hlp" onclick="showHelp(event,'multi')">?</button><span class="advarr">▾</span></div><div class="advb"><div class="sec-title">对齐勾选的素材</div><div style="display:flex;gap:3px;flex-wrap:wrap"><button class="bi" onclick="alignStksTogether('l')" title="左对齐">⭱</button><button class="bi" onclick="alignStksTogether('cx')" title="水平居中">⭳</button><button class="bi" onclick="alignStksTogether('r')" title="右对齐">⭲</button><button class="bi" onclick="alignStksTogether('t')" title="顶对齐">⭶</button><button class="bi" onclick="alignStksTogether('cy')" title="垂直居中">⭴</button><button class="bi" onclick="alignStksTogether('b')" title="底对齐">⭷</button></div><div class="sec-title" style="margin-top:5px">均匀分布 / 统一尺寸</div><div style="display:flex;gap:3px"><button class="bi" onclick="distributeStks('x')">↔ 水平分布</button><button class="bi" onclick="distributeStks('y')">↕ 垂直分布</button><button class="bi" onclick="matchSize()" title="以当前活跃素材为基准">统一尺寸</button></div></div></div><div class="brow"><button class="bg" onclick="applyToAll()">同步全部</button><button class="bg" onclick="resetActiveStkToPreset()">↺ 重置</button></div>
   </div>
   <div class="tab-pane" id="tab-base">
     <div id="base-ind">请先选中底图</div>
@@ -527,7 +528,7 @@ input::placeholder{color:var(--mut)!important;}
     <div class="ag"><button class="bi" onclick="alignLogo('ip','tl')">↖</button><button class="bi" onclick="alignLogo('ip','tc')">↑</button><button class="bi act" onclick="alignLogo('ip','tr')">↗</button><button class="bi" onclick="alignLogo('ip','ml')">←</button><button class="bi" onclick="alignLogo('ip','cc')">⊕</button><button class="bi" onclick="alignLogo('ip','mr')">→</button><button class="bi" onclick="alignLogo('ip','bl')">↙</button><button class="bi" onclick="alignLogo('ip','bc')">↓</button><button class="bi" onclick="alignLogo('ip','br')">↘</button></div>
   </div>
   <div id="exp-zone">
-    <div id="exp-desc">—</div>
+    <div id="exp-desc">—</div><div id="exp-eta" style="font-size:10px;color:var(--mut);font-family:var(--mono);margin-bottom:5px"></div>
     <div class="folder-row"><span class="fl-lbl">🖼️</span><select id="fmt-sel" onchange="onFmtChange()" style="width:110px;background:var(--surf3);color:var(--txt);border:1px solid var(--bd);border-radius:var(--r);padding:5px 8px;font-size:12px;outline:none;flex-shrink:0"><option value="png">PNG 无损</option><option value="jpg">JPG 小体积</option><option value="webp">WebP</option></select><input type="range" id="q-range" class="tl" min="50" max="100" value="85" oninput="onQualityInput()" style="flex:1;display:none"><span id="q-val" style="font-size:10px;font-family:var(--mono);color:var(--dim);width:34px;text-align:right;display:none">85%</span></div>
     <div class="zip-row"><label class="tog" style="flex-shrink:0"><input type="checkbox" id="cap-toggle" checked onchange="onCapChange()"><span class="sl"></span></label><span class="zip-lbl on" id="cap-lbl" onclick="G('cap-toggle').click()">限制单文件大小</span><input type="number" id="cap-mb" value="2" min="0.1" max="50" step="0.1" style="width:52px" onchange="onCapChange()"><span style="font-size:10px;color:var(--mut);flex-shrink:0">MB</span></div>
     <div class="zip-row"><label class="tog" style="flex-shrink:0"><input type="checkbox" id="wb-toggle" onchange="onWbChange()"><span class="sl"></span></label><span class="zip-lbl" id="wb-lbl" onclick="G('wb-toggle').click()">白底填充（透明区填纯白）</span><span id="wb-forced" style="display:none;font-size:10px;color:var(--warm);flex-shrink:0">JPG 强制</span></div>
@@ -571,6 +572,13 @@ input::placeholder{color:var(--mut)!important;}
     <tr><td>L</td><td>🗂 素材库</td></tr>
     <tr><td>P</td><td>项目管理页</td></tr>
     <tr><td>A</td><td>全选 / 全不选素材</td></tr>
+    <tr><td>D</td><td>复制一份素材实例</td></tr>
+    <tr><td>Tab</td><td>循环选中下一个素材</td></tr>
+    <tr><td>0 / 1</td><td>适应画布 / 100% 大小</td></tr>
+    <tr><td>Shift + G</td><td>画布网格</td></tr>
+    <tr><td>Shift + F / B</td><td>素材置顶 / 置底</td></tr>
+    <tr><td>右键画布</td><td>快捷操作菜单</td></tr>
+    <tr><td>Ctrl + V</td><td>粘贴剪贴板中的图片</td></tr>
     <tr><td>右键素材</td><td>复制一份实例</td></tr>
     <tr><td>[ / ]</td><td>收起左 / 右面板</td></tr>
     <tr><td>W</td><td>拖角变形模式</td></tr>
@@ -610,7 +618,7 @@ input::placeholder{color:var(--mut)!important;}
     <button class="lib-tab act" data-k="sticker" onclick="switchLibTab('sticker')">🎨 素材</button>
     <button class="lib-tab" data-k="base" onclick="switchLibTab('base')">🖼 底图</button>
     <button class="lib-tab" data-k="logo" onclick="switchLibTab('logo')">🏷 Logo</button>
-    <input type="text" id="lib-search" placeholder="搜索…" oninput="renderLibrary()">
+    <input type="text" id="lib-search" placeholder="搜索…" oninput="renderLibrary()"><select id="lib-sort" onchange="renderLibrary()" style="background:var(--surf3);color:var(--txt);border:1px solid var(--bd);border-radius:6px;padding:5px 7px;font-size:11px;outline:none;cursor:pointer"><option value="recent">最新上传</option><option value="used">最近使用</option><option value="name">名称</option></select>
     <button class="bi" onclick="cleanOrphanAssets()" title="删除所有项目都未使用的素材">清理未用</button>
     <button class="bp" onclick="G('lib-file').click()">上传到库</button>
     <input type="file" id="lib-file" accept="image/*" multiple style="display:none" onchange="uploadToLibrary(this)">
@@ -656,6 +664,7 @@ input::placeholder{color:var(--mut)!important;}
 </div></div>
 <div id="pick-tip"><span>🥤 拖出杯身可印区域</span><button class="bg" onclick="cancelBodyPick()">取消</button></div>
 <div id="help-pop"></div>
+<div id="ctx-menu"></div>
 <div id="notif"></div>
 <style>
 /* ===== UI 打磨补丁 ===== */
@@ -964,6 +973,28 @@ body.light .lib-th,body.light .pm-th,body.light .dd-th,body.light .libi,
 body.light .logo-b,body.light .ls-i,body.light .ep-thumb.ck canvas,body.light .gal-i canvas{
   background:repeating-conic-gradient(#3a3833 0 25%,#2a2825 0 50%) 0 0/11px 11px;}
 body.light #cwrap{background:#dedbd6;}
+
+/* ===== 体验优化补充 ===== */
+#save-dot{width:7px;height:7px;border-radius:50%;background:transparent;transition:background .25s;flex-shrink:0;}
+#save-dot.saved{background:var(--ok);box-shadow:0 0 6px var(--ok);}
+.nf-undo{margin-left:10px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.3);
+  color:#fff;font-size:11px;padding:2px 9px;border-radius:4px;cursor:pointer;}
+.nf-undo:hover{background:rgba(255,255,255,.26);}
+#notif{display:flex;align-items:center;gap:2px;}
+kbd{background:var(--surf3);border:1px solid var(--bd);border-radius:3px;padding:0 4px;font-family:var(--mono);font-size:10px;color:var(--dim);}
+
+body.dragging-file::after{content:'松开即可添加图片';position:fixed;inset:0;z-index:500;
+  background:rgba(155,108,240,.12);border:3px dashed var(--acc);display:flex;align-items:center;
+  justify-content:center;font-size:17px;color:var(--acc-l);font-weight:600;pointer-events:none;letter-spacing:1px;}
+
+#ctx-menu{position:fixed;z-index:450;display:none;background:var(--surf2);border:1px solid var(--bdhi);
+  border-radius:8px;padding:5px;box-shadow:0 12px 34px rgba(0,0,0,.5);min-width:158px;}
+#ctx-menu button{display:block;width:100%;text-align:left;background:transparent;border:none;color:var(--txt);
+  font-size:12px;padding:6px 10px;border-radius:5px;cursor:pointer;transition:background .1s;}
+#ctx-menu button:hover:not(:disabled){background:var(--acc-d);color:var(--acc-l);}
+#ctx-menu button:disabled{color:var(--mut);cursor:default;}
+.ctx-sep{height:1px;background:var(--bd);margin:4px 2px;}
+#grid-btn.act{color:var(--acc-l);border-color:var(--acc);background:var(--acc-d);}
 </style>
 <script>
 /* ============================================================
@@ -1000,6 +1031,7 @@ const S = {
   clip: null,         // 剪贴板
   snap: true,         // 磁吸对齐
   ruler: false,       // 印花实际厘米标尺
+  grid: false,        // 画布网格辅助线
   pickBody: null,     // 手动框选杯身会话
   warpMode: false,    // 拖角变形模式
   compare: false,     // 有无印花对比
@@ -1011,7 +1043,19 @@ const adjTouched = a => a.br !== 100 || a.ct !== 100 || a.sa !== 100 || a.ox !==
 
 /* ---------- 通知 / 状态栏 ---------- */
 let notifT = null;
+function notifyUndo(msg, fn) {   /* ⑦ 带「撤销」的通知,误操作可一键恢复 */
+  const n = G('notif');
+  n.innerHTML = '';
+  const t = document.createElement('span'); t.textContent = msg; n.appendChild(t);
+  const b = document.createElement('button'); b.className = 'nf-undo'; b.textContent = '撤销';
+  b.onclick = () => { n.style.display = 'none'; fn(); };
+  n.appendChild(b);
+  n.className = 'ok'; n.style.display = 'block';
+  clearTimeout(notifT);
+  notifT = setTimeout(() => { n.style.display = 'none'; n.innerHTML = ''; }, 6000);
+}
 function notify(msg, type) {
+  G('notif').innerHTML = '';
   const n = G('notif');
   n.textContent = msg;
   n.className = type || '';
@@ -1179,7 +1223,15 @@ function renderBaseGrid() {
     d.appendChild(ck);
     const im = new Image(); im.src = b.img.src; d.appendChild(im);
     const del = document.createElement('button'); del.className = 'tdel'; del.textContent = '✕';
-    del.onclick = e => { e.stopPropagation(); snapshot(); S.bases.splice(i, 1); S.activeBase = clamp(S.activeBase, -1, S.bases.length - 1); if (!S.bases.length) S.activeBase = -1; refreshAll(); };
+    del.onclick = e => {
+      e.stopPropagation(); snapshot();
+      const bak = { ...b }, at = i;
+      S.bases.splice(i, 1);
+      S.activeBase = clamp(S.activeBase, -1, S.bases.length - 1);
+      if (!S.bases.length) S.activeBase = -1;
+      refreshAll();
+      notifyUndo(`已移出「${b.name}」`, () => { S.bases.splice(at, 0, bak); S.activeBase = at; refreshAll(); });
+    };
     d.appendChild(del);
     const n = document.createElement('span'); n.className = 'ti-n'; n.textContent = i + 1; d.appendChild(n);
     g.appendChild(d);
@@ -1193,7 +1245,9 @@ function renderStkGrid() {
   S.stks.forEach((s, i) => {
     const d = document.createElement('div');
     d.className = 'sti' + (s.checked ? ' checked' : '') + (s.id === S.activeStk ? ' active' : '');
-    d.title = s.name + '（双击变形）';
+    d.title = `${s.name}\n${Math.round(drawW(s))}×${Math.round(drawH(s))}px` +
+      (s.crop ? '\n已裁剪' : '') + (s.curve ? `\n曲面 ${s.curve}%` : '') +
+      (hasWarp(s) ? '\n已变形' : '') + '\n\n单击选中 · 双击变形 · 右键复制';
     d.onclick = () => { if (!s.checked) s.checked = true; S.activeStk = s.id; refreshAll(); };
     d.ondblclick = () => { if (!s.checked) s.checked = true; S.activeStk = s.id; refreshAll(); if (!S.warpMode) toggleWarpMode(); };
     d.oncontextmenu = ev => {   // 右键复制一份实例(同素材不同参数,做变体)
@@ -1226,7 +1280,14 @@ function renderStkGrid() {
     const dot = document.createElement('div'); dot.className = 'sti-dot'; d.appendChild(dot);
     const im = new Image(); im.src = s.img.src; d.appendChild(im);
     const del = document.createElement('button'); del.className = 'tdel2'; del.textContent = '✕';
-    del.onclick = e => { e.stopPropagation(); snapshot(); S.stks.splice(i, 1); if (S.activeStk === s.id) S.activeStk = null; refreshAll(); };
+    del.onclick = e => {
+      e.stopPropagation(); snapshot();
+      const bak = { ...s }, at = i;
+      S.stks.splice(i, 1);
+      if (S.activeStk === s.id) S.activeStk = null;
+      refreshAll();
+      notifyUndo(`已移出「${s.name}」`, () => { S.stks.splice(at, 0, bak); S.activeStk = bak.id; refreshAll(); });
+    };
     d.appendChild(del);
     const n = document.createElement('span'); n.className = 'sti-n'; n.textContent = i + 1; d.appendChild(n);
     g.appendChild(d);
@@ -1402,6 +1463,44 @@ function alignStk(pos) {
     s.x = { l: xs.l, c: xs.c, r: xs.r }[px] ?? s.x;
   });
   syncStkPanel(); renderCanvas();
+}
+/* ① 多素材排布:水平/垂直均匀分布 */
+function distributeStks(axis) {
+  const list = S.stks.filter(x => x.checked);
+  if (list.length < 3) return notify('至少勾选 3 个素材才能均匀分布', 'err');
+  snapshot();
+  const key = axis === 'x' ? 'x' : 'y';
+  const sorted = [...list].sort((a, b) => a[key] - b[key]);
+  const min = sorted[0][key], max = sorted[sorted.length - 1][key];
+  const gap = (max - min) / (sorted.length - 1);
+  sorted.forEach((s, i) => s[key] = Math.round(min + gap * i));
+  syncStkPanel(); renderCanvas();
+  notify(`已${axis === 'x' ? '水平' : '垂直'}均匀分布 ${list.length} 个素材`, 'ok');
+}
+/* ② 勾选素材相互对齐 */
+function alignStksTogether(mode) {
+  const list = S.stks.filter(x => x.checked);
+  if (list.length < 2) return notify('至少勾选 2 个素材', 'err');
+  snapshot();
+  if (mode === 'cx') { const m = list.reduce((a, s) => a + s.x, 0) / list.length; list.forEach(s => s.x = Math.round(m)); }
+  else if (mode === 'cy') { const m = list.reduce((a, s) => a + s.y, 0) / list.length; list.forEach(s => s.y = Math.round(m)); }
+  else if (mode === 'l') { const m = Math.min(...list.map(s => s.x - drawW(s) / 2)); list.forEach(s => s.x = Math.round(m + drawW(s) / 2)); }
+  else if (mode === 'r') { const m = Math.max(...list.map(s => s.x + drawW(s) / 2)); list.forEach(s => s.x = Math.round(m - drawW(s) / 2)); }
+  else if (mode === 't') { const m = Math.min(...list.map(s => s.y - drawH(s) / 2)); list.forEach(s => s.y = Math.round(m + drawH(s) / 2)); }
+  else if (mode === 'b') { const m = Math.max(...list.map(s => s.y + drawH(s) / 2)); list.forEach(s => s.y = Math.round(m - drawH(s) / 2)); }
+  syncStkPanel(); renderCanvas();
+  notify(`已对齐 ${list.length} 个素材`, 'ok');
+}
+/* ③ 统一尺寸:以活跃素材为准 */
+function matchSize() {
+  const a = activeStkObj(); if (!a) return notify('请先选中基准素材', 'err');
+  const list = S.stks.filter(x => x.checked && x !== a);
+  if (!list.length) return notify('请勾选其它素材', 'err');
+  snapshot();
+  const tw = drawW(a);
+  list.forEach(s => { const cw = srcW(s) * (s.sx || 1); if (cw > 0) s.scale = clamp(tw / cw * 100, 5, 300); });
+  syncStkPanel(); renderCanvas();
+  notify(`已统一 ${list.length} 个素材的宽度`, 'ok');
 }
 function applyToAll() {
   const a = activeStkObj(); if (!a) return notify('请先选中素材', 'err');
@@ -2072,6 +2171,28 @@ function printCm(s) { // 估算素材内容在实物上的宽度(cm)
   const cmPer = dia / r.w;         // 正视投影宽 ≈ 直径
   return { w: wpx * cmPer, h: hpx * cmPer };
 }
+/* ⑩ 画布网格:排版时判断位置 */
+function toggleGrid() {
+  S.grid = !S.grid;
+  G('grid-btn').classList.toggle('act', S.grid);
+  store.set('tm_grid', S.grid ? '1' : '0');
+  renderCanvas();
+}
+function drawGrid() {
+  if (!S.grid) return;
+  const { W, H } = outSize();
+  ctx.save();
+  ctx.strokeStyle = 'rgba(155,108,240,.16)';
+  ctx.lineWidth = 1 / S.pv;
+  const step = Math.max(20, Math.round(Math.min(W, H) / 12));
+  for (let x = step; x < W; x += step) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke(); }
+  for (let y = step; y < H; y += step) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke(); }
+  // 中心十字加重
+  ctx.strokeStyle = 'rgba(155,108,240,.4)'; ctx.lineWidth = 1.4 / S.pv;
+  ctx.beginPath(); ctx.moveTo(W / 2, 0); ctx.lineTo(W / 2, H);
+  ctx.moveTo(0, H / 2); ctx.lineTo(W, H / 2); ctx.stroke();
+  ctx.restore();
+}
 function drawRuler() {
   if (!S.ruler) return;
   const r = bodyRect();
@@ -2206,6 +2327,7 @@ function renderCanvas() {
   cv.style.width = (W * S.pv) + 'px';
   cv.style.height = (H * S.pv) + 'px';
   drawScene(cv, W, H, S.activeBase, false, whiteBgOn());
+  drawGrid();
   if (S.compare) drawCompareHalf(W, H);
   if (drag && drag.mode === 'marquee') {
     ctx.save();
@@ -2834,6 +2956,56 @@ window.addEventListener('mouseup', () => {
     scheduleSave();
   }
 });
+/* ⑥ 画布右键菜单:常用操作就近可达 */
+cv.addEventListener('contextmenu', e => {
+  e.preventDefault();
+  const p = canvasPt(e);
+  const s = hitStk(p);
+  if (s && S.activeStk !== s.id) { S.activeStk = s.id; S.activeLogo = null; refreshAll(); }
+  showCtxMenu(e.clientX, e.clientY, !!s);
+});
+function showCtxMenu(x, y, onStk) {
+  const m = G('ctx-menu');
+  m.innerHTML = '';
+  const add = (label, fn, dis) => {
+    const b = document.createElement('button');
+    b.textContent = label; b.disabled = !!dis;
+    b.onclick = () => { hideCtxMenu(); fn(); };
+    m.appendChild(b);
+  };
+  const sep = () => { const d = document.createElement('div'); d.className = 'ctx-sep'; m.appendChild(d); };
+  if (onStk) {
+    add('复制一份 (D)', () => { const a = activeStkObj(); if (!a) return;
+      snapshot(); const nid = uid++;
+      const cp = { ...a, id: nid, name: uniqueName(S.stks, a.name.replace(/\(\d+\)$/, '')),
+        _fx: null, _fxk: null, _cb: null, _cbk: null, _wc: null, _wk: null,
+        crop: a.crop ? { ...a.crop } : null, warp: a.warp ? a.warp.slice() : null };
+      S.stks.push(cp); S.activeStk = nid; centerStk(cp); refreshAll(); });
+    add('拖角变形 (双击)', () => { if (!S.warpMode) toggleWarpMode(); });
+    add('精细裁切', () => enterCropMode());
+    add('清除裁剪', () => clearCrop());
+    sep();
+    add('置顶 (Shift+F)', bringToFront);
+    add('上移一层', bringForward);
+    add('下移一层', sendBackward);
+    add('置底 (Shift+B)', sendToBack);
+    sep();
+    add('重置参数', resetActiveStkToPreset);
+    add('移出项目 (Del)', deleteActiveSticker);
+  } else {
+    add('适应画布 (0)', pvFit);
+    add('100% (1)', () => { pvAuto = false; S.pv = 1; renderCanvas(); });
+    sep();
+    add('全选素材 (A)', selectAllStickers);
+    add('智能定位 (F)', autoFitSticker);
+  }
+  m.style.display = 'block';
+  const r = m.getBoundingClientRect();
+  m.style.left = Math.min(x, window.innerWidth - r.width - 8) + 'px';
+  m.style.top = Math.min(y, window.innerHeight - r.height - 8) + 'px';
+  setTimeout(() => document.addEventListener('click', hideCtxMenu, { once: true }), 0);
+}
+function hideCtxMenu() { const m = G('ctx-menu'); if (m) m.style.display = 'none'; }
 cv.addEventListener('dblclick', e => {
   if (S.crop) return;
   { const q = canvasPt(e); if (!hitStk(q) && !hitLogo(q)) { pvFit(); return; } }
@@ -2867,8 +3039,24 @@ G('cwrap').addEventListener('wheel', e => {
 }, { passive: false });
 
 /* ---------- 键盘 ---------- */
+/* ① 系统剪贴板:Ctrl+V 直接粘贴截图/复制的图片为素材 */
+window.addEventListener('paste', async e => {
+  const tg = e.target;
+  if (tg && typeof tg.matches === 'function' && tg.matches('input,textarea')) return;
+  const items = [...(e.clipboardData && e.clipboardData.items || [])];
+  const imgs = items.filter(i => i.type.startsWith('image/'));
+  if (!imgs.length) return;
+  e.preventDefault();
+  const files = imgs.map(i => i.getAsFile()).filter(Boolean);
+  if (files.length) {
+    const kind = S.bases.length ? 'sticker' : 'base';
+    await loadFiles(kind, files);
+    notify(`已从剪贴板粘贴 ${files.length} 张图（作为${kind === 'base' ? '底图' : '素材'}）`, 'ok');
+  }
+});
 window.addEventListener('keydown', e => {
-  if (e.target.matches('input,select,textarea')) return;
+  const tg = e.target;
+  if (tg && typeof tg.matches === 'function' && tg.matches('input,select,textarea')) return;
   const a = activeStkObj();
   const step = e.shiftKey ? 10 : 1;
   if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') { e.preventDefault(); return S.crop ? cropUndo() : undo(); }
@@ -2881,12 +3069,28 @@ window.addEventListener('keydown', e => {
     if (kk === 'f') { e.preventDefault(); return autoFitSticker(); }
     if (kk === 'r') { e.preventDefault(); return toggleRuler(); }
     if (kk === 'c' && !e.shiftKey) { e.preventDefault(); return toggleCompare(); }
+    if (kk === 'g' && e.shiftKey) { e.preventDefault(); return toggleGrid(); }
     if (kk === 'g') { e.preventDefault(); return G('gal-ov').classList.contains('on') ? closeGallery() : openGallery(); }
     if (kk === 'w') { e.preventDefault(); return toggleWarpMode(); }
+    if (kk === 'd' && activeStkObj()) {   /* ③ D 键复制一份实例 */
+      e.preventDefault();
+      const a = activeStkObj();
+      snapshot();
+      const nid = uid++;
+      const cp = { ...a, id: nid, name: uniqueName(S.stks, a.name.replace(/\(\d+\)$/, '')),
+        _fx: null, _fxk: null, _cb: null, _cbk: null, _wc: null, _wk: null,
+        crop: a.crop ? { ...a.crop } : null, warp: a.warp ? a.warp.slice() : null };
+      S.stks.push(cp); S.activeStk = nid; centerStk(cp); refreshAll();
+      return notify('已复制一份实例（D）', 'ok');
+    }
+    if (kk === '0') { e.preventDefault(); return pvFit(); }          /* ④ 0 键适应画布 */
+    if (kk === '1') { e.preventDefault(); pvAuto = false; S.pv = 1; renderCanvas(); return notify('100% 实际大小'); }
     if (kk === 'l') { e.preventDefault(); return G('lib-ov').classList.contains('on') ? closeLibrary() : openLibrary(); }
     if (kk === 'p') { e.preventDefault(); return G('pm-ov').classList.contains('on') ? closeProjMgr() : openProjMgr(); }
     if (kk === 'a') { e.preventDefault(); return selectAllStickers(); }
     if (e.key === '[') { e.preventDefault(); return togglePane('left'); }
+    if (kk === 'f' && e.shiftKey) { e.preventDefault(); return bringToFront(); }
+    if (kk === 'b' && e.shiftKey) { e.preventDefault(); return sendToBack(); }
     if (e.key === ']') { e.preventDefault(); return togglePane('right'); }
   }
   if (e.key === 'Escape') {
@@ -2915,6 +3119,17 @@ window.addEventListener('keydown', e => {
   }
   if (!a) return;
   if (e.key === 'Delete' || e.key === 'Backspace') { e.preventDefault(); return deleteActiveSticker(); }
+  if (e.key === 'Tab') {   /* ⑥ Tab 循环选中下一个素材 */
+    const list = S.stks.filter(x => x.checked);
+    if (list.length) {
+      e.preventDefault();
+      const i = list.findIndex(x => x.id === S.activeStk);
+      const nx = list[(i + (e.shiftKey ? -1 : 1) + list.length) % list.length];
+      S.activeStk = nx.id; S.activeLogo = null; refreshAll();
+      notify('选中：' + nx.name);
+    }
+    return;
+  }
   const mv = { ArrowLeft: [-step, 0], ArrowRight: [step, 0], ArrowUp: [0, -step], ArrowDown: [0, step] }[e.key];
   if (mv) {
     e.preventDefault(); ctrlSnap();
@@ -2949,6 +3164,21 @@ function deleteActiveSticker() {
   S.activeStk = null;
   exitCropMode(true);
   refreshAll();
+}
+/* ④ 一步置顶 / 置底 */
+function bringToFront() {
+  const i = S.stks.findIndex(s => s.id === S.activeStk);
+  if (i < 0 || i === S.stks.length - 1) return;
+  snapshot();
+  S.stks.push(S.stks.splice(i, 1)[0]);
+  refreshAll(); notify('已置于顶层');
+}
+function sendToBack() {
+  const i = S.stks.findIndex(s => s.id === S.activeStk);
+  if (i <= 0) return;
+  snapshot();
+  S.stks.unshift(S.stks.splice(i, 1)[0]);
+  refreshAll(); notify('已置于底层');
 }
 function bringForward() {
   const i = S.stks.findIndex(s => s.id === S.activeStk);
@@ -3549,9 +3779,16 @@ async function assetLoad(id) {
 }
 let libCacheList = null;
 function invalidateLibCache() { libCacheList = null; }
-async function libraryList(kind) {
+async function libraryList(kind, sort) {
   if (!libCacheList) libCacheList = await assetAll();
-  return libCacheList.filter(a => !kind || a.kind === kind).sort((x, y) => y.ts - x.ts);
+  const list = libCacheList.filter(a => !kind || a.kind === kind);
+  const mode = sort || (G('lib-sort') ? G('lib-sort').value : 'recent');
+  if (mode === 'name') return list.sort((x, y) => (x.name || '').localeCompare(y.name || '', 'zh'));
+  if (mode === 'used') {   /* ⑨ 最近用过的排前面 */
+    const idx = a => { const i = recentAids.indexOf(a.id); return i < 0 ? 999 : i; };
+    return list.sort((x, y) => idx(x) - idx(y) || y.ts - x.ts);
+  }
+  return list.sort((x, y) => y.ts - x.ts);
 }
 function idbPut(val, key) {
   return idbOpen().then(db => new Promise((res, rej) => {
@@ -3615,6 +3852,7 @@ async function saveWorkspace() {
       exp: collectExportSettings()
     });
     invalidateProjPreview(curProj);
+    const dot = G('save-dot'); if (dot) { dot.className = 'saved'; setTimeout(() => dot.className = '', 1600); }
     setStatus(curProj + ' · 已保存 ' + new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }));
   } catch (e) { /* 无痕/受限环境静默跳过 */ }
 }
@@ -3799,6 +4037,12 @@ function updExpDesc() {
       ? `矩阵：${nb} 底图 × ${ns} 素材 → ${total} 张 PNG${wp ? ` + ${ns} 印花` : ''}`
       : `${nb} 底图 × ${ns} 素材${logos ? ' + ' + logos + ' Logo' : ''} → ${nb} 张 PNG${wp ? ' + 印花' : ''}`)
     : (wp ? '— 仅导出印花 PNG（透明底）' : '— 请先上传底图');
+  const est = (mx ? total : nb) + (wp ? (mx ? ns : 1) : 0);
+  if (est > 0) {
+    const secs = Math.ceil(est * 0.45);
+    const tEl = G('exp-eta');
+    if (tEl) tEl.textContent = est > 3 ? `约 ${secs < 60 ? secs + ' 秒' : Math.ceil(secs / 60) + ' 分钟'}` : '';
+  }
   const cp = capBytes();
   if (cp) G('exp-desc').textContent += ` · ≤${(cp / 1048576).toFixed(1)}MB/张`;
   const canGo = (nb || wp) && !exporting;
@@ -4033,6 +4277,9 @@ function buildPrintJobs() {
   return isMatrix() ? S.stks.filter(st => st.checked) : [null];
 }
 async function runExport(sink) { // sink: {zip} | {dir} | null(逐个下载)
+  if (S.stks.length && !S.stks.some(x => x.checked)) {
+    if (!confirm('当前没有勾选任何素材,导出的将是空白底图。\n\n继续导出?')) return;
+  }
   const jobs = buildCompJobs(), printJobs = buildPrintJobs();
   const total = jobs.length + printJobs.length;
   if (!total) return;
@@ -4093,6 +4340,7 @@ async function runExport(sink) { // sink: {zip} | {dir} | null(逐个下载)
       setTimeout(() => URL.revokeObjectURL(a.href), 4000);
     }
     setProg(true, '完成 ✓', 100);
+    setStatus(`导出完成 · ${total} 个文件`);
     notify(`已导出 ${total} 个文件 · 共 ${fmtSize(totalBytes)}` + (shrunk.length ? ` · ${shrunk.length} 个已压缩` : ''), 'ok');
     if (shrunk.length) console.info('为满足大小上限已压缩：\n' + shrunk.join('\n'));
     setStatus('就绪');
@@ -4361,7 +4609,14 @@ async function addFromLibrary(aid) {
   try { await addFromLibraryInner(aid); }
   finally { setTimeout(() => addingAssets.delete(aid), 250); }
 }
+let recentAids = [];
+try { recentAids = JSON.parse(store.get('tm_recent') || '[]'); } catch (e) { recentAids = []; }
+function pushRecent(aid) {
+  recentAids = [aid, ...recentAids.filter(x => x !== aid)].slice(0, 12);
+  store.set('tm_recent', JSON.stringify(recentAids));
+}
 async function addFromLibraryInner(aid) {
+  pushRecent(aid);
   const a = await assetLoad(aid);
   if (!a) return notify('素材加载失败', 'err');
   snapshot();
@@ -4686,6 +4941,7 @@ function toggleAdv(id) {
   store.set('tm_adv_' + id, off ? '1' : '0');
 }
 const HELP = {
+  multi: '<b>多素材排布</b>勾选多个素材后使用。<br>· <b>对齐</b>:按左/中/右、顶/中/底把勾选的素材对齐<br>· <b>均匀分布</b>:首尾不动,中间等间距(需≥3个)<br>· <b>统一尺寸</b>:其它素材缩放到与当前活跃素材同宽<br><br>做多图案排版时很省事。',
   curve: ['曲面与光泽', '让平面印花贴合圆柱杯身。<br><b style="display:inline;color:var(--dim)">曲面</b> 包裹强度，杯子越圆值越大（马克杯约 45，保温杯约 65）。<br><b style="display:inline;color:var(--dim)">杯口弧</b> 模拟俯视时的弧线。<br><b style="display:inline;color:var(--dim)">光泽</b> 釉面反光，<b style="display:inline;color:var(--dim)">高光位</b> 对齐底图光源方向。<br>印花导出不含这些效果。'],
   warp: ['变形与拉伸', '横拉/竖拉调整宽高比例。<br>画布上<b style="display:inline;color:var(--dim)">双击素材</b>或按 <kbd>W</kbd> 进入拖角变形：拖角点、边中点或中心点做轴向拉伸，松手后自动并入缩放。'],
   crop: ['裁剪', '选中素材后<b style="display:inline;color:var(--dim)">拖动边线</b>即可裁剪（对边固定，和 Canva 一致），拖<b style="display:inline;color:var(--dim)">角点</b>是等比缩放。<br>「↺裁切」恢复完整图。印花导出始终使用未裁剪原图。'],
@@ -4712,6 +4968,26 @@ function showHelp(e, key) {
 function hideHelp() { G('help-pop').classList.remove('on'); }
 
 
+
+/* ⑮ 全局拖放:拖到窗口任意位置都能上传 */
+let dragDepth = 0;
+window.addEventListener('dragenter', e => {
+  if (![...(e.dataTransfer.types || [])].includes('Files')) return;
+  dragDepth++; document.body.classList.add('dragging-file');
+});
+window.addEventListener('dragleave', () => { if (--dragDepth <= 0) { dragDepth = 0; document.body.classList.remove('dragging-file'); } });
+window.addEventListener('dragover', e => { if ([...(e.dataTransfer.types || [])].includes('Files')) e.preventDefault(); });
+window.addEventListener('drop', async e => {
+  dragDepth = 0; document.body.classList.remove('dragging-file');
+  if (!e.dataTransfer || ![...(e.dataTransfer.types || [])].includes('Files')) return;
+  if (e.target.closest && e.target.closest('#drop-base,#drop-stk,#drop-brand-in,#drop-ip-in,#cwrap')) return; // 已有专属区处理
+  e.preventDefault();
+  const files = [...e.dataTransfer.files].filter(f => f.type.startsWith('image/'));
+  if (!files.length) return;
+  const kind = S.bases.length ? 'sticker' : 'base';
+  await loadFiles(kind, files);
+  notify(`已添加 ${files.length} 个${kind === 'base' ? '底图' : '素材'}`, 'ok');
+});
 
 /* ---------- 快捷键面板 ---------- */
 function openKb() { G('kb-ov').classList.add('on'); }
@@ -4921,6 +5197,14 @@ G('cwrap').addEventListener('scroll', positionFloatTb);
 G('modal-input').addEventListener('keydown', e => { if (e.key === 'Enter') confirmModal(); if (e.key === 'Escape') closeModal(); });
 G('modal-bg').addEventListener('click', e => { if (e.target === G('modal-bg')) closeModal(); });
 
+function maybeFirstRun() {   /* ⑩ 首次使用引导 */
+  if (store.get('tm_seen') === '1') return;
+  store.set('tm_seen', '1');
+  setTimeout(() => {
+    const ov = G('kb-ov');
+    if (ov) { ov.classList.add('on'); notify('欢迎!这是快捷键说明,随时按 ? 再次打开', 'ok'); }
+  }, 900);
+}
 (async function init() {
   renderProjSel();
   await restoreWorkspace();
@@ -4937,6 +5221,7 @@ G('modal-bg').addEventListener('click', e => { if (e.target === G('modal-bg')) c
     if (hid) G('app').classList.add(sd === 'left' ? 'lhide' : 'rhide');
     paneArrow(sd, hid);
   });
+  if (store.get('tm_grid') === '1') { S.grid = true; G('grid-btn').classList.add('act'); }
   if (store.get('tm_theme') === 'light') { document.body.classList.add('light'); G('theme-btn').textContent = '\u6697\u8272'; }
   if (store.get('tm_logohide') === '1') { G('drop-brand').classList.add('hidden-sec'); G('logo-hide-btn').textContent = '\u663e\u793a'; }
   if (store.get('tm_logosec') === '1') { logoSecOff = true; G('drop-brand').classList.add('folded'); G('logo-sec-tg').textContent = '▸'; }
@@ -4950,6 +5235,7 @@ G('modal-bg').addEventListener('click', e => { if (e.target === G('modal-bg')) c
   onQualityInput();
   refreshAll();
   pvFit();
+  maybeFirstRun();
   if (G('status').textContent === '就绪' || !S.bases.length && !S.stks.length) setStatus('就绪');
 })();
 </script>
