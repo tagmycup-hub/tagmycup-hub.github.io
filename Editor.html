@@ -307,6 +307,7 @@ input::placeholder{color:var(--mut)!important;}
 .dd-tl-i,.pm-tl i{color:var(--dim)!important;}
 .kb-tbl td{color:var(--dim);}
 </style></head><body>
+<div id="proj-tabs"></div>
 <div id="topbar">
   <div class="logo-dot"></div><span class="logo-text">贴图合成器</span>
   <div class="nav-links">
@@ -423,6 +424,10 @@ input::placeholder{color:var(--mut)!important;}
     <button class="pb-act" title="快捷键（?）" onclick="openKb()">⌨ 快捷键</button>
     <div class="sep"></div>
     <button class="pb-act" id="fit-btn" title="智能定位：素材自动吸附杯身中心并按杯宽缩放（F）" onclick="autoFitSticker()">🎯 智能定位</button>
+    <button class="pb-act" onclick="copyForCrossProject()" title="复制选中素材/Logo,可跨项目粘贴（Ctrl+Shift+C）">⧉ 跨项目复制</button>
+    <button class="pb-act" id="xclip-btn" onclick="pasteFromCrossProject()" style="display:none"></button>
+    <button class="pb-act" onclick="openTpls()" title="排版模板（T）">▤ 模板</button>
+    <button class="pb-act" onclick="suggestParams()" title="根据底图杯型推荐曲面与位置">✨ 智能建议</button>
     <button class="pb-act" id="grid-btn" title="画布网格（Shift+G）" onclick="toggleGrid()">⌗ 网格</button>
     <button class="pb-act" id="ruler-btn" title="显示印花实际厘米尺寸（R）" onclick="toggleRuler()">📏 尺寸</button>
     <button class="pb-act" id="cmp-btn" title="对比有无印花（C）" onclick="toggleCompare()">◐ 对比</button>
@@ -442,6 +447,7 @@ input::placeholder{color:var(--mut)!important;}
     <button class="etab t-base" onclick="switchTab('base')">底图</button>
     <button class="etab t-brand" onclick="switchTab('brand')">品牌</button>
     <button class="etab t-ip" onclick="switchTab('ip')">IP</button>
+    <button class="etab t-text" onclick="switchTab('text')">文字</button>
   </div>
   <div class="tab-pane show" id="tab-stk">
     <div class="init-row"><div class="ir-title">上传默认缩放</div><div class="cr"><span class="cl w">素材</span><input type="range" id="init-stk-r" min="5" max="300" oninput="onInitScale('stk',this.value)"><input type="number" id="init-stk-n" value="100" min="5" max="300" style="width:48px" oninput="onInitScale('stk',this.value)"><span class="cu">%</span></div><div class="init-hint">新素材 & 重置均用此值</div></div>
@@ -501,7 +507,7 @@ input::placeholder{color:var(--mut)!important;}
     <div class="cr"><span class="cl">Y</span><input type="range" id="by-r" min="-500" max="3000" oninput="logoCtrl('brand','y',this.value)"><input type="number" id="by-n" value="20" oninput="logoCtrl('brand','y',this.value)"></div>
     <div class="cr"><span class="cl">缩放</span><input type="range" id="bs-r" min="5" max="300" oninput="logoCtrl('brand','scale',this.value)"><input type="number" id="bs-n" value="100" oninput="logoCtrl('brand','scale',this.value)"><span class="cu">%</span></div>
     <div class="cr"><span class="cl">透明</span><input type="range" id="bo-r" min="0" max="100" value="100" oninput="logoCtrl('brand','opacity',this.value)"><input type="number" id="bo-n" value="100" oninput="logoCtrl('brand','opacity',this.value)"><span class="cu">%</span></div>
-    <div class="cr" style="margin-top:6px"><span class="cl">↺ 旋转</span><input type="range" id="brt-r" class="wm" min="-180" max="180" value="0" oninput="logoCtrl('brand','rotation',this.value)"><input type="number" id="brt-n" value="0" min="-180" max="180" oninput="logoCtrl('brand','rotation',this.value)"><span class="cu">°</span></div>
+    <div class="cr" style="margin-top:6px"><span class="cl">↺ 旋转</span><input type="range" id="brt-r" class="wm" min="-180" max="180" value="0" oninput="logoCtrl('brand','rotation',this.value)"><input type="number" id="brt-n" value="0" min="-180" max="180" oninput="logoCtrl('brand','rotation',this.value)"><span class="cu">°</span></div><div class="advgrp" id="adv-lgfx-brand"><div class="advh" onclick="toggleAdv('adv-lgfx-brand')"><span>◑ 曲面与光泽</span><button class="hlp" onclick="showHelp(event,'curve')">?</button><span class="advarr">▾</span></div><div class="advb"><div class="cr"><span class="cl">曲面</span><input type="range" id="bc-r" class="wm" min="0" max="100" value="0" oninput="logoCtrl('brand','curve',this.value)"><input type="number" id="bc-n" value="0" min="0" max="100" oninput="logoCtrl('brand','curve',this.value)"><span class="cu">%</span></div><div class="cr"><span class="cl">杯口弧</span><input type="range" id="bcv-r" class="wm" min="-50" max="50" value="0" oninput="logoCtrl('brand','curveV',this.value)"><input type="number" id="bcv-n" value="0" min="-50" max="50" oninput="logoCtrl('brand','curveV',this.value)"><span class="cu">%</span></div><div class="cr"><span class="cl">光泽</span><input type="range" id="bg-r" class="tl" min="0" max="100" value="0" oninput="logoCtrl('brand','gloss',this.value)"><input type="number" id="bg-n" value="0" min="0" max="100" oninput="logoCtrl('brand','gloss',this.value)"><span class="cu">%</span></div><div class="cr"><span class="cl">高光位</span><input type="range" id="bgp-r" class="tl" min="0" max="100" value="34" oninput="logoCtrl('brand','glossPos',this.value)"><input type="number" id="bgp-n" value="34" min="0" max="100" oninput="logoCtrl('brand','glossPos',this.value)"><span class="cu">%</span></div><div style="display:flex;gap:3px;margin-top:3px"><button class="bi" onclick="logoCurvePreset('brand',0,0)">平面</button><button class="bi" onclick="logoCurvePreset('brand',45,8)">马克杯</button><button class="bi" onclick="logoCurvePreset('brand',65,12)">保温杯</button></div></div></div>
     <div class="cr"><span class="cl">↔ 横拉</span><input type="range" id="bsx-r2" min="10" max="300" value="100" oninput="logoCtrl('brand','stretchX',this.value)"><input type="number" id="bsx-n2" value="100" min="10" max="300" oninput="logoCtrl('brand','stretchX',this.value)"><span class="cu">%</span></div>
     <div class="cr"><span class="cl">↕ 竖拉</span><input type="range" id="bsy-r2" min="10" max="300" value="100" oninput="logoCtrl('brand','stretchY',this.value)"><input type="number" id="bsy-n2" value="100" min="10" max="300" oninput="logoCtrl('brand','stretchY',this.value)"><span class="cu">%</span></div>
     <div class="cr" style="display:none"><span class="cl">▽ 梯形</span><input type="range" id="btp-r2" class="wm" min="-80" max="80" value="0" oninput="logoCtrl('brand','taper',this.value)"><input type="number" id="btp-n2" value="0" min="-80" max="80" oninput="logoCtrl('brand','taper',this.value)"><span class="cu">%</span></div>
@@ -518,7 +524,7 @@ input::placeholder{color:var(--mut)!important;}
     <div class="cr"><span class="cl">Y</span><input type="range" id="iy-r" min="-500" max="3000" class="tl" oninput="logoCtrl('ip','y',this.value)"><input type="number" id="iy-n" value="20" oninput="logoCtrl('ip','y',this.value)"></div>
     <div class="cr"><span class="cl">缩放</span><input type="range" id="is-r" min="5" max="300" class="tl" oninput="logoCtrl('ip','scale',this.value)"><input type="number" id="is-n" value="100" oninput="logoCtrl('ip','scale',this.value)"><span class="cu">%</span></div>
     <div class="cr"><span class="cl">透明</span><input type="range" id="io-r" min="0" max="100" value="100" class="tl" oninput="logoCtrl('ip','opacity',this.value)"><input type="number" id="io-n" value="100" oninput="logoCtrl('ip','opacity',this.value)"><span class="cu">%</span></div>
-    <div class="cr" style="margin-top:6px"><span class="cl">↺ 旋转</span><input type="range" id="irt-r" class="tl" min="-180" max="180" value="0" oninput="logoCtrl('ip','rotation',this.value)"><input type="number" id="irt-n" value="0" min="-180" max="180" oninput="logoCtrl('ip','rotation',this.value)"><span class="cu">°</span></div>
+    <div class="cr" style="margin-top:6px"><span class="cl">↺ 旋转</span><input type="range" id="irt-r" class="tl" min="-180" max="180" value="0" oninput="logoCtrl('ip','rotation',this.value)"><input type="number" id="irt-n" value="0" min="-180" max="180" oninput="logoCtrl('ip','rotation',this.value)"><span class="cu">°</span></div><div class="advgrp" id="adv-lgfx-ip"><div class="advh" onclick="toggleAdv('adv-lgfx-ip')"><span>◑ 曲面与光泽</span><button class="hlp" onclick="showHelp(event,'curve')">?</button><span class="advarr">▾</span></div><div class="advb"><div class="cr"><span class="cl">曲面</span><input type="range" id="ic-r" class="wm" min="0" max="100" value="0" oninput="logoCtrl('ip','curve',this.value)"><input type="number" id="ic-n" value="0" min="0" max="100" oninput="logoCtrl('ip','curve',this.value)"><span class="cu">%</span></div><div class="cr"><span class="cl">杯口弧</span><input type="range" id="icv-r" class="wm" min="-50" max="50" value="0" oninput="logoCtrl('ip','curveV',this.value)"><input type="number" id="icv-n" value="0" min="-50" max="50" oninput="logoCtrl('ip','curveV',this.value)"><span class="cu">%</span></div><div class="cr"><span class="cl">光泽</span><input type="range" id="ig-r" class="tl" min="0" max="100" value="0" oninput="logoCtrl('ip','gloss',this.value)"><input type="number" id="ig-n" value="0" min="0" max="100" oninput="logoCtrl('ip','gloss',this.value)"><span class="cu">%</span></div><div class="cr"><span class="cl">高光位</span><input type="range" id="igp-r" class="tl" min="0" max="100" value="34" oninput="logoCtrl('ip','glossPos',this.value)"><input type="number" id="igp-n" value="34" min="0" max="100" oninput="logoCtrl('ip','glossPos',this.value)"><span class="cu">%</span></div><div style="display:flex;gap:3px;margin-top:3px"><button class="bi" onclick="logoCurvePreset('ip',0,0)">平面</button><button class="bi" onclick="logoCurvePreset('ip',45,8)">马克杯</button><button class="bi" onclick="logoCurvePreset('ip',65,12)">保温杯</button></div></div></div>
     <div class="cr"><span class="cl">↔ 横拉</span><input type="range" id="isx-r2" min="10" max="300" value="100" oninput="logoCtrl('ip','stretchX',this.value)"><input type="number" id="isx-n2" value="100" min="10" max="300" oninput="logoCtrl('ip','stretchX',this.value)"><span class="cu">%</span></div>
     <div class="cr"><span class="cl">↕ 竖拉</span><input type="range" id="isy-r2" min="10" max="300" value="100" oninput="logoCtrl('ip','stretchY',this.value)"><input type="number" id="isy-n2" value="100" min="10" max="300" oninput="logoCtrl('ip','stretchY',this.value)"><span class="cu">%</span></div>
     <div class="cr" style="display:none"><span class="cl">▽ 梯形</span><input type="range" id="itp-r2" class="tl" min="-80" max="80" value="0" oninput="logoCtrl('ip','taper',this.value)"><input type="number" id="itp-n2" value="0" min="-80" max="80" oninput="logoCtrl('ip','taper',this.value)"><span class="cu">%</span></div>
@@ -527,6 +533,7 @@ input::placeholder{color:var(--mut)!important;}
     <div style="display:flex;gap:4px;margin-top:4px"><button class="bi" onclick="resetObjWarp('ip')">重置变形</button></div>
     <div class="ag"><button class="bi" onclick="alignLogo('ip','tl')">↖</button><button class="bi" onclick="alignLogo('ip','tc')">↑</button><button class="bi act" onclick="alignLogo('ip','tr')">↗</button><button class="bi" onclick="alignLogo('ip','ml')">←</button><button class="bi" onclick="alignLogo('ip','cc')">⊕</button><button class="bi" onclick="alignLogo('ip','mr')">→</button><button class="bi" onclick="alignLogo('ip','bl')">↙</button><button class="bi" onclick="alignLogo('ip','bc')">↓</button><button class="bi" onclick="alignLogo('ip','br')">↘</button></div>
   </div>
+<div class="tab-pane" id="tab-text"><div style="display:flex;gap:4px"><button class="bp" onclick="newText()" style="flex:1">＋ 新建文字</button><button class="bd2 danger" onclick="deleteActiveText()">删除</button></div><div id="text-none" class="emp" style="margin-top:8px">点「新建文字」添加，或在画布上双击文字编辑</div><div id="text-props" style="display:none;flex-direction:column;gap:7px;margin-top:8px"><textarea id="tx-content" rows="2" placeholder="输入文字，回车换行" oninput="textCtrl('text',this.value)" style="width:100%;background:var(--surf3);color:var(--txt);border:1px solid var(--bd);border-radius:var(--r);padding:7px 9px;font-size:12px;outline:none;resize:vertical;box-sizing:border-box"></textarea><div class="cr"><span class="cl">字体</span><select id="tx-font" onchange="textCtrl('font',this.value)" style="flex:1;background:var(--surf3);color:var(--txt);border:1px solid var(--bd);border-radius:var(--r);padding:4px 6px;font-size:11px;outline:none"><option value="0">无衬线</option><option value="1">衬线</option><option value="2">等宽</option><option value="3">圆体</option><option value="4">黑体粗</option></select><select id="tx-weight" onchange="textCtrl('weight',this.value)" style="width:66px;background:var(--surf3);color:var(--txt);border:1px solid var(--bd);border-radius:var(--r);padding:4px;font-size:11px;outline:none"><option value="400">常规</option><option value="700">粗体</option><option value="900">特粗</option></select></div><div class="cr"><span class="cl">字号</span><input type="range" id="tx-size" min="8" max="400" value="40" oninput="textCtrl('size',this.value)"><input type="number" id="tx-size-n" value="40" min="8" max="400" oninput="textCtrl('size',this.value)"><span class="cu">px</span></div><div class="cr"><span class="cl">颜色</span><input type="color" id="tx-color" value="#ffffff" oninput="textCtrl('color',this.value)" style="flex:1;height:26px;background:var(--surf3);border:1px solid var(--bd);border-radius:var(--r);cursor:pointer"><span class="cl" style="width:auto">描边</span><input type="color" id="tx-stroke" value="#000000" oninput="textCtrl('stroke',this.value)" style="flex:1;height:26px;background:var(--surf3);border:1px solid var(--bd);border-radius:var(--r);cursor:pointer"></div><div class="cr"><span class="cl">描边粗</span><input type="range" id="tx-strokew" min="0" max="24" value="0" oninput="textCtrl('strokeW',this.value)"><input type="number" id="tx-strokew-n" value="0" min="0" max="24" oninput="textCtrl('strokeW',this.value)"><span class="cu">px</span></div><div class="cr"><span class="cl">弧形</span><input type="range" id="tx-curve" class="wm" min="-160" max="160" value="0" oninput="textCtrl('curve',this.value)"><input type="number" id="tx-curve-n" value="0" min="-160" max="160" oninput="textCtrl('curve',this.value)"><span class="cu">°</span></div><div class="cr"><span class="cl">旋转</span><input type="range" id="tx-rot" class="wm" min="-180" max="180" value="0" oninput="textCtrl('rot',this.value)"><input type="number" id="tx-rot-n" value="0" min="-180" max="180" oninput="textCtrl('rot',this.value)"><span class="cu">°</span></div><div class="cr"><span class="cl">字距</span><input type="range" id="tx-letter" class="tl" min="-10" max="40" value="0" oninput="textCtrl('letter',this.value)"><span class="cu">px</span></div><div class="cr"><span class="cl">阴影</span><input type="range" id="tx-shadow" class="tl" min="0" max="30" value="0" oninput="textCtrl('shadow',this.value)"><span class="cu">px</span></div><div class="cr"><span class="cl">透明</span><input type="range" id="tx-op" min="0" max="100" value="100" oninput="textCtrl('op',this.value)"><span class="cu">%</span></div><div style="display:flex;gap:3px"><button class="bi" onclick="textCtrl('align','left')">左</button><button class="bi" onclick="textCtrl('align','center')">中</button><button class="bi" onclick="textCtrl('align','right')">右</button><button class="bi" onclick="editTextPrompt()">编辑内容</button></div></div></div>
   <div id="exp-zone">
     <div id="exp-desc">—</div><div id="exp-eta" style="font-size:10px;color:var(--mut);font-family:var(--mono);margin-bottom:5px"></div>
     <div class="folder-row"><span class="fl-lbl">🖼️</span><select id="fmt-sel" onchange="onFmtChange()" style="width:110px;background:var(--surf3);color:var(--txt);border:1px solid var(--bd);border-radius:var(--r);padding:5px 8px;font-size:12px;outline:none;flex-shrink:0"><option value="png">PNG 无损</option><option value="jpg">JPG 小体积</option><option value="webp">WebP</option></select><input type="range" id="q-range" class="tl" min="50" max="100" value="85" oninput="onQualityInput()" style="flex:1;display:none"><span id="q-val" style="font-size:10px;font-family:var(--mono);color:var(--dim);width:34px;text-align:right;display:none">85%</span></div>
@@ -547,6 +554,7 @@ input::placeholder{color:var(--mut)!important;}
     <div id="prog-wrap"><div id="prog-txt">正在导出…</div><div id="prog-bar"><div id="prog-fill"></div></div><button id="btn-cancel" onclick="cancelExport()">✕ 取消</button></div>
   </div>
 </div>
+
 </div>
 <div id="modal-bg"><div id="modal"><h3>新建模式</h3><input type="text" id="modal-input" placeholder="名称" maxlength="20"><div class="mbtns"><button class="bg" onclick="closeModal()">取消</button><button class="bp" onclick="confirmModal()">创建</button></div></div></div>
 <div id="kb-ov" class="ov"><div class="ov-card">
@@ -578,6 +586,8 @@ input::placeholder{color:var(--mut)!important;}
     <tr><td>Shift + G</td><td>画布网格</td></tr>
     <tr><td>Shift + F / B</td><td>素材置顶 / 置底</td></tr>
     <tr><td>右键画布</td><td>快捷操作菜单</td></tr>
+    <tr><td>Ctrl+Shift+C</td><td>跨项目复制素材/Logo</td></tr>
+    <tr><td>Ctrl+Shift+V</td><td>粘贴到当前项目</td></tr>
     <tr><td>Ctrl + V</td><td>粘贴剪贴板中的图片</td></tr>
     <tr><td>右键素材</td><td>复制一份实例</td></tr>
     <tr><td>[ / ]</td><td>收起左 / 右面板</td></tr>
@@ -623,6 +633,13 @@ input::placeholder{color:var(--mut)!important;}
     <button class="bp" onclick="G('lib-file').click()">上传到库</button>
     <input type="file" id="lib-file" accept="image/*" multiple style="display:none" onchange="uploadToLibrary(this)">
   </div>
+  <div class="pm-batch" id="lib-batch">
+    <span>已选 <b id="lib-selN">0</b> 个素材</span>
+    <button class="del" onclick="libBatchDelete()">批量删除</button>
+    <span class="sp"></span>
+    <button onclick="libSelAll()">全选</button>
+    <button onclick="libSelNone()">取消选择</button>
+  </div>
   <div id="lib-grid"></div>
   <div style="font-size:11px;color:var(--dim);margin-top:8px">点击素材加入当前项目 · 素材库为所有项目共享</div>
   <div class="mbtns"><button class="bg" onclick="closeLibrary()">关闭</button></div>
@@ -651,6 +668,13 @@ input::placeholder{color:var(--mut)!important;}
   </div>
   <div id="pm-grid"></div>
   <div class="mbtns"><button class="bg" onclick="closeProjMgr()">关闭</button></div>
+</div></div>
+<div id="tpls-ov" class="ov"><div class="ov-card wide">
+  <div class="ov-t">▤ 排版模板 <span id="tpls-info" style="font-size:11px;color:var(--dim);font-weight:400"></span></div>
+  <div style="display:flex;gap:6px;margin-bottom:10px"><button class="bp" onclick="saveAsTemplate()">＋ 保存当前排版为模板</button></div>
+  <div id="tpls-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;max-height:56vh;overflow-y:auto"></div>
+  <div style="font-size:11px;color:var(--dim);margin-top:8px">模板保存素材引用与全部参数，套用后可直接换底图导出</div>
+  <div class="mbtns"><button class="bg" onclick="closeTpls()">关闭</button></div>
 </div></div>
 <div id="tag-ov" class="ov"><div class="ov-card">
   <div class="ov-t">项目分类 <span id="tag-proj" style="font-size:11px;color:var(--dim);font-weight:400"></span></div>
@@ -995,6 +1019,38 @@ body.dragging-file::after{content:'松开即可添加图片';position:fixed;inse
 #ctx-menu button:disabled{color:var(--mut);cursor:default;}
 .ctx-sep{height:1px;background:var(--bd);margin:4px 2px;}
 #grid-btn.act{color:var(--acc-l);border-color:var(--acc);background:var(--acc-d);}
+
+/* ===== 多项目标签页 ===== */
+#proj-tabs{display:none;align-items:center;gap:4px;padding:5px 10px;background:var(--surf2);
+  border-bottom:1px solid var(--bd);flex-shrink:0;overflow-x:auto;}
+.ptab{display:flex;align-items:center;gap:6px;padding:4px 6px 4px 5px;border-radius:6px;background:var(--surf3);
+  border:1px solid var(--bd);cursor:pointer;max-width:190px;flex-shrink:0;transition:all .13s;}
+.ptab:hover{border-color:var(--bdhi);}
+.ptab.act{background:var(--acc-d);border-color:var(--acc);}
+.ptab-th{width:20px;height:20px;border-radius:4px;flex-shrink:0;background-size:cover;background-position:center;
+  background-color:var(--surf);border:1px solid var(--bd);}
+.ptab-th.has{border-color:var(--bdhi);}
+.ptab-n{font-size:11.5px;color:var(--dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:120px;}
+.ptab.act .ptab-n{color:var(--acc-l);font-weight:600;}
+.ptab-x{background:transparent;border:none;color:var(--mut);font-size:14px;line-height:1;padding:0 2px;
+  cursor:pointer;border-radius:3px;flex-shrink:0;}
+.ptab-x:hover{background:var(--err);color:#fff;}
+.ptab-add{background:transparent;border:1px dashed var(--bd);color:var(--dim);font-size:13px;
+  padding:3px 9px;border-radius:6px;cursor:pointer;flex-shrink:0;}
+.ptab-add:hover{border-color:var(--acc);color:var(--acc-l);}
+
+.lib-sel{position:absolute;top:-5px;left:-5px;width:17px;height:17px;border-radius:4px;background:var(--surf2);
+  border:1.5px solid var(--bdhi);cursor:pointer;z-index:4;display:flex;align-items:center;justify-content:center;
+  font-size:10px;color:transparent;transition:all .12s;}
+.lib-sel:hover{border-color:var(--acc);}
+.lib-sel.on{background:var(--acc);border-color:var(--acc);color:#fff;}
+.lib-i.picked{border-color:var(--acc);box-shadow:0 0 0 1px var(--acc) inset;}
+.lib-i{overflow:visible;}
+
+.lib-tools{display:flex;gap:3px;margin-top:3px;}
+.lib-tools button{flex:1;background:var(--surf2);border:1px solid var(--bd);color:var(--dim);
+  font-size:9px;padding:2px 0;border-radius:4px;cursor:pointer;transition:all .12s;}
+.lib-tools button:hover{border-color:var(--acc);color:var(--acc-l);}
 </style>
 <script>
 /* ============================================================
@@ -1021,8 +1077,8 @@ const S = {
   stks: [],           // {id,name,img,checked,x,y,scale,sx,sy,rot,op,crop}
   activeStk: null,    // id
   logos: {
-    brand: { img: null, name: '', en: false, x: 20, y: 20, scale: 100, op: 100, rot: 0, sx: 1, sy: 1, taper: 0, skx: 0, sky: 0, warp: null },
-    ip:    { img: null, name: '', en: false, x: 20, y: 20, scale: 100, op: 100, rot: 0, sx: 1, sy: 1, taper: 0, skx: 0, sky: 0, warp: null }
+    brand: { img: null, name: '', en: false, x: 20, y: 20, scale: 100, op: 100, rot: 0, sx: 1, sy: 1, taper: 0, skx: 0, sky: 0, warp: null, curve: 0, cvv: 0, gloss: 0, glp: 34, crop: null },
+    ip:    { img: null, name: '', en: false, x: 20, y: 20, scale: 100, op: 100, rot: 0, sx: 1, sy: 1, taper: 0, skx: 0, sky: 0, warp: null, curve: 0, cvv: 0, gloss: 0, glp: 34, crop: null }
   },
   init: { stk: 100, brand: 20, ip: 20 },
   group: false,
@@ -1032,6 +1088,8 @@ const S = {
   snap: true,         // 磁吸对齐
   ruler: false,       // 印花实际厘米标尺
   grid: false,        // 画布网格辅助线
+  texts: [],          // 文字图层
+  activeText: null,
   pickBody: null,     // 手动框选杯身会话
   warpMode: false,    // 拖角变形模式
   compare: false,     // 有无印花对比
@@ -1070,6 +1128,7 @@ const undoStack = [];
 function snapshot() {
   undoStack.push(JSON.stringify({
     stks: S.stks.map(s => ({ ...s, img: undefined, blob: undefined, _fx: undefined, _fxk: undefined, _cb: undefined, _cbk: undefined, _wc: undefined, _wk: undefined })),
+    texts: (S.texts || []).map(t => ({ ...t })),
     bases: S.bases.map(b => ({ id: b.id, adj: { ...b.adj }, sx: b.sx || 1, sy: b.sy || 1, taper: b.taper || 0, skx: b.skx || 0, sky: b.sky || 0, warp: b.warp ? b.warp.slice() : null, checked: b.checked !== false, manualBody: b.manualBody || null })),
     logos: { brand: { ...S.logos.brand, img: undefined, blob: undefined, _wc: undefined, _wk: undefined }, ip: { ...S.logos.ip, img: undefined, blob: undefined, _wc: undefined, _wk: undefined } },
     activeBase: S.activeBase, activeStk: S.activeStk,
@@ -1085,6 +1144,7 @@ function undo() {
   if (!snap) return;
   const d = JSON.parse(snap.json);
   S.stks = d.stks.map(s => ({ ...s, img: snap.imgs.get(s.id), _fx: null, _fxk: null, _cb: null, _cbk: null, _wc: null, _wk: null })).filter(s => s.img);
+  if (d.texts) { S.texts = d.texts.map(t => ({ ...t })); if (!S.texts.some(t => t.id === S.activeText)) S.activeText = null; }
   d.bases.forEach(sb => { const b = S.bases.find(x => x.id === sb.id); if (b) { b.adj = sb.adj; b.sx = sb.sx; b.sy = sb.sy; b.taper = sb.taper; b.skx = sb.skx; b.sky = sb.sky; b.warp = sb.warp; if (sb.checked !== undefined) b.checked = sb.checked; b.manualBody = sb.manualBody || null; clearWarpCache(b); b._body = undefined; } });
   ['brand', 'ip'].forEach(k => { const im = S.logos[k].img, bl = S.logos[k].blob, nm = S.logos[k].name; S.logos[k] = { ...d.logos[k], img: im, blob: bl, name: nm, _wc: null, _wk: null }; });
   S.activeBase = clamp(d.activeBase, -1, S.bases.length - 1);
@@ -1606,19 +1666,40 @@ function logoCtrl(kind, prop, val) {
   ctrlSnap();
   val = +val || 0;
   if (prop === 'x') L.x = val; else if (prop === 'y') L.y = val;
-  else if (prop === 'scale') L.scale = clamp(val, 5, 300);
+  else if (prop === 'scale' || prop === 'stretchX' || prop === 'stretchY') {
+    // 以中心为锚点缩放:否则左上角固定会让 Logo 不断往右下偏移
+    const bw = L.img.naturalWidth, bh = L.img.naturalHeight;
+    const w0 = bw * L.scale / 100 * (L.sx || 1), h0 = bh * L.scale / 100 * (L.sy || 1);
+    const cx = L.x + w0 / 2, cy = L.y + h0 / 2;
+    if (prop === 'scale') L.scale = clamp(val, 5, 300);
+    else if (prop === 'stretchX') { L.sx = clamp(val, 10, 300) / 100; clearWarpCache(L); }
+    else { L.sy = clamp(val, 10, 300) / 100; clearWarpCache(L); }
+    const w1 = bw * L.scale / 100 * (L.sx || 1), h1 = bh * L.scale / 100 * (L.sy || 1);
+    L.x = Math.round(cx - w1 / 2); L.y = Math.round(cy - h1 / 2);
+  }
   else if (prop === 'opacity') L.op = clamp(val, 0, 100);
   else if (prop === 'rotation') L.rot = clamp(val, -180, 180);
-  else if (prop === 'stretchX') { L.sx = clamp(val, 10, 300) / 100; clearWarpCache(L); }
-  else if (prop === 'stretchY') { L.sy = clamp(val, 10, 300) / 100; clearWarpCache(L); }
+  else if (prop === 'curve') { L.curve = clamp(val, 0, 100); L._fxk = null; }
+  else if (prop === 'curveV') { L.cvv = clamp(val, -50, 50); L._fxk = null; }
+  else if (prop === 'gloss') { L.gloss = clamp(val, 0, 100); L._fxk = null; }
+  else if (prop === 'glossPos') { L.glp = clamp(val, 0, 100); L._fxk = null; }
   else if (prop === 'taper') { L.taper = clamp(val, -80, 80); clearWarpCache(L); }
   else if (prop === 'skewX') { L.skx = clamp(val, -60, 60); clearWarpCache(L); }
   else if (prop === 'skewY') { L.sky = clamp(val, -60, 60); clearWarpCache(L); }
   syncLogoPanel(kind); renderCanvas();
 }
+function logoCurvePreset(kind, cu, cv) {
+  const L = S.logos[kind]; if (!L.img) return notify('请先上传 Logo', 'err');
+  snapshot();
+  L.curve = cu; L.cvv = cv; L._fxk = null;
+  syncLogoPanel(kind); renderCanvas();
+  notify(cu ? `Logo 曲面 ${cu}%` : 'Logo 已恢复平面');
+}
 function syncLogoPanel(kind) {
   const L = S.logos[kind];
   const p = kind === 'brand' ? ['bx', 'by', 'bs', 'bo'] : ['ix', 'iy', 'is', 'io'];
+  const pf = kind === 'brand' ? 'b' : 'i';
+  [[pf + 'c', L.curve || 0], [pf + 'cv', L.cvv || 0], [pf + 'g', L.gloss || 0], [pf + 'gp', L.glp === undefined ? 34 : L.glp]].forEach(([q, v]) => { const r = G(q + '-r'), n = G(q + '-n'); if (r) r.value = Math.round(v); if (n) n.value = Math.round(v); });
   [[p[0], L.x], [p[1], L.y], [p[2], L.scale], [p[3], L.op]].forEach(([q, v]) => { G(q + '-r').value = Math.round(v); G(q + '-n').value = Math.round(v); });
   const e = kind === 'brand' ? 'b' : 'i';
   G(e + 'rt-r').value = Math.round(L.rot || 0); G(e + 'rt-n').value = Math.round(L.rot || 0);
@@ -1847,7 +1928,14 @@ function drawLogoImg(x, L) {
   x.save();
   if (rot) { x.translate(L.x + w / 2, L.y + h / 2); x.rotate(rot); x.translate(-w / 2, -h / 2); }
   else x.translate(L.x, L.y);
-  if (hasWarp(L)) {
+  // Logo 复用素材的曲面/光泽引擎(字段语义一致:scale/sx/sy/crop)
+  if ((L.curve || 0) > 0 || (L.cvv || 0) !== 0 || (L.gloss || 0) > 0) {
+    if (L.crop === undefined) L.crop = null;
+    const fx = stkFxCanvas(L);
+    const b = fx._wb;
+    if (b) x.drawImage(fx, b.x0 * w, b.y0 * h, (b.x1 - b.x0) * w, (b.y1 - b.y0) * h);
+    else x.drawImage(fx, 0, 0, w, h);
+  } else if (hasWarp(L)) {
     const wc = warpImageCanvas(L, L.img.naturalWidth, L.img.naturalHeight, null), b = wc._wb;
     x.drawImage(wc, b.x0 * w, b.y0 * h, (b.x1 - b.x0) * w, (b.y1 - b.y0) * h);
   } else x.drawImage(L.img, 0, 0, w, h);
@@ -2278,6 +2366,7 @@ function drawScene(c, W, H, baseIdx, forExport, whiteBg) {
     drawLogoImg(x, L);
     x.restore();
   });
+  drawTexts(x, forExport);   // 文字图层在最上
 }
 function drawSelection() {
   drawLogoSelection();
@@ -2350,6 +2439,7 @@ function renderCanvas() {
   drawGuides();
   drawRuler();
   drawSelection();
+  drawTextSelection();
   drawWarpHandles();
   G('empty-hint').style.display = (S.bases.length || S.stks.length) ? 'none' : 'block';
   G('canvas-info').textContent = W + '×' + H + ' · ' + Math.round(S.pv * 100) + '%';
@@ -2368,7 +2458,7 @@ function refreshAll() {
   if (typeof scheduleSave === 'function') scheduleSave();
   if (typeof renderLibStrips === 'function') renderLibStrips();
   renderBaseGrid(); renderStkGrid(); renderLogoBoxes();
-  syncStkPanel(); syncAdjPanel(); syncLogoPanel('brand'); syncLogoPanel('ip');
+  syncStkPanel(); syncTextPanel(); syncAdjPanel(); syncLogoPanel('brand'); syncLogoPanel('ip');
   renderCanvas();
 }
 
@@ -2794,6 +2884,14 @@ cv.addEventListener('mousedown', e => {
     cv.classList.add('grabbing');
     return;
   }
+  const tx = hitText(p);
+  if (tx) {
+    if (S.activeText !== tx.id) { S.activeText = tx.id; S.activeStk = null; S.activeLogo = null; switchTab('text'); refreshAll(); }
+    snapshot();
+    drag = { mode: 'textmove', t: tx, x0: tx.x, y0: tx.y, p0: p };
+    cv.classList.add('grabbing');
+    return;
+  }
   const s = hitStk(p);
   if (s) {
     if (S.activeStk !== s.id || S.activeLogo) { S.activeStk = s.id; S.activeLogo = null; S.warpMode = false; G('warp-btn').classList.remove('act'); refreshAll(); }
@@ -2802,7 +2900,7 @@ cv.addEventListener('mousedown', e => {
     drag = { mode: 'move', p0: p, starts: tg.map(t => ({ t, x: t.x, y: t.y })) };
     cv.classList.add('grabbing');
   } else {
-    S.activeStk = null; S.activeLogo = null; refreshAll();
+    S.activeStk = null; S.activeLogo = null; S.activeText = null; refreshAll();
   }
 });
 window.addEventListener('mousemove', e => {
@@ -2932,6 +3030,16 @@ window.addEventListener('mousemove', e => {
     showDragInfo(`${label} ${(du * 100).toFixed(0)}%, ${(dv * 100).toFixed(0)}%`);
     if (t.kind === 'logo') syncLogoPanel(t.k); else if (t.kind === 'base') syncAdjPanel();
     syncStkPanel(); renderCanvas();
+  } else if (drag.mode === 'textmove') {
+    let nx = drag.x0 + (p.x - drag.p0.x), ny = drag.y0 + (p.y - drag.p0.y);
+    if (S.snap && !e.altKey) {
+      const m = textMetrics(drag.t);
+      const d2 = snapDelta([nx - m.w / 2, nx, nx + m.w / 2], [ny - m.h / 2, ny, ny + m.h / 2], null, null);
+      nx += d2.dx; ny += d2.dy;
+    } else S.guides = [];
+    drag.t.x = Math.round(nx); drag.t.y = Math.round(ny);
+    showDragInfo(`文字 x:${drag.t.x} y:${drag.t.y}`);
+    syncTextPanel(); renderCanvas();
   } else if (drag.mode === 'marquee') {
     drag.r = { x: Math.min(drag.p0.x, p.x), y: Math.min(drag.p0.y, p.y), w: Math.abs(p.x - drag.p0.x), h: Math.abs(p.y - drag.p0.y) };
     showDragInfo(`✂ 裁切 ${Math.round(drag.r.w)} × ${Math.round(drag.r.h)}`);
@@ -3008,6 +3116,7 @@ function showCtxMenu(x, y, onStk) {
 function hideCtxMenu() { const m = G('ctx-menu'); if (m) m.style.display = 'none'; }
 cv.addEventListener('dblclick', e => {
   if (S.crop) return;
+  { const t2 = hitText(canvasPt(e)); if (t2) { S.activeText = t2.id; refreshAll(); return editTextPrompt(); } }
   { const q = canvasPt(e); if (!hitStk(q) && !hitLogo(q)) { pvFit(); return; } }
   const s = hitStk(canvasPt(e));
   if (s) { S.activeStk = s.id; S.activeLogo = null; refreshAll(); if (!S.warpMode) toggleWarpMode(); }
@@ -3060,6 +3169,8 @@ window.addEventListener('keydown', e => {
   const a = activeStkObj();
   const step = e.shiftKey ? 10 : 1;
   if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') { e.preventDefault(); return S.crop ? cropUndo() : undo(); }
+  if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'c') { e.preventDefault(); return copyForCrossProject(); }
+  if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'v') { e.preventDefault(); return pasteFromCrossProject(); }
   if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'c' && a) { e.preventDefault(); return copySticker(); }
   if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'x' && a) { e.preventDefault(); return cutSticker(); }
   if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'v' && S.clip) { e.preventDefault(); return pasteSticker(); }
@@ -3085,6 +3196,7 @@ window.addEventListener('keydown', e => {
     }
     if (kk === '0') { e.preventDefault(); return pvFit(); }          /* ④ 0 键适应画布 */
     if (kk === '1') { e.preventDefault(); pvAuto = false; S.pv = 1; renderCanvas(); return notify('100% 实际大小'); }
+    if (kk === 't' && !e.shiftKey) { e.preventDefault(); return G('tpls-ov').classList.contains('on') ? closeTpls() : openTpls(); }
     if (kk === 'l') { e.preventDefault(); return G('lib-ov').classList.contains('on') ? closeLibrary() : openLibrary(); }
     if (kk === 'p') { e.preventDefault(); return G('pm-ov').classList.contains('on') ? closeProjMgr() : openProjMgr(); }
     if (kk === 'a') { e.preventDefault(); return selectAllStickers(); }
@@ -3100,6 +3212,7 @@ window.addEventListener('keydown', e => {
     if (G('tpl-ov').classList.contains('on')) return closeTpl();
     if (G('tag-ov').classList.contains('on')) return closeTagEditor();
     if (G('lib-ov').classList.contains('on')) return closeLibrary();
+    if (G('tpls-ov').classList.contains('on')) return closeTpls();
     if (G('pm-ov').classList.contains('on')) return closeProjMgr();
     if (S.pickBody) return cancelBodyPick();
     if (S.warpMode) { S.warpMode = false; G('warp-btn').classList.remove('act'); renderCanvas(); return; }
@@ -3117,8 +3230,8 @@ window.addEventListener('keydown', e => {
     if (mv2) { e.preventDefault(); ctrlSnap(); L.x += mv2[0]; L.y += mv2[1]; syncLogoPanel(S.activeLogo); renderCanvas(); }
     return;
   }
-  if (!a) return;
-  if (e.key === 'Delete' || e.key === 'Backspace') { e.preventDefault(); return deleteActiveSticker(); }
+  if (!a && !S.activeText) return;
+  if (e.key === 'Delete' || e.key === 'Backspace') { e.preventDefault(); if (S.activeText) return deleteActiveText(); return deleteActiveSticker(); }
   if (e.key === 'Tab') {   /* ⑥ Tab 循环选中下一个素材 */
     const list = S.stks.filter(x => x.checked);
     if (list.length) {
@@ -3129,6 +3242,11 @@ window.addEventListener('keydown', e => {
       notify('选中：' + nx.name);
     }
     return;
+  }
+  if (S.activeText) {
+    const t3 = activeTextObj();
+    const m3 = { ArrowLeft: [-step, 0], ArrowRight: [step, 0], ArrowUp: [0, -step], ArrowDown: [0, step] }[e.key];
+    if (t3 && m3) { e.preventDefault(); ctrlSnap(); t3.x += m3[0]; t3.y += m3[1]; syncTextPanel(); renderCanvas(); return; }
   }
   const mv = { ArrowLeft: [-step, 0], ArrowRight: [step, 0], ArrowUp: [0, -step], ArrowDown: [0, step] }[e.key];
   if (mv) {
@@ -3579,13 +3697,15 @@ async function switchToProj(name) {
   curProj = name; saveProjList();
   resetState();
   await restoreWorkspace();
-  renderProjSel(); refreshAll(); pvFit();
+  ensureTab(curProj);
+  renderProjSel(); renderTabs(); refreshAll(); pvFit();
   notify('已切换到「' + curProj + '」', 'ok');
 }
 function resetState() {
   S.bases = []; S.stks = []; S.activeBase = -1; S.activeStk = null; S.activeLogo = null;
-  S.logos.brand = { img: null, name: '', en: false, x: 20, y: 20, scale: 100, op: 100, rot: 0, sx: 1, sy: 1, taper: 0, skx: 0, sky: 0, warp: null };
-  S.logos.ip = { img: null, name: '', en: false, x: 20, y: 20, scale: 100, op: 100, rot: 0, sx: 1, sy: 1, taper: 0, skx: 0, sky: 0, warp: null };
+  S.logos.brand = { img: null, name: '', en: false, x: 20, y: 20, scale: 100, op: 100, rot: 0, sx: 1, sy: 1, taper: 0, skx: 0, sky: 0, warp: null, curve: 0, cvv: 0, gloss: 0, glp: 34, crop: null };
+  S.logos.ip = { img: null, name: '', en: false, x: 20, y: 20, scale: 100, op: 100, rot: 0, sx: 1, sy: 1, taper: 0, skx: 0, sky: 0, warp: null, curve: 0, cvv: 0, gloss: 0, glp: 34, crop: null };
+  S.texts = []; S.activeText = null;
   S.crop = null; S.guides = []; undoStack.length = 0; updUndo();
   G('crop-tb').classList.remove('on'); cv.classList.remove('crop');
 }
@@ -3597,7 +3717,7 @@ async function newProject() {
   clearTimeout(saveT);
   await saveWorkspace();
   projects.push(n); curProj = n; saveProjList();
-  resetState(); renderProjSel(); refreshAll(); pvFit();
+  resetState(); ensureTab(curProj); renderProjSel(); renderTabs(); refreshAll(); pvFit();
   notify('已创建「' + n + '」，画布已清空', 'ok');
 }
 async function renameProject() {
@@ -3640,7 +3760,7 @@ async function deleteProject(name) {
       await restoreWorkspace();
       refreshAll(); pvFit();
     } else saveProjList();
-    renderProjSel(); buildProjMenu();
+    renderTabs(); renderProjSel(); buildProjMenu();
     notify(`已删除「${name}」` + (wasCur ? ` → 切换到「${curProj}」` : ''), 'ok');
   } catch (e) { console.error(e); notify('删除失败', 'err'); }
 }
@@ -3658,6 +3778,7 @@ async function duplicateProject() {
     const copy = {
       v: 3, ts: Date.now(),
       bases: (data.bases || []).map(b => ({ ...b, adj: { ...b.adj }, warp: b.warp ? b.warp.slice() : null, manualBody: b.manualBody ? { ...b.manualBody } : null })),
+      texts: (data.texts || []).map(t => ({ ...t })),
       stks: (data.stks || []).map(st => ({ ...st, warp: st.warp ? st.warp.slice() : null, crop: st.crop ? { ...st.crop } : null })),
       logos: {
         brand: { ...(data.logos && data.logos.brand || {}), warp: data.logos && data.logos.brand && data.logos.brand.warp ? data.logos.brand.warp.slice() : null },
@@ -3841,12 +3962,13 @@ function applyExportSettings(o) {
 }
 async function saveWorkspace() {
   try {
-    const pickL = k => { const L = S.logos[k]; return { aid: L.aid || null, blob: L.aid ? null : (L.blob || null), name: L.name, en: L.en, x: L.x, y: L.y, scale: L.scale, op: L.op, sx: L.sx || 1, sy: L.sy || 1, taper: L.taper || 0, skx: L.skx || 0, sky: L.sky || 0, warp: L.warp ? L.warp.slice() : null, rot: L.rot || 0 }; };
+    const pickL = k => { const L = S.logos[k]; return { aid: L.aid || null, blob: L.aid ? null : (L.blob || null), name: L.name, en: L.en, x: L.x, y: L.y, scale: L.scale, op: L.op, sx: L.sx || 1, sy: L.sy || 1, taper: L.taper || 0, skx: L.skx || 0, sky: L.sky || 0, warp: L.warp ? L.warp.slice() : null, rot: L.rot || 0, curve: L.curve || 0, cvv: L.cvv || 0, gloss: L.gloss || 0, glp: L.glp === undefined ? 34 : L.glp }; };
     await idbPut({
       v: 3, ts: Date.now(),
       bases: S.bases.map(b => ({ name: b.name, aid: b.aid || null, blob: b.aid ? null : b.blob, checked: b.checked !== false, manualBody: b.manualBody || null, sx: b.sx || 1, sy: b.sy || 1, taper: b.taper || 0, skx: b.skx || 0, sky: b.sky || 0, warp: b.warp ? b.warp.slice() : null, adj: { ...b.adj } })),
       stks: S.stks.map(st => ({ name: st.name, aid: st.aid || null, blob: st.aid ? null : st.blob, checked: st.checked, x: st.x, y: st.y, scale: st.scale, sx: st.sx, sy: st.sy, rot: st.rot, op: st.op, curve: st.curve || 0, cvv: st.cvv || 0, gloss: st.gloss || 0, glp: st.glp === undefined ? 34 : st.glp, warp: st.warp ? st.warp.slice() : null, taper: st.taper || 0, skx: st.skx || 0, sky: st.sky || 0, crop: st.crop ? { ...st.crop } : null })),
       logos: { brand: pickL('brand'), ip: pickL('ip') },
+      texts: (S.texts || []).map(t => ({ ...t })),
       init: { ...S.init }, size: G('size-sel').value, cw: +G('cw-in').value, ch: +G('ch-in').value,
       dia: +G('cup-dia').value, tpl: G('name-tpl').value,
       exp: collectExportSettings()
@@ -3899,9 +4021,10 @@ async function restoreWorkspace() {
     for (const k of ['brand', 'ip']) {
       const L = (d.logos || {})[k]; if (!L) continue;
       const r = await resolve(L, 'logo');
-      if (r) Object.assign(S.logos[k], { img: r.img, blob: r.blob, aid: r.aid, name: L.name, en: L.en, x: L.x, y: L.y, scale: L.scale, op: L.op, sx: L.sx || 1, sy: L.sy || 1, taper: L.taper || 0, skx: L.skx || 0, sky: L.sky || 0, warp: L.warp || null, rot: L.rot || 0, _wc: null, _wk: null });
+      if (r) Object.assign(S.logos[k], { img: r.img, blob: r.blob, aid: r.aid, name: L.name, en: L.en, x: L.x, y: L.y, scale: L.scale, op: L.op, sx: L.sx || 1, sy: L.sy || 1, taper: L.taper || 0, skx: L.skx || 0, sky: L.sky || 0, warp: L.warp || null, rot: L.rot || 0, curve: L.curve || 0, cvv: L.cvv || 0, gloss: L.gloss || 0, glp: L.glp === undefined ? 34 : L.glp, crop: null, _wc: null, _wk: null, _fx: null, _fxk: null });
     }
     if (migrated) setTimeout(() => saveWorkspace(), 300); // 迁移后回写 aid
+    S.texts = (d.texts || []).map(t => ({ ...t, id: uid++ }));
     if (d.init) S.init = { ...S.init, ...d.init };
     if (d.dia) G('cup-dia').value = d.dia;
     if (d.tpl !== undefined) G('name-tpl').value = d.tpl;
@@ -4510,12 +4633,468 @@ function setPaneWidth(side, px) {
   bar.addEventListener('dblclick', () => { setPaneWidth(side, side === 'left' ? 300 : 258); pvFit(); }); // 双击复位
 });
 
+/* ================= 素材库批量选择与删除 ================= */
+const libPicked = new Set();
+function libTogglePick(id, el, ev) {
+  if (ev) ev.stopPropagation();
+  if (libPicked.has(id)) libPicked.delete(id); else libPicked.add(id);
+  if (el) { el.classList.toggle('on', libPicked.has(id)); const c = el.closest('.lib-i'); if (c) c.classList.toggle('picked', libPicked.has(id)); }
+  updLibBatch();
+}
+function updLibBatch() {
+  const b = G('lib-batch');
+  if (!b) return;
+  b.classList.toggle('on', libPicked.size > 0);
+  const n = G('lib-selN'); if (n) n.textContent = libPicked.size;
+}
+function libSelAll() {
+  document.querySelectorAll('#lib-grid .lib-i').forEach(c => {
+    const id = c.dataset.aid; if (!id) return;
+    libPicked.add(id); c.classList.add('picked');
+    const s2 = c.querySelector('.lib-sel'); if (s2) s2.classList.add('on');
+  });
+  updLibBatch();
+}
+function libSelNone() {
+  libPicked.clear();
+  document.querySelectorAll('#lib-grid .lib-i').forEach(c => {
+    c.classList.remove('picked');
+    const s2 = c.querySelector('.lib-sel'); if (s2) s2.classList.remove('on');
+  });
+  updLibBatch();
+}
+async function libBatchDelete() {
+  if (!libPicked.size) return;
+  const ids = [...libPicked];
+  let bytes = 0;
+  try { const all = await assetAll(); ids.forEach(i => { const a = all.find(x => x.id === i); if (a) bytes += assetBytes(a); }); } catch (e) {}
+  if (!confirm(`永久删除选中的 ${ids.length} 个素材？（约 ${fmtSize(bytes)}）\n\n⚠ 不可撤销，且会从所有项目中一并清除。\n建议先用顶栏「导出」备份。`)) return;
+  setProg(true, '批量删除中…', 20);
+  let done = 0;
+  for (const aid of ids) {
+    try {
+      await assetDel(aid); assetCache.delete(aid);
+      for (const pn of projects) {
+        const d = await idbGet(projKey(pn));
+        if (!d) continue;
+        let ch = false;
+        const strip = arr => (arr || []).filter(r => { if (r.aid === aid) { ch = true; return false; } return true; });
+        d.bases = strip(d.bases); d.stks = strip(d.stks);
+        ['brand', 'ip'].forEach(k => { const L = (d.logos || {})[k]; if (L && L.aid === aid) { d.logos[k] = { ...L, aid: null, blob: null, en: false, name: '' }; ch = true; } });
+        if (ch) await idbPut(d, projKey(pn));
+      }
+      S.bases = S.bases.filter(b => b.aid !== aid);
+      S.stks = S.stks.filter(t => t.aid !== aid);
+      ['brand', 'ip'].forEach(k => { if (S.logos[k].aid === aid) Object.assign(S.logos[k], { img: null, blob: null, aid: null, name: '', en: false }); });
+      done++;
+      setProg(true, `删除 ${done}/${ids.length}`, 20 + done / ids.length * 70);
+    } catch (e) {}
+  }
+  libPicked.clear();
+  if (S.activeBase >= S.bases.length) S.activeBase = S.bases.length - 1;
+  if (!S.stks.some(t => t.id === S.activeStk)) S.activeStk = null;
+  invalidateLibCache(); invalidateProjPreview();
+  renderLibrary(); refreshAll();
+  setProg(false);
+  notify(`已删除 ${done} 个素材，释放 ${fmtSize(bytes)}`, 'err');
+}
+
+/* ================= ⑤ 模板系统(含素材的完整排版) ================= */
+let templates = [];
+try { templates = JSON.parse(store.get('tm_templates') || '[]'); } catch (e) { templates = []; }
+function saveTemplates() { store.set('tm_templates', JSON.stringify(templates)); }
+function captureTemplate(name) {
+  return {
+    name, ts: Date.now(),
+    stks: S.stks.map(t => ({ aid: t.aid, name: t.name, x: t.x, y: t.y, scale: t.scale, sx: t.sx, sy: t.sy,
+      rot: t.rot, op: t.op, curve: t.curve, cvv: t.cvv, gloss: t.gloss, glp: t.glp,
+      taper: t.taper, skx: t.skx, sky: t.sky, warp: t.warp ? t.warp.slice() : null,
+      crop: t.crop ? { ...t.crop } : null, checked: t.checked })),
+    texts: (S.texts || []).map(t => ({ ...t, id: undefined })),
+    logos: ['brand', 'ip'].reduce((o, k) => {
+      const L = S.logos[k];
+      o[k] = L.aid ? { aid: L.aid, name: L.name, en: L.en, x: L.x, y: L.y, scale: L.scale, op: L.op,
+        rot: L.rot, sx: L.sx, sy: L.sy, curve: L.curve, cvv: L.cvv, gloss: L.gloss, glp: L.glp,
+        taper: L.taper, skx: L.skx, sky: L.sky, warp: L.warp ? L.warp.slice() : null } : null;
+      return o;
+    }, {}),
+    out: collectExportSettings(), init: { ...S.init }
+  };
+}
+function saveAsTemplate() {
+  if (!S.stks.length && !(S.texts || []).length) return notify('画布上没有素材或文字', 'err');
+  const n = (prompt('模板名称：', `${curProj} 排版`) || '').trim();
+  if (!n) return;
+  if (templates.some(t => t.name === n) && !confirm(`「${n}」已存在，覆盖？`)) return;
+  templates = templates.filter(t => t.name !== n);
+  templates.unshift(captureTemplate(n));
+  if (templates.length > 30) templates.length = 30;
+  saveTemplates();
+  notify(`已保存模板「${n}」（${S.stks.length} 素材 · ${(S.texts || []).length} 文字）`, 'ok');
+  renderTemplates();
+}
+async function applyTemplate(name, keepExisting) {
+  const t = templates.find(x => x.name === name);
+  if (!t) return;
+  snapshot();
+  if (!keepExisting) { S.stks = []; S.texts = []; S.activeStk = null; S.activeText = null; }
+  let miss = 0;
+  for (const r of t.stks || []) {
+    const a = r.aid ? await assetLoad(r.aid) : null;
+    if (!a) { miss++; continue; }
+    S.stks.push({ ...r, id: uid++, img: a.img, blob: a.blob, name: uniqueName(S.stks, r.name || a.name),
+      _fx: null, _fxk: null, _cb: null, _cbk: null, _wc: null, _wk: null });
+  }
+  (t.texts || []).forEach(tx => S.texts.push({ ...tx, id: uid++ }));
+  for (const k of ['brand', 'ip']) {
+    const L = (t.logos || {})[k];
+    if (!L || !L.aid) continue;
+    const a = await assetLoad(L.aid);
+    if (!a) { miss++; continue; }
+    Object.assign(S.logos[k], { ...L, img: a.img, blob: a.blob, _wc: null, _wk: null, _fx: null, _fxk: null, crop: null });
+  }
+  if (t.out) applyExportSettings(t.out);
+  if (t.init) S.init = { ...S.init, ...t.init };
+  refreshAll(); pvFit();
+  notify(`已套用模板「${name}」` + (miss ? `（${miss} 个素材已从库中删除）` : ''), miss ? 'err' : 'ok');
+  closeTpls();
+}
+function deleteTemplate(name) {
+  if (!confirm(`删除模板「${name}」？`)) return;
+  templates = templates.filter(t => t.name !== name);
+  saveTemplates(); renderTemplates();
+  notify('模板已删除');
+}
+function openTpls() { G('tpls-ov').classList.add('on'); renderTemplates(); }
+function closeTpls() { G('tpls-ov').classList.remove('on'); }
+async function renderTemplates() {
+  const g = G('tpls-grid');
+  if (!g) return;
+  g.innerHTML = '';
+  G('tpls-info').textContent = `${templates.length} 个模板`;
+  if (!templates.length) {
+    const e = document.createElement('div'); e.className = 'pm-empty';
+    e.textContent = '还没有模板 — 排好一版后点「保存为模板」';
+    g.appendChild(e); return;
+  }
+  for (const t of templates) {
+    const d = document.createElement('div'); d.className = 'pm-i';
+    const th = document.createElement('div'); th.className = 'pm-th'; th.innerHTML = '<span>···</span>';
+    th.onclick = () => applyTemplate(t.name);
+    d.appendChild(th);
+    const nm = document.createElement('div'); nm.className = 'pm-nm'; nm.textContent = t.name; d.appendChild(nm);
+    const meta = document.createElement('div'); meta.className = 'pm-meta';
+    meta.textContent = `${(t.stks || []).length} 素材 · ${(t.texts || []).length} 文字`;
+    d.appendChild(meta);
+    const acts = document.createElement('div'); acts.className = 'pm-acts';
+    const mk = (x, ti, fn, cls) => { const b = document.createElement('button'); b.textContent = x; b.title = ti;
+      if (cls) b.className = cls; b.onclick = ev => { ev.stopPropagation(); fn(); }; return b; };
+    acts.appendChild(mk('套用', '清空当前并套用', () => applyTemplate(t.name)));
+    acts.appendChild(mk('追加', '保留当前内容并叠加', () => applyTemplate(t.name, true)));
+    acts.appendChild(mk('删除', '删除该模板', () => deleteTemplate(t.name), 'del'));
+    d.appendChild(acts);
+    g.appendChild(d);
+    const first = (t.stks || [])[0];
+    if (first && first.aid) assetLoad(first.aid).then(a => { if (a && a.blob) { const u = URL.createObjectURL(a.blob);
+      th.innerHTML = `<img src="${u}" alt="">`; setTimeout(() => URL.revokeObjectURL(u), 4000); } });
+  }
+}
+
+/* ================= ⑥ 文字图层 ================= */
+const FONTS = [
+  { n: '无衬线', v: 'ui-sans-serif,system-ui,"PingFang SC","Microsoft YaHei",sans-serif' },
+  { n: '衬线', v: 'Georgia,"Songti SC","SimSun",serif' },
+  { n: '等宽', v: 'ui-monospace,Menlo,Consolas,monospace' },
+  { n: '圆体', v: '"Yuanti SC","Arial Rounded MT Bold","PingFang SC",sans-serif' },
+  { n: '黑体粗', v: '"PingFang SC","Microsoft YaHei",sans-serif' }
+];
+function newText(txt) {
+  const { W, H } = outSize();
+  const id = uid++;
+  const t = {
+    id, kind: 'text', text: txt || '双击编辑文字', checked: true,
+    x: Math.round(W / 2), y: Math.round(H / 2),
+    size: Math.max(24, Math.round(Math.min(W, H) * 0.07)),
+    font: 0, weight: 700, color: '#ffffff', stroke: '#000000', strokeW: 0,
+    rot: 0, op: 100, letter: 0, lineH: 1.2, align: 'center',
+    curve: 0, shadow: 0
+  };
+  S.texts.push(t); S.activeText = id;
+  S.activeStk = null; S.activeLogo = null;
+  refreshAll();
+  return t;
+}
+const activeTextObj = () => S.texts.find(t => t.id === S.activeText) || null;
+function textMetrics(t) {
+  const c = document.createElement('canvas').getContext('2d');
+  c.font = `${t.weight} ${t.size}px ${FONTS[t.font].v}`;
+  const lines = String(t.text).split('\n');
+  let w = 0;
+  lines.forEach(l => { const m = c.measureText(l); w = Math.max(w, m.width + (l.length - 1) * (t.letter || 0)); });
+  return { w, h: lines.length * t.size * (t.lineH || 1.2), lines };
+}
+function drawTexts(x, forExport) {
+  (S.texts || []).forEach(t => {
+    if (!t.checked) return;
+    const m = textMetrics(t);
+    x.save();
+    x.globalAlpha = (t.op || 100) / 100;
+    x.translate(t.x, t.y);
+    if (t.rot) x.rotate(t.rot * D2R);
+    x.font = `${t.weight} ${t.size}px ${FONTS[t.font].v}`;
+    x.textAlign = t.align || 'center';
+    x.textBaseline = 'middle';
+    if (t.shadow) { x.shadowColor = 'rgba(0,0,0,.5)'; x.shadowBlur = t.shadow; x.shadowOffsetY = t.shadow * .4; }
+    const lh = t.size * (t.lineH || 1.2);
+    const y0 = -(m.lines.length - 1) * lh / 2;
+    m.lines.forEach((line, i) => {
+      const yy = y0 + i * lh;
+      if (t.curve) {   // 弧形排列(沿圆弧摆字)
+        const R = Math.max(40, (m.w / 2) / Math.tan(Math.abs(t.curve) * D2R / 2 || 0.001));
+        const dir = t.curve > 0 ? 1 : -1;
+        const chars = [...line];
+        const total = chars.reduce((a, ch) => a + x.measureText(ch).width + (t.letter || 0), 0);
+        let ang = -total / 2 / R;
+        x.save();
+        x.translate(0, dir > 0 ? -R + yy : R + yy);
+        chars.forEach(ch => {
+          const cw = x.measureText(ch).width + (t.letter || 0);
+          ang += cw / 2 / R;
+          x.save();
+          x.rotate(ang * dir);
+          x.translate(0, dir > 0 ? R : -R);
+          if (t.strokeW > 0) { x.lineWidth = t.strokeW; x.strokeStyle = t.stroke; x.lineJoin = 'round'; x.strokeText(ch, 0, 0); }
+          x.fillStyle = t.color; x.fillText(ch, 0, 0);
+          x.restore();
+          ang += cw / 2 / R;
+        });
+        x.restore();
+      } else {
+        if (t.letter) {   // 字间距
+          const chars = [...line];
+          let tw = chars.reduce((a, ch) => a + x.measureText(ch).width + t.letter, 0) - t.letter;
+          let cx = t.align === 'left' ? 0 : t.align === 'right' ? -tw : -tw / 2;
+          const oldAlign = x.textAlign; x.textAlign = 'left';
+          chars.forEach(ch => {
+            if (t.strokeW > 0) { x.lineWidth = t.strokeW; x.strokeStyle = t.stroke; x.lineJoin = 'round'; x.strokeText(ch, cx, yy); }
+            x.fillStyle = t.color; x.fillText(ch, cx, yy);
+            cx += x.measureText(ch).width + t.letter;
+          });
+          x.textAlign = oldAlign;
+        } else {
+          if (t.strokeW > 0) { x.lineWidth = t.strokeW; x.strokeStyle = t.stroke; x.lineJoin = 'round'; x.strokeText(line, 0, yy); }
+          x.fillStyle = t.color; x.fillText(line, 0, yy);
+        }
+      }
+    });
+    x.restore();
+  });
+}
+function hitText(p) {
+  for (let i = S.texts.length - 1; i >= 0; i--) {
+    const t = S.texts[i];
+    if (!t.checked) continue;
+    const m = textMetrics(t);
+    const dx = p.x - t.x, dy = p.y - t.y, rad = -(t.rot || 0) * D2R;
+    const lx = dx * Math.cos(rad) - dy * Math.sin(rad), ly = dx * Math.sin(rad) + dy * Math.cos(rad);
+    if (Math.abs(lx) <= m.w / 2 + 8 && Math.abs(ly) <= m.h / 2 + 8) return t;
+  }
+  return null;
+}
+function drawTextSelection() {
+  const t = activeTextObj();
+  if (!t || !t.checked || S.crop) return;
+  const m = textMetrics(t);
+  ctx.save();
+  ctx.translate(t.x, t.y); ctx.rotate((t.rot || 0) * D2R);
+  ctx.strokeStyle = '#14b8a6'; ctx.lineWidth = 1.5 / S.pv;
+  ctx.setLineDash([6 / S.pv, 4 / S.pv]);
+  ctx.strokeRect(-m.w / 2 - 6, -m.h / 2 - 4, m.w + 12, m.h + 8);
+  ctx.setLineDash([]);
+  ctx.restore();
+}
+function textCtrl(prop, val) {
+  const t = activeTextObj(); if (!t) return;
+  ctrlSnap();
+  if (prop === 'text') t.text = val;
+  else if (prop === 'color' || prop === 'stroke' || prop === 'align') t[prop] = val;
+  else if (prop === 'font') t.font = clamp(+val, 0, FONTS.length - 1);
+  else t[prop] = +val || 0;
+  syncTextPanel(); renderCanvas();
+}
+function syncTextPanel() {
+  const t = activeTextObj();
+  const box = G('text-props');
+  if (box) box.style.display = t ? '' : 'none';
+  const none = G('text-none');
+  if (none) none.style.display = t ? 'none' : '';
+  if (!t) return;
+  const set = (id, v) => { const e = G(id); if (e) e.value = v; };
+  set('tx-content', t.text); set('tx-size', t.size); set('tx-size-n', t.size);
+  set('tx-font', t.font); set('tx-weight', t.weight);
+  set('tx-color', t.color); set('tx-stroke', t.stroke);
+  set('tx-strokew', t.strokeW); set('tx-strokew-n', t.strokeW);
+  set('tx-rot', t.rot); set('tx-rot-n', t.rot);
+  set('tx-op', t.op); set('tx-letter', t.letter);
+  set('tx-curve', t.curve); set('tx-curve-n', t.curve);
+  set('tx-shadow', t.shadow);
+}
+function deleteActiveText() {
+  const t = activeTextObj(); if (!t) return;
+  snapshot();
+  const at = S.texts.indexOf(t), bak = { ...t };
+  S.texts = S.texts.filter(x => x !== t);
+  S.activeText = null;
+  refreshAll();
+  notifyUndo(`已删除文字`, () => { S.texts.splice(at, 0, bak); S.activeText = bak.id; refreshAll(); });
+}
+function editTextPrompt() {
+  const t = activeTextObj(); if (!t) return;
+  const v = prompt('编辑文字（换行用回车）：', t.text);
+  if (v === null) return;
+  snapshot(); t.text = v; syncTextPanel(); renderCanvas();
+}
+
+/* ================= ⑦ 一键抠图(白底去背) ================= */
+function cutoutCanvas(img, tol) {
+  const w = img.naturalWidth, h = img.naturalHeight;
+  const c = document.createElement('canvas');
+  c.width = w; c.height = h;
+  const x = c.getContext('2d', { willReadFrequently: true });
+  x.drawImage(img, 0, 0);
+  let d;
+  try { d = x.getImageData(0, 0, w, h); } catch (e) { return null; }
+  const px = d.data;
+  const T = clamp(tol === undefined ? 26 : tol, 4, 90);
+  // 从四边泛洪:只去掉与边缘相连的背景,保留图案内部的白色
+  const seen = new Uint8Array(w * h);
+  const st = [];
+  const near = i => {
+    const r = px[i], g = px[i + 1], b = px[i + 2];
+    return (255 - r) <= T && (255 - g) <= T && (255 - b) <= T;
+  };
+  for (let i = 0; i < w; i++) { st.push(i); st.push((h - 1) * w + i); }
+  for (let j = 0; j < h; j++) { st.push(j * w); st.push(j * w + w - 1); }
+  while (st.length) {
+    const p2 = st.pop();
+    if (p2 < 0 || p2 >= w * h || seen[p2]) continue;
+    const i4 = p2 * 4;
+    if (!near(i4)) continue;
+    seen[p2] = 1;
+    px[i4 + 3] = 0;
+    const cx = p2 % w, cy = (p2 / w) | 0;
+    if (cx > 0) st.push(p2 - 1);
+    if (cx < w - 1) st.push(p2 + 1);
+    if (cy > 0) st.push(p2 - w);
+    if (cy < h - 1) st.push(p2 + w);
+  }
+  // 边缘羽化:半透明过渡,避免锯齿白边
+  for (let p2 = 0; p2 < w * h; p2++) {
+    if (seen[p2]) continue;
+    const i4 = p2 * 4;
+    if (px[i4 + 3] === 0) continue;
+    const cx = p2 % w, cy = (p2 / w) | 0;
+    let edge = false;
+    if (cx > 0 && seen[p2 - 1]) edge = true;
+    else if (cx < w - 1 && seen[p2 + 1]) edge = true;
+    else if (cy > 0 && seen[p2 - w]) edge = true;
+    else if (cy < h - 1 && seen[p2 + w]) edge = true;
+    if (edge && near(i4)) px[i4 + 3] = 120;
+  }
+  x.putImageData(d, 0, 0);
+  return c;
+}
+async function cutoutAsset(aid, name) {
+  const a = await assetLoad(aid);
+  if (!a || !a.img) return notify('素材加载失败', 'err');
+  const tolStr = prompt('白底去除强度（4-90，数字越大去得越多）\n\n默认 26 适合纯白底；\n底色偏灰可试 40-55。', '26');
+  if (tolStr === null) return;
+  setProg(true, '正在抠图…', 30);
+  try {
+    const c = cutoutCanvas(a.img, +tolStr || 26);
+    if (!c) { setProg(false); return notify('抠图失败（图片跨域受限）', 'err'); }
+    const blob = await canvasBlob(c, 'image/png');
+    setProg(true, '写入素材库…', 80);
+    const nid = await libraryAdd(a.kind, (name || a.name) + '_去背', blob);
+    invalidateLibCache();
+    renderLibrary(); renderLibStrips();
+    setProg(false);
+    notify('已生成去背版本，可直接使用', 'ok');
+    return nid;
+  } catch (e) { setProg(false); console.error(e); notify('抠图失败', 'err'); }
+}
+
+/* ================= ⑧ 色彩变体(批量生成配色) ================= */
+const HUE_PRESETS = [
+  { n: '红', h: 0 }, { n: '橙', h: 30 }, { n: '黄', h: 55 }, { n: '绿', h: 120 },
+  { n: '青', h: 175 }, { n: '蓝', h: 215 }, { n: '紫', h: 270 }, { n: '粉', h: 320 }
+];
+function hueShiftCanvas(img, deg, sat) {
+  const w = img.naturalWidth, h = img.naturalHeight;
+  const c = document.createElement('canvas');
+  c.width = w; c.height = h;
+  const x = c.getContext('2d');
+  x.filter = `hue-rotate(${deg}deg)` + (sat ? ` saturate(${sat}%)` : '');
+  x.drawImage(img, 0, 0);
+  return c;
+}
+async function makeColorVariants(aid) {
+  const a = await assetLoad(aid);
+  if (!a || !a.img) return notify('素材加载失败', 'err');
+  const pick = prompt('生成哪些配色？（逗号分隔）\n\n可选：' + HUE_PRESETS.map(p => p.n).join('、') +
+    '\n\n留空 = 全部 8 色', '红,蓝,绿,粉');
+  if (pick === null) return;
+  const want = pick.trim() ? pick.split(/[,，、]/).map(t => t.trim()).filter(Boolean) : HUE_PRESETS.map(p => p.n);
+  const list = HUE_PRESETS.filter(p => want.includes(p.n));
+  if (!list.length) return notify('没有匹配的配色名', 'err');
+  setProg(true, '生成配色变体…', 10);
+  let n = 0;
+  for (const p of list) {
+    try {
+      const c = hueShiftCanvas(a.img, p.h, 115);
+      const blob = await canvasBlob(c, 'image/png');
+      await libraryAdd(a.kind, `${a.name}_${p.n}`, blob);
+      n++;
+      setProg(true, `生成 ${n}/${list.length}`, 10 + n / list.length * 85);
+    } catch (e) {}
+  }
+  invalidateLibCache();
+  renderLibrary(); renderLibStrips();
+  setProg(false);
+  notify(`已生成 ${n} 个配色变体，在素材库中`, 'ok');
+}
+
+/* ================= ⑨ 智能建议(按杯身推荐参数) ================= */
+function suggestParams() {
+  const r = bodyRect();
+  if (!r) return notify('未识别到杯身，请先上传底图或手动框选', 'err');
+  const a = activeStkObj();
+  const ratio = r.h / Math.max(1, r.w);          // 高宽比判断杯型
+  let curve, cvv, kind;
+  if (ratio > 3.0) { curve = 72; cvv = 14; kind = '细长瓶身'; }
+  else if (ratio > 2.2) { curve = 65; cvv = 12; kind = '保温杯'; }
+  else if (ratio > 1.5) { curve = 52; cvv = 9; kind = '直筒杯'; }
+  else { curve = 42; cvv = 6; kind = '矮胖马克杯'; }
+  const dia = clamp(+G('cup-dia').value || 7.5, 1, 40);
+  const msg = `识别为「${kind}」（高宽比 ${ratio.toFixed(1)}）\n\n` +
+    `建议参数：\n· 曲面 ${curve}%\n· 杯口弧 ${cvv}%\n· 印花宽度 ≈ ${(dia * 0.62).toFixed(1)}cm\n\n` +
+    (a ? '点「确定」应用到当前素材' : '（未选中素材，仅显示建议）');
+  if (!a) return alert(msg);
+  if (!confirm(msg)) return;
+  snapshot();
+  grpTargets().forEach(s => { s.curve = curve; s.cvv = cvv; s._fxk = null; });
+  autoFitSticker();
+  syncStkPanel(); renderCanvas();
+  notify(`已按「${kind}」应用建议参数`, 'ok');
+}
+
 /* ---------- 素材库 UI ---------- */
 let libTab = 'sticker';
 function openLibrary(kind) {
   if (kind) libTab = kind;
   document.querySelectorAll('.lib-tab').forEach(b => b.classList.toggle('act', b.dataset.k === libTab));
   G('lib-search').value = '';
+  libPicked.clear(); updLibBatch();
   G('lib-ov').classList.add('on');
   renderLibrary();
 }
@@ -4528,6 +5107,7 @@ async function renderLibrary() {
   let list = await libraryList(libTab);
   if (kw) list = list.filter(a => a.name.toLowerCase().includes(kw));
   const bytes = list.reduce((a, x) => a + assetBytes(x), 0);
+  updLibBatch();
   G('lib-info').textContent = `${list.length} 个${{ sticker: '素材', base: '底图', logo: 'Logo' }[libTab]}` + (bytes ? ` · ${fmtSize(bytes)}` : '');
   grid.innerHTML = '';
   if (!list.length) {
@@ -4539,15 +5119,29 @@ async function renderLibrary() {
   const usedIds = new Set([...S.bases.map(b => b.aid), ...S.stks.map(t => t.aid), S.logos.brand.aid, S.logos.ip.aid].filter(Boolean));
   list.forEach(a => {
     const d = document.createElement('div');
-    d.className = 'lib-i' + (usedIds.has(a.id) ? ' used' : '');
+    d.className = 'lib-i' + (usedIds.has(a.id) ? ' used' : '') + (libPicked.has(a.id) ? ' picked' : '');
+    d.dataset.aid = a.id;
     d.title = a.name + '（点击加入当前项目）';
     d.onclick = () => addFromLibrary(a.id);
+    const sel = document.createElement('div');
+    sel.className = 'lib-sel' + (libPicked.has(a.id) ? ' on' : '');
+    sel.textContent = '✓'; sel.title = '选中以批量操作';
+    sel.onclick = ev => libTogglePick(a.id, sel, ev);
+    d.appendChild(sel);
     if (usedIds.has(a.id)) { const u = document.createElement('span'); u.className = 'lib-used-b'; u.textContent = '已用'; d.appendChild(u); }
     const th = document.createElement('div'); th.className = 'lib-th';
     const im = document.createElement('img'); im.src = URL.createObjectURL(a.blob);
     im.onload = () => setTimeout(() => URL.revokeObjectURL(im.src), 1000);
     th.appendChild(im); d.appendChild(th);
     const nm = document.createElement('div'); nm.className = 'lib-nm'; nm.textContent = a.name; d.appendChild(nm);
+    if (a.kind !== 'base') {
+      const tools = document.createElement('div'); tools.className = 'lib-tools';
+      const mk = (t, title, fn) => { const b = document.createElement('button'); b.textContent = t; b.title = title;
+        b.onclick = ev => { ev.stopPropagation(); fn(); }; return b; };
+      tools.appendChild(mk('去背', '一键抠掉白色背景', () => cutoutAsset(a.id, a.name)));
+      tools.appendChild(mk('配色', '批量生成多个配色变体', () => makeColorVariants(a.id)));
+      d.appendChild(tools);
+    }
     const del = document.createElement('button'); del.className = 'lib-del'; del.textContent = '✕';
     del.title = '从素材库永久删除';
     del.onclick = ev => { ev.stopPropagation(); deleteFromLibrary(a.id, a.name); };
@@ -4726,6 +5320,121 @@ async function deleteFromLibrary(aid, name) {
     setProg(false);
     notify(`\u5df2\u5f7b\u5e95\u5220\u9664\uff08\u540c\u65f6\u6e05\u7406 ${cleaned} \u4e2a\u9879\u76ee\u7684\u5f15\u7528\uff09`, 'err');
   } catch (e) { setProg(false); console.error(e); notify('\u5220\u9664\u5931\u8d25', 'err'); }
+}
+
+/* ================= 跨项目剪贴板(素材 / Logo) ================= */
+let xClip = null;
+try { xClip = JSON.parse(store.get('tm_xclip') || 'null'); } catch (e) { xClip = null; }
+function saveXClip() { store.set('tm_xclip', JSON.stringify(xClip)); updXClipUI(); }
+function updXClipUI() {
+  const b = G('xclip-btn');
+  if (!b) return;
+  if (xClip) {
+    b.style.display = '';
+    b.textContent = `粘贴「${xClip.name}」`;
+    b.title = `来自项目「${xClip.from}」· 点击粘贴到当前项目`;
+  } else b.style.display = 'none';
+}
+/* 复制当前选中的素材或 Logo(跨项目可用) */
+function copyForCrossProject() {
+  const a = activeStkObj();
+  if (a) {
+    if (!a.aid) return notify('该素材无库引用,无法跨项目复制', 'err');
+    xClip = { type: 'stk', aid: a.aid, name: a.name, from: curProj,
+      p: { scale: a.scale, sx: a.sx, sy: a.sy, rot: a.rot, op: a.op, curve: a.curve, cvv: a.cvv,
+           gloss: a.gloss, glp: a.glp, taper: a.taper, skx: a.skx, sky: a.sky,
+           warp: a.warp ? a.warp.slice() : null, crop: a.crop ? { ...a.crop } : null } };
+    saveXClip();
+    return notify(`已复制「${a.name}」,可切到其它项目粘贴`, 'ok');
+  }
+  if (S.activeLogo) {
+    const L = S.logos[S.activeLogo];
+    if (!L.aid) return notify('该 Logo 无库引用', 'err');
+    xClip = { type: 'logo', k: S.activeLogo, aid: L.aid, name: L.name, from: curProj,
+      p: { x: L.x, y: L.y, scale: L.scale, op: L.op, rot: L.rot, sx: L.sx, sy: L.sy,
+           taper: L.taper, skx: L.skx, sky: L.sky, warp: L.warp ? L.warp.slice() : null } };
+    saveXClip();
+    return notify(`已复制 Logo「${L.name}」`, 'ok');
+  }
+  notify('请先选中素材或 Logo', 'err');
+}
+/* 粘贴到当前项目(带原有全部编辑参数) */
+async function pasteFromCrossProject() {
+  if (!xClip) return notify('跨项目剪贴板为空', 'err');
+  const a = await assetLoad(xClip.aid);
+  if (!a) { xClip = null; saveXClip(); return notify('原素材已从库中删除', 'err'); }
+  snapshot();
+  if (xClip.type === 'stk') {
+    const id = uid++;
+    const st = { id, name: uniqueName(S.stks, xClip.name), aid: xClip.aid, img: a.img, blob: a.blob,
+      checked: true, x: 0, y: 0, crop: null, curve: 0, cvv: 0, gloss: 0, glp: 34,
+      warp: null, taper: 0, skx: 0, sky: 0, sx: 1, sy: 1, rot: 0, op: 100, scale: S.init.stk,
+      ...xClip.p, _fx: null, _fxk: null, _cb: null, _cbk: null, _wc: null, _wk: null };
+    S.stks.push(st); S.activeStk = id;
+    centerStk(st);
+    refreshAll();
+    notify(`已粘贴「${st.name}」(含全部参数)`, 'ok');
+  } else {
+    const k = xClip.k || (!S.logos.brand.img ? 'brand' : 'ip');
+    Object.assign(S.logos[k], { img: a.img, blob: a.blob, aid: xClip.aid, name: xClip.name, en: true,
+      ...xClip.p, _wc: null, _wk: null });
+    refreshAll();
+    notify(`已粘贴 Logo 到${k === 'brand' ? '品牌' : 'IP'}位`, 'ok');
+  }
+}
+
+/* ================= 多项目标签页(最多 5 个) ================= */
+const MAX_TABS = 5;
+let openTabs = [];
+try { openTabs = JSON.parse(store.get('tm_tabs') || '[]'); } catch (e) { openTabs = []; }
+function saveTabs() { store.set('tm_tabs', JSON.stringify(openTabs)); }
+function ensureTab(name) {
+  if (!name) return;
+  if (!openTabs.includes(name)) {
+    if (openTabs.length >= MAX_TABS) openTabs.shift();   // 超出上限关掉最早的
+    openTabs.push(name);
+  }
+  saveTabs(); renderTabs();
+}
+async function closeTab(name, ev) {
+  if (ev) ev.stopPropagation();
+  const i = openTabs.indexOf(name);
+  if (i < 0) return;
+  openTabs.splice(i, 1);
+  saveTabs();
+  if (name === curProj && openTabs.length) {
+    await switchToProj(openTabs[Math.max(0, i - 1)]);
+  }
+  renderTabs();
+}
+function renderTabs() {
+  const bar = G('proj-tabs');
+  if (!bar) return;
+  openTabs = openTabs.filter(n => projects.includes(n));
+  bar.innerHTML = '';
+  bar.style.display = openTabs.length > 1 ? 'flex' : 'none';
+  openTabs.forEach(name => {
+    const t = document.createElement('div');
+    t.className = 'ptab' + (name === curProj ? ' act' : '');
+    t.title = name;
+    t.onclick = () => { if (name !== curProj) switchToProj(name); };
+    const dot = document.createElement('span'); dot.className = 'ptab-th';
+    t.appendChild(dot);
+    const nm = document.createElement('span'); nm.className = 'ptab-n'; nm.textContent = name;
+    t.appendChild(nm);
+    const x = document.createElement('button'); x.className = 'ptab-x'; x.textContent = '×';
+    x.title = '关闭标签(不删除项目)';
+    x.onclick = e => closeTab(name, e);
+    t.appendChild(x);
+    bar.appendChild(t);
+    projFirstImage(name).then(url => { if (url) { dot.style.backgroundImage = `url(${url})`; dot.classList.add('has'); } });
+  });
+  if (openTabs.length < MAX_TABS) {
+    const add = document.createElement('button');
+    add.className = 'ptab-add'; add.textContent = '＋'; add.title = '打开另一个项目';
+    add.onclick = e => { e.stopPropagation(); toggleProjDD(e); };
+    bar.appendChild(add);
+  }
 }
 
 /* ---------- 项目管理页 ---------- */
@@ -5047,7 +5756,7 @@ async function exportProject() {
   try {
     const pickL = async k => {
       const L = S.logos[k];
-      return { data: await blobToDataURL(L.blob), name: L.name, en: L.en, x: L.x, y: L.y, scale: L.scale, op: L.op, sx: L.sx || 1, sy: L.sy || 1, taper: L.taper || 0, skx: L.skx || 0, sky: L.sky || 0, warp: L.warp ? L.warp.slice() : null, rot: L.rot || 0 };
+      return { data: await blobToDataURL(L.blob), name: L.name, en: L.en, x: L.x, y: L.y, scale: L.scale, op: L.op, sx: L.sx || 1, sy: L.sy || 1, taper: L.taper || 0, skx: L.skx || 0, sky: L.sky || 0, warp: L.warp ? L.warp.slice() : null, rot: L.rot || 0, curve: L.curve || 0, cvv: L.cvv || 0, gloss: L.gloss || 0, glp: L.glp === undefined ? 34 : L.glp };
     };
     const d = {
       app: 'tagmycup-mockup', v: 2, proj: curProj, ts: Date.now(),
@@ -5105,7 +5814,7 @@ async function importProject(input) {
       const L = (d.logos || {})[k]; if (!L) continue;
       const blob = await dataURLToBlob(L.data);
       const img = await blobToImg(blob);
-      if (img) Object.assign(S.logos[k], { img, blob, name: L.name, en: L.en, x: L.x, y: L.y, scale: L.scale, op: L.op, sx: L.sx || 1, sy: L.sy || 1, taper: L.taper || 0, skx: L.skx || 0, sky: L.sky || 0, warp: L.warp || null, rot: L.rot || 0, _wc: null, _wk: null });
+      if (img) Object.assign(S.logos[k], { img, blob, name: L.name, en: L.en, x: L.x, y: L.y, scale: L.scale, op: L.op, sx: L.sx || 1, sy: L.sy || 1, taper: L.taper || 0, skx: L.skx || 0, sky: L.sky || 0, warp: L.warp || null, rot: L.rot || 0, curve: L.curve || 0, cvv: L.cvv || 0, gloss: L.gloss || 0, glp: L.glp === undefined ? 34 : L.glp, crop: null, _wc: null, _wk: null, _fx: null, _fxk: null });
     }
     if (d.init) S.init = { ...S.init, ...d.init };
     const o = d.out || {};
@@ -5178,6 +5887,7 @@ G('gal-ov').addEventListener('click', e => { if (e.target === G('gal-ov')) close
 G('tpl-ov').addEventListener('click', e => { if (e.target === G('tpl-ov')) closeTpl(); });
 G('tag-ov').addEventListener('click', e => { if (e.target === G('tag-ov')) closeTagEditor(); });
 G('lib-ov').addEventListener('click', e => { if (e.target === G('lib-ov')) closeLibrary(); });
+G('tpls-ov').addEventListener('click', e => { if (e.target === G('tpls-ov')) closeTpls(); });
 G('pm-ov').addEventListener('click', e => { if (e.target === G('pm-ov')) closeProjMgr(); });
 G('tag-input').addEventListener('keydown', e => {
   if (e.key === 'Enter') { e.preventDefault(); addTagFromInput(); }
@@ -5206,6 +5916,7 @@ function maybeFirstRun() {   /* ⑩ 首次使用引导 */
   }, 900);
 }
 (async function init() {
+  ensureTab(curProj);
   renderProjSel();
   await restoreWorkspace();
   // 初始缩放控件
@@ -5235,6 +5946,8 @@ function maybeFirstRun() {   /* ⑩ 首次使用引导 */
   onQualityInput();
   refreshAll();
   pvFit();
+  renderTabs();
+  updXClipUI();
   maybeFirstRun();
   if (G('status').textContent === '就绪' || !S.bases.length && !S.stks.length) setStatus('就绪');
 })();
