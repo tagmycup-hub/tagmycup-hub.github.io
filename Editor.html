@@ -359,6 +359,7 @@ input::placeholder{color:var(--mut)!important;}
 
       </div>
     </div>
+    <div class="usec" id="drop-extra"><div class="uh"><span class="ut sec-t" onclick="toggleUsec('drop-extra')" title="点击折叠/展开">细节图</span><button class="hlp" onclick="showHelp(event,'extra')">?</button><span class="tag cnt" id="extra-cnt">0</span><button class="bd2 ok" onclick="selectAllExtras()">全选</button><button class="bd2 sb-btn" id="sbtn-extra" onclick="toggleSideBatch('extra')" title="批量管理云端细节图">☑ 批量</button><div class="umore"><button class="bd2 umore-b" onclick="toggleUMore(event)">⋯</button><div class="umore-m"><button onclick="extraSetAll(false,false)">全部设为纯净图</button><button onclick="extraSetAll(true,false)">全部叠加素材</button><button onclick="extraSetAll(true,true)">全部叠加素材+Logo</button><button onclick="G('inp-extra').click()">上传细节图</button><button class="dg" onclick="clearExtras()">清空本项目细节图</button></div></div><button class="usec-tg" onclick="toggleUsec('drop-extra')">▾</button></div><div class="ub"><div class="upl" onclick="G('inp-extra').click()">＋ 上传细节图 / 场景图</div><input type="file" id="inp-extra" accept="image/*" multiple hidden onchange="loadFiles('extra',this)"><div class="tg" id="extra-grid"></div></div></div>
     <div class="usec logosec" id="drop-brand">
       <div class="uh" onclick="toggleLogoSec(event)" style="cursor:pointer">
         <span class="ut">Logo</span><button class="hlp" onclick="showHelp(event,'lib')">?</button><span class="tag cnt" id="lib-n-logo">0</span>
@@ -1394,6 +1395,32 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 #topbar{flex-wrap:wrap;height:auto;min-height:56px;padding:8px 18px;}
 /* 长项目名不撑破 */
 #proj-dd-cur{max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+
+/* ═══ 导出按钮吸底,不被遮挡 ═══ */
+#exp-zone{max-height:46%;padding-bottom:0;position:relative;}
+.bexp{position:sticky;bottom:0;z-index:3;margin-bottom:0!important;}
+#exp-zone::after{content:'';display:block;height:10px;}
+/* 拖拽排序视觉 */
+.ti[draggable],.sti[draggable]{cursor:grab;}
+.ti[draggable]:active,.sti[draggable]:active{cursor:grabbing;}
+.drag-over{outline:2px solid var(--acc);outline-offset:2px;}
+
+/* ═══ 细节图卡片 ═══ */
+#extra-grid .xi{position:relative;aspect-ratio:1;border-radius:var(--rs);overflow:visible;cursor:pointer;
+  background:var(--surf3);border:2px solid transparent;transition:all .16s cubic-bezier(.2,.9,.3,1);}
+#extra-grid .xi img{width:100%;height:100%;object-fit:cover;display:block;border-radius:calc(var(--rs) - 2px);opacity:.55;}
+#extra-grid .xi.on{border-color:var(--acc);box-shadow:0 0 0 3px var(--acc-g);}
+#extra-grid .xi.on img{opacity:1;}
+#extra-grid .xi:hover{transform:translateY(-3px) scale(1.03);box-shadow:0 8px 20px rgba(0,0,0,.35);}
+.xi-ck{position:absolute;top:-6px;left:-6px;width:19px;height:19px;border-radius:50%;background:var(--surf2);
+  border:1.5px solid var(--bdhi);display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;z-index:2;}
+.xi.on .xi-ck{background:var(--acc);border-color:var(--acc);}
+.xi-b{position:absolute;bottom:3px;right:3px;font-size:8px;padding:1px 5px;border-radius:999px;
+  background:rgba(0,0,0,.65);color:#fff;z-index:2;font-weight:600;}
+.xi-del{position:absolute;top:-6px;right:-6px;width:18px;height:18px;border-radius:50%;background:var(--surf2);
+  border:1px solid var(--bd);color:var(--dim);font-size:9px;cursor:pointer;display:none;align-items:center;justify-content:center;z-index:3;}
+.xi:hover .xi-del{display:flex;}
+.xi-del:hover{background:var(--err);border-color:var(--err);color:#fff;}
 </style>
 <script>
 /* ============================================================
@@ -1431,6 +1458,7 @@ const S = {
   snap: true,         // 磁吸对齐
   ruler: false,       // 印花实际厘米标尺
   grid: false,        // 画布网格辅助线
+  extras: [],         // 额外素材 / 细节图
   texts: [],          // 文字图层
   activeText: null,
   pickBody: null,     // 手动框选杯身会话
@@ -1520,11 +1548,13 @@ async function loadFiles(kind, input) {
   for (const f of files) {
     try {
       const { img, name: rawName, blob } = await loadImageFile(f);
-      const aid = await libraryAdd(kind === 'base' ? 'base' : kind === 'sticker' ? 'sticker' : 'logo', rawName, blob);
+      const aid = await libraryAdd(kind === 'base' ? 'base' : kind === 'sticker' ? 'sticker' : kind === 'extra' ? 'extra' : 'logo', rawName, blob);
       if (kind === 'base') {
         const name = uniqueName(S.bases, rawName);
         S.bases.push({ id: uid++, name, aid, img, blob, checked: true, sx: 1, sy: 1, taper: 0, skx: 0, sky: 0, warp: null, adj: defAdj() });
         if (S.activeBase < 0) S.activeBase = 0;
+      } else if (kind === 'extra') {
+        S.extras.push({ id: uid++, name: uniqueName(S.extras, rawName), aid, img, blob, checked: true, withStk: false, withLogo: false });
       } else if (kind === 'sticker') {
         const id = uid++;
         const name = uniqueName(S.stks, rawName);
@@ -1621,6 +1651,22 @@ function renderBaseGrid() {
   S.bases.forEach((b, i) => {
     const d = document.createElement('div');
     d.dataset.id = b.id; if (b.aid) d.dataset.aid = b.aid;
+    d.draggable = true;
+    d.ondragstart = e => { e.dataTransfer.setData('text/plain', String(i)); e.dataTransfer.effectAllowed = 'move'; };
+    d.ondragover = e => { e.preventDefault(); d.classList.add('drag-over'); };
+    d.ondragleave = () => d.classList.remove('drag-over');
+    d.ondrop = e => {
+      e.preventDefault(); d.classList.remove('drag-over');
+      const from = +e.dataTransfer.getData('text/plain');
+      if (isNaN(from) || from === i) return;
+      snapshot();
+      const [mv] = S.bases.splice(from, 1);
+      S.bases.splice(i, 0, mv);
+      if (S.activeBase === from) S.activeBase = i;
+      else if (from < S.activeBase && i >= S.activeBase) S.activeBase--;
+      else if (from > S.activeBase && i <= S.activeBase) S.activeBase++;
+      refreshAll();
+    };
     d.className = 'ti' + (i === S.activeBase ? ' sel' : '') + ((adjTouched(b.adj) || baseWarped(b)) ? ' adj-on' : '') + (b.checked !== false ? ' bchk' : '');
     d.title = b.name + (b.checked === false ? '（未勾选，不导出）' : '');
     d.onclick = () => { S.activeBase = i; refreshAll(); };
@@ -2845,6 +2891,7 @@ function refreshAll() {
   if (typeof scheduleSave === 'function') scheduleSave();
   if (typeof renderLibStrips === 'function') renderLibStrips();
   renderBaseGrid(); renderStkGrid(); renderLogoBoxes();
+  if (typeof renderExtraGrid === 'function') renderExtraGrid();
   syncStkPanel(); syncTextPanel(); syncAdjPanel();
   if (typeof updSelBar === 'function') updSelBar(); syncLogoPanel('brand'); syncLogoPanel('ip');
   renderCanvas();
@@ -4144,7 +4191,7 @@ function resetState() {
   S.bases = []; S.stks = []; S.activeBase = -1; S.activeStk = null; S.activeLogo = null;
   S.logos.brand = { img: null, name: '', en: false, x: 20, y: 20, scale: 100, op: 100, rot: 0, sx: 1, sy: 1, taper: 0, skx: 0, sky: 0, warp: null, curve: 0, cvv: 0, gloss: 0, glp: 34, crop: null };
   S.logos.ip = { img: null, name: '', en: false, x: 20, y: 20, scale: 100, op: 100, rot: 0, sx: 1, sy: 1, taper: 0, skx: 0, sky: 0, warp: null, curve: 0, cvv: 0, gloss: 0, glp: 34, crop: null };
-  S.texts = []; S.activeText = null;
+  S.extras = []; S.texts = []; S.activeText = null;
   S.crop = null; S.guides = []; undoStack.length = 0; updUndo();
   G('crop-tb').classList.remove('on'); cv.classList.remove('crop');
 }
@@ -4407,6 +4454,7 @@ async function saveWorkspace() {
       bases: S.bases.map(b => ({ name: b.name, aid: b.aid || null, blob: b.aid ? null : b.blob, checked: b.checked !== false, manualBody: b.manualBody || null, sx: b.sx || 1, sy: b.sy || 1, taper: b.taper || 0, skx: b.skx || 0, sky: b.sky || 0, warp: b.warp ? b.warp.slice() : null, adj: { ...b.adj } })),
       stks: S.stks.map(st => ({ name: st.name, aid: st.aid || null, blob: st.aid ? null : st.blob, checked: st.checked, x: st.x, y: st.y, scale: st.scale, sx: st.sx, sy: st.sy, rot: st.rot, op: st.op, curve: st.curve || 0, cvv: st.cvv || 0, gloss: st.gloss || 0, glp: st.glp === undefined ? 34 : st.glp, warp: st.warp ? st.warp.slice() : null, taper: st.taper || 0, skx: st.skx || 0, sky: st.sky || 0, crop: st.crop ? { ...st.crop } : null })),
       logos: { brand: pickL('brand'), ip: pickL('ip') },
+      extras: (S.extras || []).map(x => ({ name: x.name, aid: x.aid, checked: x.checked, withStk: x.withStk, withLogo: x.withLogo })),
       texts: (S.texts || []).map(t => ({ ...t })),
       init: { ...S.init }, size: G('size-sel').value, cw: +G('cw-in').value, ch: +G('ch-in').value,
       dia: +G('cup-dia').value, tpl: G('name-tpl').value,
@@ -4463,6 +4511,11 @@ async function restoreWorkspace() {
       if (r) Object.assign(S.logos[k], { img: r.img, blob: r.blob, aid: r.aid, name: L.name, en: L.en, x: L.x, y: L.y, scale: L.scale, op: L.op, sx: L.sx || 1, sy: L.sy || 1, taper: L.taper || 0, skx: L.skx || 0, sky: L.sky || 0, warp: L.warp || null, rot: L.rot || 0, curve: L.curve || 0, cvv: L.cvv || 0, gloss: L.gloss || 0, glp: L.glp === undefined ? 34 : L.glp, crop: null, _wc: null, _wk: null, _fx: null, _fxk: null });
     }
     if (migrated) setTimeout(() => saveWorkspace(), 300); // 迁移后回写 aid
+    S.extras = [];
+    for (const r of d.extras || []) {
+      const a = r.aid ? await assetLoad(r.aid) : null;
+      if (a) S.extras.push({ ...r, id: uid++, img: a.img, blob: a.blob });
+    }
     S.texts = (d.texts || []).map(t => ({ ...t, id: uid++ }));
     if (d.init) S.init = { ...S.init, ...d.init };
     if (d.dia) G('cup-dia').value = d.dia;
@@ -4599,7 +4652,8 @@ function updExpDesc() {
       ? `矩阵：${nb} 底图 × ${ns} 素材 → ${total} 张 PNG${wp ? ` + ${ns} 印花` : ''}`
       : `${nb} 底图 × ${ns} 素材${logos ? ' + ' + logos + ' Logo' : ''} → ${nb} 张 PNG${wp ? ' + 印花' : ''}`)
     : (wp ? '— 仅导出印花 PNG（透明底）' : '— 请先上传底图');
-  const est = (mx ? total : nb) + (wp ? (mx ? ns : 1) : 0);
+  const nx = (S.extras || []).filter(x => x.checked).length;
+  const est = (mx ? total : nb) + (wp ? (mx ? ns : 1) : 0) + nx;
   if (est > 0) {
     const secs = Math.ceil(est * 0.45);
     const tEl = G('exp-eta');
@@ -4843,8 +4897,8 @@ async function runExport(sink) { // sink: {zip} | {dir} | null(逐个下载)
   if (S.stks.length && !S.stks.some(x => x.checked)) {
     if (!confirm('当前没有勾选任何素材,导出的将是空白底图。\n\n继续导出?')) return;
   }
-  const jobs = buildCompJobs(), printJobs = buildPrintJobs();
-  const total = jobs.length + printJobs.length;
+  const jobs = buildCompJobs(), printJobs = buildPrintJobs(), extraJobs = buildExtraJobs();
+  const total = jobs.length + printJobs.length + extraJobs.length;
   if (!total) return;
   exporting = true; exportCancel = false;
   updExpDesc(); setProg(true, '正在导出…', 0); setStatus('导出中');
@@ -4871,6 +4925,17 @@ async function runExport(sink) { // sink: {zip} | {dir} | null(逐个下载)
       await new Promise(r => setTimeout(r, 16));
       const c = j.render();
       if (done === 0) bgWarnCheck(c);
+      const r1 = await blobUnderCap(c, fmt.mime, q, cap, false);
+      if (r1.note) shrunk.push(j.name + '（' + r1.note + '）');
+      totalBytes += r1.blob.size;
+      await put(j.name, r1.blob);
+      done++;
+    }
+    for (const j of extraJobs) {
+      if (exportCancel) throw 'cancel';
+      setProg(true, `细节图 ${done + 1}/${total}：${j.extra.name}`, done / total * 100);
+      await new Promise(r => setTimeout(r, 16));
+      const c = renderExtraCanvas(j.extra);
       const r1 = await blobUnderCap(c, fmt.mime, q, cap, false);
       if (r1.note) shrunk.push(j.name + '（' + r1.note + '）');
       totalBytes += r1.blob.size;
@@ -5152,7 +5217,8 @@ function enableGridMarquee(gridId, onPick) {
   g._mq = true;
   let st = null, box = null;
   g.addEventListener('mousedown', e => {
-    if (e.target.closest('.ti,.sti,.libi,button,input,label')) return;   // 点在卡片上不触发
+    if (e.button !== 0) return;
+    if (e.target.closest('.ti,.sti,.libi,button,input,label,[draggable]')) return;   // 卡片上交给拖拽排序
     const r = g.getBoundingClientRect();
     st = { x: e.clientX, y: e.clientY, sx: g.scrollLeft, sy: g.scrollTop, moved: false };
     box = document.createElement('div');
@@ -5725,6 +5791,128 @@ function editTextPrompt() {
   const v = prompt('编辑文字（换行用回车）：', t.text);
   if (v === null) return;
   snapshot(); t.text = v; syncTextPanel(); renderCanvas();
+}
+
+/* ═══════════ 额外素材 / 细节图 ═══════════
+   独立于「底图×素材」矩阵的一组图:
+   · 可单独选择是否叠加素材与 Logo
+   · 导出时作为独立任务输出,可设为纯净版(不带素材/Logo) */
+function extraDefaults() {
+  return { withStk: false, withLogo: false };
+}
+async function addExtraFromLibrary(aid) {
+  const a = await assetLoad(aid);
+  if (!a) return notify('素材加载失败', 'err');
+  snapshot();
+  S.extras.push({ id: uid++, name: uniqueName(S.extras, a.name), aid, img: a.img, blob: a.blob,
+    checked: true, ...extraDefaults() });
+  refreshAll();
+  notify(`已加入细节图「${a.name}」`, 'ok');
+}
+function renderExtraGrid() {
+  const g = G('extra-grid');
+  if (!g) return;
+  g.querySelectorAll('.xi,.libi,.emp').forEach(e => e.remove());
+  const cnt = G('extra-cnt');
+  if (cnt) cnt.textContent = S.extras.length;
+  S.extras.forEach((x, i) => {
+    const d = document.createElement('div');
+    d.className = 'xi' + (x.checked ? ' on' : '');
+    d.dataset.id = x.id; if (x.aid) d.dataset.aid = x.aid;
+    d.title = `${x.name}\n${x.withStk ? '叠加素材' : '不叠素材'} · ${x.withLogo ? '叠加 Logo' : '不叠 Logo'}\n\n单击勾选 · 右键设置`;
+    const im = document.createElement('img');
+    if (x.blob) { const u = URL.createObjectURL(x.blob); im.src = u; im.onload = () => setTimeout(() => URL.revokeObjectURL(u), 3000); }
+    d.appendChild(im);
+    const ck = document.createElement('span'); ck.className = 'xi-ck'; ck.textContent = x.checked ? '✓' : '';
+    d.appendChild(ck);
+    const badge = document.createElement('span'); badge.className = 'xi-b';
+    badge.textContent = (x.withStk ? '素' : '') + (x.withLogo ? 'L' : '') || '纯';
+    d.appendChild(badge);
+    d.onclick = () => { x.checked = !x.checked; renderExtraGrid(); updExpDesc(); };
+    d.oncontextmenu = ev => { ev.preventDefault(); openExtraOpts(x); };
+    const del = document.createElement('button'); del.className = 'xi-del'; del.textContent = '✕';
+    del.title = '移出（云端保留）';
+    del.onclick = ev => {
+      ev.stopPropagation(); snapshot();
+      const at = S.extras.indexOf(x), bak = { ...x };
+      S.extras.splice(at, 1); refreshAll();
+      setTimeout(() => notifyUndo(`已移出「${x.name}」（云端保留）`, () => { S.extras.splice(at, 0, bak); refreshAll(); }), 0);
+    };
+    d.appendChild(del);
+    g.appendChild(d);
+  });
+  if (!S.extras.length) {
+    const e = document.createElement('div'); e.className = 'emp';
+    e.innerHTML = '细节图 / 场景图 / 尺寸说明图<br>可单独导出，不带素材与 Logo';
+    g.appendChild(e);
+  }
+  appendLibItems('extra');
+}
+function openExtraOpts(x) {
+  const withStk = confirm(`「${x.name}」\n\n是否在这张图上叠加素材？\n\n确定 = 叠加素材\n取消 = 不叠加（纯净图）`);
+  x.withStk = withStk;
+  x.withLogo = withStk ? confirm(`是否同时叠加 Logo？`) : false;
+  renderExtraGrid(); renderCanvas(); updExpDesc();
+  notify(`「${x.name}」→ ${x.withStk ? '叠加素材' : '纯净'}${x.withLogo ? ' + Logo' : ''}`, 'ok');
+}
+function extraSetAll(withStk, withLogo) {
+  if (!S.extras.length) return notify('还没有细节图', 'err');
+  snapshot();
+  S.extras.forEach(x => { x.withStk = withStk; x.withLogo = withLogo; });
+  renderExtraGrid(); renderCanvas(); updExpDesc();
+  notify(withStk ? '全部叠加素材' + (withLogo ? ' + Logo' : '') : '全部设为纯净图', 'ok');
+}
+function selectAllExtras() {
+  const all = S.extras.every(x => x.checked);
+  S.extras.forEach(x => x.checked = !all);
+  renderExtraGrid(); updExpDesc();
+}
+function clearExtras() {
+  if (!S.extras.length) return;
+  if (!confirm('清空本项目的细节图？（云端素材库保留）')) return;
+  snapshot(); S.extras = []; refreshAll();
+}
+/* 细节图导出任务 */
+function buildExtraJobs() {
+  const jobs = [];
+  S.extras.filter(x => x.checked).forEach((x, i) => {
+    jobs.push({ kind: 'extra', extra: x, name: extraFileName(x, i) });
+  });
+  return jobs;
+}
+function extraFileName(x, i) {
+  const pre = expPrefix();
+  const nm = (x.name || '细节图').replace(/[\\/:*?"<>|]/g, '_');
+  return `${pre}${nm}${x.withStk ? '' : '_纯净'}.png`;
+}
+/* 渲染一张细节图 */
+function renderExtraCanvas(x, cv2) {
+  const { W, H } = outSize();
+  const cc = cv2 || document.createElement('canvas');
+  cc.width = W; cc.height = H;
+  const cx = cc.getContext('2d');
+  cx.clearRect(0, 0, W, H);
+  // 细节图本体:等比铺满
+  const iw = x.img.naturalWidth, ih = x.img.naturalHeight;
+  const sc = Math.max(W / iw, H / ih);
+  cx.drawImage(x.img, (W - iw * sc) / 2, (H - ih * sc) / 2, iw * sc, ih * sc);
+  if (x.withStk) {
+    S.stks.filter(t => t.checked).forEach(t => {
+      cx.save(); cx.globalAlpha = t.op / 100;
+      cx.translate(t.x, t.y); if (t.rot) cx.rotate(t.rot * D2R);
+      drawStkBody(cx, t);
+      cx.restore();
+    });
+    drawTexts(cx, true);
+  }
+  if (x.withLogo) {
+    ['brand', 'ip'].forEach(k => {
+      const L = S.logos[k];
+      if (!L.img || !L.en) return;
+      cx.save(); cx.globalAlpha = L.op / 100; drawLogoImg(cx, L); cx.restore();
+    });
+  }
+  return cc;
 }
 
 /* ================= ⑦ 一键抠图(白底去背) ================= */
@@ -6604,6 +6792,7 @@ function toggleAdv(id) {
   store.set('tm_adv_' + id, off ? '1' : '0');
 }
 const HELP = {
+  extra: '<b>细节图 / 场景图</b>独立于「底图×素材」矩阵的一组图。<br>· 默认是<b>纯净图</b>:导出时不叠加素材与 Logo<br>· <b>右键</b>单张可设为叠加素材 / 素材+Logo<br>· 勾选的会随批量导出一起输出<br><br>适合尺寸说明图、材质细节、使用场景等不需要印花的图。',
   multi: '<b>多素材排布</b>勾选多个素材后使用。<br>· <b>对齐</b>:按左/中/右、顶/中/底把勾选的素材对齐<br>· <b>均匀分布</b>:首尾不动,中间等间距(需≥3个)<br>· <b>统一尺寸</b>:其它素材缩放到与当前活跃素材同宽<br><br>做多图案排版时很省事。',
   curve: ['曲面与光泽', '让平面印花贴合圆柱杯身。<br><b style="display:inline;color:var(--dim)">曲面</b> 包裹强度，杯子越圆值越大（马克杯约 45，保温杯约 65）。<br><b style="display:inline;color:var(--dim)">杯口弧</b> 模拟俯视时的弧线。<br><b style="display:inline;color:var(--dim)">光泽</b> 釉面反光，<b style="display:inline;color:var(--dim)">高光位</b> 对齐底图光源方向。<br>印花导出不含这些效果。'],
   warp: ['变形与拉伸', '横拉/竖拉调整宽高比例。<br>画布上<b style="display:inline;color:var(--dim)">双击素材</b>或按 <kbd>W</kbd> 进入拖角变形：拖角点、边中点或中心点做轴向拉伸，松手后自动并入缩放。'],
