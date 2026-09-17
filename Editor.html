@@ -447,7 +447,7 @@ input::placeholder{color:var(--mut)!important;}
     <button class="bi" onclick="pvZoom(1/1.2)" style="font-size:13px;padding:4px 9px">−</button>
     <button class="bi" onclick="pvFit()">适应</button>
     <span class="plbl" style="font-size:10px;color:var(--mut)">Ctrl+滚</span>
-    <span id="stk-sel-info"></span><span id="canvas-info"></span>
+    <span id="load-warn" style="display:none;font-size:10px;color:var(--warm);font-family:var(--mono)"></span><span id="stk-sel-info"></span><span id="canvas-info"></span>
   </div>
 </div>
 <div id="edit">
@@ -685,15 +685,37 @@ input::placeholder{color:var(--mut)!important;}
   <div class="mbtns"><button class="bg" onclick="closeProjMgr()">关闭</button></div>
 </div></div>
 <div id="cut-ov" class="ov"><div class="ov-card">
-  <div class="ov-t">✂ 一键抠图 <span id="cut-stat" style="font-size:11px;color:var(--dim);font-weight:400"></span></div>
-  <div id="cut-prev" style="min-height:150px;display:flex;align-items:center;justify-content:center;background:repeating-conic-gradient(#233241 0 25%,#1a2734 0 50%) 0 0/12px 12px;border:1px solid var(--bd);border-radius:8px;padding:8px;margin-bottom:10px;color:var(--dim);font-size:11px"></div>
-  <div style="display:flex;gap:4px;margin-bottom:8px"><button class="bi" onclick="cutPreset('pure')" title="纯白背景的印花">纯白底</button><button class="bi" onclick="cutPreset('soft')" title="浅灰/扫描件">浅灰底</button><button class="bi" onclick="cutPreset('hard')" title="背景杂乱时加大力度">强力去背</button><button class="bi" onclick="cutPreset('crisp')" title="文字/线条稿，保留锐利边缘">锐利边缘</button></div>
-  <div class="cr"><span class="cl">容差</span><input type="range" id="cut-tol" min="4" max="120" value="26" oninput="setCutOpt('tol',this.value)"><input type="number" id="cut-tol-n" value="26" min="4" max="120" oninput="setCutOpt('tol',this.value)"></div>
-  <div class="cr"><span class="cl">边缘羽化</span><input type="range" id="cut-feather" class="tl" min="0" max="6" value="2" oninput="setCutOpt('feather',this.value)"><input type="number" id="cut-feather-n" value="2" min="0" max="6" oninput="setCutOpt('feather',this.value)"><span class="cu">px</span></div>
-  <div class="cr"><span class="cl">去白边</span><input type="range" id="cut-shrink" class="tl" min="0" max="5" value="0" oninput="setCutOpt('shrink',this.value)"><input type="number" id="cut-shrink-n" value="0" min="0" max="5" oninput="setCutOpt('shrink',this.value)"><span class="cu">px</span></div>
-  <div class="cr"><span class="cl">去杂点</span><input type="range" id="cut-despeckle" class="tl" min="0" max="4" value="1" oninput="setCutOpt('despeckle',this.value)"><input type="number" id="cut-despeckle-n" value="1" min="0" max="4" oninput="setCutOpt('despeckle',this.value)"></div>
-  <label class="tog-row" style="display:flex;align-items:center;gap:7px;margin-top:7px;font-size:11.5px;color:var(--dim);cursor:pointer"><input type="checkbox" id="cut-keepinner" checked onchange="setCutOpt('keepInner',this.checked)" style="cursor:pointer">保留图案内部的白色（推荐）</label>
-  <div style="font-size:10.5px;color:var(--mut);margin-top:6px;line-height:1.7">自动识别背景色（米底/灰底同样适用）<br>容差：越大去得越多・一般 20-35 即可<br>去白边：抠完边上还有白光晕时加 1-2<br>羽化：让边缘过渡自然，印刷稿建议 1-2</div>
+  <div class="ov-t">一键抠图 <span id="cut-stat" style="font-size:11px;color:var(--dim);font-weight:400"></span></div>
+  <div class="cut-body">
+    <div class="cut-left">
+      <div id="cut-prev"><canvas id="cut-canvas"></canvas><div id="cut-cursor"></div></div>
+      <div class="cut-tools">
+        <button class="bi" id="cb-erase" onclick="setBrushMode('erase')" title="擦除：把多余部分变透明">✕ 擦除</button>
+        <button class="bi" id="cb-restore" onclick="setBrushMode('restore')" title="恢复：把误删的部分找回来">↺ 恢复</button>
+        <span class="cl" style="min-width:auto;margin-left:6px">笔刷</span>
+        <input type="range" id="cb-size" min="4" max="160" value="24" oninput="setBrushSize(this.value)" style="flex:1">
+        <input type="number" id="cb-size-n" value="24" min="4" max="160" oninput="setBrushSize(this.value)">
+        <button class="bi" onclick="clearCutMask()" title="清除全部手动修改">清除涂抹</button>
+      </div>
+    </div>
+    <div class="cut-right">
+      <div class="sec-title">快速预设</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:10px">
+        <button class="bi" onclick="cutPreset('pure')">纯白底</button>
+        <button class="bi" onclick="cutPreset('soft')">浅灰底</button>
+        <button class="bi" onclick="cutPreset('hard')">强力去背</button>
+        <button class="bi" onclick="cutPreset('crisp')">锐利边缘</button>
+      </div>
+      <div class="sec-title">参数微调</div>
+      <div class="cr"><span class="cl">容差</span><input type="range" id="cut-tol" min="4" max="120" value="24" oninput="setCutOpt('tol',this.value)"><input type="number" id="cut-tol-n" value="24" min="4" max="120" oninput="setCutOpt('tol',this.value)"></div>
+      <div class="cr"><span class="cl">羽化</span><input type="range" id="cut-feather" class="tl" min="0" max="6" value="2" oninput="setCutOpt('feather',this.value)"><input type="number" id="cut-feather-n" value="2" min="0" max="6" oninput="setCutOpt('feather',this.value)"></div>
+      <div class="cr"><span class="cl">去白边</span><input type="range" id="cut-shrink" class="tl" min="0" max="5" value="0" oninput="setCutOpt('shrink',this.value)"><input type="number" id="cut-shrink-n" value="0" min="0" max="5" oninput="setCutOpt('shrink',this.value)"></div>
+      <div class="cr"><span class="cl">去杂点</span><input type="range" id="cut-despeckle" class="tl" min="0" max="4" value="1" oninput="setCutOpt('despeckle',this.value)"><input type="number" id="cut-despeckle-n" value="1" min="0" max="4" oninput="setCutOpt('despeckle',this.value)"></div>
+      <div class="cr"><span class="cl">内部白</span><input type="range" id="cut-inner" class="tl" min="0" max="100" value="0" oninput="setCutOpt('innerKeep',this.value)"><input type="number" id="cut-inner-n" value="0" min="0" max="100" oninput="setCutOpt('innerKeep',this.value)"><span class="cu">%</span></div>
+      <label style="display:flex;align-items:center;gap:7px;margin-top:7px;font-size:11px;color:var(--dim);cursor:pointer"><input type="checkbox" id="cut-keepinner" checked onchange="setCutOpt('keepInner',this.checked)">区分内外（关闭则所有白色都去掉）</label>
+      <div style="font-size:10px;color:var(--mut);margin-top:8px;line-height:1.7">内部白 0% = 字母孔洞与内部白底全部挖空（推荐）<br>调高则逐步保留封闭区域<br><br>先用滑块粗调，再用笔刷修细节（滚轮调笔刷大小）</div>
+    </div>
+  </div>
   <div class="mbtns"><button class="bg" onclick="closeCutout()">取消</button><button class="bp" onclick="confirmCutout()">生成去背版本</button></div>
 </div></div>
 <div id="tpls-ov" class="ov"><div class="ov-card wide">
@@ -1478,6 +1500,161 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 /* 最终:缩略图尺寸(置末尾避免被覆盖) */
 #base-grid,#stk-grid,#logo-grid{grid-template-columns:repeat(auto-fill,minmax(74px,1fr))!important;gap:10px!important;}
 #extra-grid{grid-template-columns:repeat(auto-fill,minmax(88px,1fr))!important;gap:10px!important;}
+
+/* ═══ Logo 区显示修复 ═══
+   .logosec 的 uh 用了 margin-left:auto 的折叠按钮 + 行内元素溢出,
+   在窄栏时被挤出可视区。改为可换行并限制子项宽度。 */
+.logosec .uh{flex-wrap:wrap;row-gap:5px;}
+.logosec .lgrow{flex-wrap:wrap;row-gap:5px;}
+.logosec .lg-m{flex:1 1 90px;min-width:0;}
+.logosec .logo-nm{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.logosec .lg-lib{margin-top:8px;}
+#drop-extra .uh,#drop-base .uh,#drop-stk .uh{flex-wrap:wrap;row-gap:5px;}
+.uh{overflow:visible;min-height:38px;}
+.usec-tg{margin-left:auto;}
+/* 更小屏时按钮自动收窄 */
+@media (max-width:1180px){
+  .uh .bd2{padding:3px 6px!important;font-size:10px!important;}
+  .uh .ut{font-size:12px;}
+}
+/* 框选框 */
+.grid-mq{position:absolute;border:2px dashed var(--acc);background:rgba(59,130,246,.16);
+  pointer-events:none;z-index:9;border-radius:6px;}
+
+/* ═══ 拖动期间降级,保证 60fps ═══ */
+body.dragging-now *{transition:none!important;animation:none!important;}
+body.dragging-now .ti:hover,body.dragging-now .sti:hover,body.dragging-now .libi:hover,
+body.dragging-now .pm-i:hover,body.dragging-now .lib-i:hover{transform:none!important;box-shadow:none!important;}
+body.dragging-now #cwrap{will-change:contents;}
+body.dragging-now .ov,body.dragging-now #selbar,body.dragging-now #sbatch-bar{backdrop-filter:none!important;}
+/* GPU 提升:只在需要时开启,避免常驻显存 */
+#main-canvas{will-change:auto;}
+body.dragging-now #main-canvas{will-change:transform;}
+/* 平滑滚动与惯性 */
+.ps,.tab-pane,#lib-grid,#pm-grid{-webkit-overflow-scrolling:touch;overscroll-behavior:contain;}
+/* 减少重排:固定尺寸的元素提前声明 */
+.ti,.sti,.libi,.xi{contain:layout paint;}
+.tg{contain:layout;}
+
+/* ═══ 底图缩略图缩小(调整频率低) ═══ */
+#base-grid{grid-template-columns:repeat(auto-fill,minmax(52px,1fr))!important;gap:7px!important;}
+#base-grid .ti{border-width:2px!important;}
+#base-grid .ti-n{font-size:8px;min-width:13px;height:13px;}
+#base-grid .ti-ck{width:16px;height:16px;font-size:9px;}
+#base-grid .tdel,#base-grid .tdel2{width:16px;height:16px;font-size:9px;}
+#base-grid .ti-nm{font-size:7.5px;padding:1px 2px;}
+#drop-base .ub{padding:9px 11px 11px;}
+#drop-base .upl{padding:9px 8px;font-size:11px;}
+
+/* ═══ 导出栏紧凑化:不滚动即可看全 ═══ */
+#exp-zone{max-height:none!important;overflow:visible!important;font-size:11px;padding:9px 11px 11px;}
+#exp-zone .cr{min-height:22px;gap:6px;}
+#exp-zone .cl{font-size:10px;min-width:38px;}
+#exp-zone .cu{font-size:9px;}
+#exp-zone input[type=text],#exp-zone input[type=number],#exp-zone select{
+  font-size:10.5px!important;padding:3px 6px!important;min-width:0;}
+#exp-zone input[type=number]{min-width:40px;}
+#exp-zone .ut{font-size:11.5px;}
+#exp-zone .sec-title{font-size:9px;margin:3px 0 1px;}
+#exp-zone .zip-lbl,#exp-zone .tog-lbl{font-size:10px;}
+#exp-zone .bi,#exp-zone .bd2{font-size:10px!important;padding:3px 8px!important;}
+#exp-zone #exp-desc{font-size:10px;line-height:1.5;}
+#exp-zone #exp-eta{font-size:9px;}
+#exp-zone .tog{transform:scale(.88);transform-origin:left center;}
+.bexp{padding:9px 14px!important;font-size:12.5px;}
+#exp-zone .name-grp{padding:7px 8px;gap:4px;}
+#exp-zone .name-hint{font-size:9px;}
+#exp-zone .advgrp .advh{padding:6px 9px;font-size:10.5px;}
+#exp-zone .advb{padding:7px 9px 9px;}
+/* 面板区拿回空间 */
+.tab-pane.show{min-height:180px!important;}
+
+/* ═══ 抠图画笔 UI ═══ */
+#cut-prev{position:relative;min-height:160px;display:flex;align-items:center;justify-content:center;
+  background:repeating-conic-gradient(#233241 0 25%,#1a2734 0 50%) 0 0/14px 14px;
+  border:1px solid var(--bd);border-radius:var(--rs);padding:10px;margin-bottom:9px;
+  color:var(--dim);font-size:11px;overflow:hidden;}
+#cut-canvas{display:block;cursor:none;border-radius:4px;max-width:100%;}
+#cut-cursor{position:absolute;display:none;pointer-events:none;border:2px solid #fff;border-radius:50%;
+  transform:translate(-50%,-50%);box-shadow:0 0 0 1px rgba(0,0,0,.6),inset 0 0 0 1px rgba(0,0,0,.4);z-index:3;}
+#cut-prev.erasing #cut-cursor{border-color:#fb7185;}
+.cut-tools{display:flex;align-items:center;gap:5px;margin-bottom:6px;flex-wrap:wrap;}
+.cut-tools .bi.act{background:var(--grad);border-color:transparent;color:#fff;}
+.cut-tools input[type=number]{width:52px;}
+#cut-ov .ov-card{width:400px;max-width:94vw;}
+#cut-ov .cr{min-height:24px;}
+#cut-ov .cl{min-width:42px;font-size:10.5px;}
+
+/* ═══════════ 丝滑度:统一弹性缓动 + GPU 合成 ═══════════ */
+:root{
+  --ease:cubic-bezier(.16,1,.3,1);          /* 快出慢入,更跟手 */
+  --ease-soft:cubic-bezier(.4,0,.2,1);
+  --dur:.19s;--dur-fast:.13s;
+}
+.ti,.sti,.libi,.xi,.pm-i,.lib-i,.ptab,.quickbar button,.etab,.advgrp{
+  transition:transform var(--dur) var(--ease),box-shadow var(--dur) var(--ease),
+             background var(--dur-fast) var(--ease-soft),border-color var(--dur-fast) var(--ease-soft),opacity var(--dur-fast);}
+.bp,.bg,.bi,.bd2,.pb-act,.hlp,.bexp{transition:all var(--dur-fast) var(--ease);}
+/* 悬停只动 transform(GPU 合成,不触发重排) */
+.ti:hover,.sti:hover,.libi:hover,.xi:hover{transform:translate3d(0,-3px,0) scale(1.035);}
+.pm-i:hover,.lib-i:hover{transform:translate3d(0,-3px,0);}
+.quickbar button:hover{transform:translate3d(0,-2px,0);}
+.pb-act:hover,.bp:hover,.bexp:hover{transform:translate3d(0,-1px,0);}
+.ti:active,.sti:active,.libi:active,.xi:active{transform:translate3d(0,-1px,0) scale(.985);transition-duration:.07s;}
+.bp:active,.bi:active,.bd2:active,.pb-act:active,.etab:active{transform:scale(.955);transition-duration:.07s;}
+/* 弹窗入场:缩放+位移一起做,单次合成 */
+@keyframes ovIn{from{opacity:0;transform:translate3d(0,14px,0) scale(.97)}to{opacity:1;transform:none}}
+.ov-card{animation:ovIn .22s var(--ease);}
+.ov{animation:fadeIn .16s var(--ease-soft);}
+#proj-dd-menu,.umore-m,#tb-more-menu,#ctx-menu{animation:ovIn .15s var(--ease);transform-origin:top right;}
+/* 卡片入场错峰(只前 8 个,避免长列表拖慢) */
+@keyframes cardIn{from{opacity:0;transform:translate3d(0,8px,0)}to{opacity:1;transform:none}}
+.pm-i,.lib-i{animation:cardIn .24s var(--ease) backwards;}
+.pm-i:nth-child(n+9),.lib-i:nth-child(n+9){animation:none;}
+/* 通知/浮动条滑入 */
+@keyframes barIn{from{opacity:0;transform:translate3d(-50%,16px,0)}to{opacity:1;transform:translate3d(-50%,0,0)}}
+#selbar.on,#sbatch-bar.on{animation:barIn .2s var(--ease);}
+#notif{animation:barIn .2s var(--ease);}
+/* 面板切换淡入 */
+@keyframes paneIn{from{opacity:0;transform:translate3d(0,6px,0)}to{opacity:1;transform:none}}
+.tab-pane.show{animation:paneIn .18s var(--ease);}
+/* 折叠展开更顺 */
+.advb,.ub{transition:opacity var(--dur-fast) var(--ease-soft);}
+/* 滑块拖动无延迟 */
+input[type=range]{transition:none;}
+input[type=range]::-webkit-slider-thumb{transition:transform .1s var(--ease),box-shadow .1s;}
+/* 进度条平滑 */
+#prog-fill{transition:width .16s var(--ease-soft);}
+/* 画布缩放平滑 */
+#main-canvas{transition:none;}
+/* 减少动效偏好 */
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important;}}
+
+/* ═══ 抠图窗口 80% + 笔刷高对比 ═══ */
+#cut-ov .ov-card{width:80vw!important;max-width:1150px!important;height:80vh;max-height:80vh!important;
+  display:flex;flex-direction:column;overflow:hidden;}
+#cut-ov .ov-t{flex:0 0 auto;}
+.cut-body{flex:1 1 0%;min-height:0;display:flex;gap:16px;overflow:hidden;}
+.cut-left{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;min-height:0;}
+.cut-right{flex:0 0 282px;overflow-y:auto;padding-right:5px;min-height:0;}
+#cut-prev{flex:1 1 0%;min-height:0;margin-bottom:0;padding:14px;}
+#cut-canvas{max-width:100%;max-height:100%;}
+#cut-ov .mbtns{flex:0 0 auto;margin-top:12px;}
+.cut-right .cr{min-height:26px;}
+.cut-tools{margin:10px 0 0;}
+/* 笔刷光标:双环 + 中心点,任何背景都可见 */
+#cut-cursor{border:2px solid #fff;
+  box-shadow:0 0 0 2px rgba(0,0,0,.78),inset 0 0 0 2px rgba(0,0,0,.45),0 0 9px rgba(0,0,0,.55);}
+#cut-prev.erasing #cut-cursor{border-color:#ff5c7a;
+  box-shadow:0 0 0 2px rgba(0,0,0,.82),inset 0 0 0 2px rgba(255,92,122,.45),0 0 11px rgba(255,92,122,.6);}
+#cut-prev:not(.erasing) #cut-cursor{border-color:#3ddc97;
+  box-shadow:0 0 0 2px rgba(0,0,0,.82),inset 0 0 0 2px rgba(61,220,151,.45),0 0 11px rgba(61,220,151,.6);}
+#cut-cursor::after{content:'';position:absolute;left:50%;top:50%;width:3px;height:3px;border-radius:50%;
+  background:#fff;transform:translate(-50%,-50%);box-shadow:0 0 0 1px rgba(0,0,0,.75);}
+@media (max-width:900px){
+  .cut-body{flex-direction:column;}
+  .cut-right{flex:0 0 auto;max-height:40%;}
+}
 </style>
 <script>
 /* ============================================================
@@ -2804,15 +2981,30 @@ function drawScene(c, W, H, baseIdx, forExport, whiteBg) {
   const b = S.bases[baseIdx];
   if (b) {
     const a = b.adj;
-    x.save();
-    if (a.br !== 100 || a.ct !== 100 || a.sa !== 100) x.filter = `brightness(${a.br}%) contrast(${a.ct}%) saturate(${a.sa}%)`; // 无调整时跳过滤镜(避免慢路径)
     const bw = b.img.naturalWidth, bh = b.img.naturalHeight;
     const sc = Math.max(W / bw, H / bh) * a.sc / 100;
     const dw = bw * sc * (b.sx || 1), dh = bh * sc * (b.sy || 1);
     const dx0 = (W - dw) / 2 + a.ox, dy0 = (H - dh) / 2 + a.oy;
+    const adj = a.br !== 100 || a.ct !== 100 || a.sa !== 100;
+    x.save();
     if (hasWarp(b)) {
+      if (adj) x.filter = `brightness(${a.br}%) contrast(${a.ct}%) saturate(${a.sa}%)`;
       const wc = warpImageCanvas(b, bw, bh, null), wb = wc._wb;
       x.drawImage(wc, dx0 + wb.x0 * dw, dy0 + wb.y0 * dh, (wb.x1 - wb.x0) * dw, (wb.y1 - wb.y0) * dh);
+    } else if (adj) {
+      // 调色结果缓存:ctx.filter 是慢路径,参数不变时复用离屏画布
+      const key = `${a.br}|${a.ct}|${a.sa}|${bw}x${bh}`;
+      if (b._adjK !== key) {
+        const ac = b._adjC || (b._adjC = document.createElement('canvas'));
+        ac.width = bw; ac.height = bh;
+        const axc = ac.getContext('2d');
+        axc.clearRect(0, 0, bw, bh);
+        axc.filter = `brightness(${a.br}%) contrast(${a.ct}%) saturate(${a.sa}%)`;
+        axc.drawImage(b.img, 0, 0);
+        axc.filter = 'none';
+        b._adjK = key;
+      }
+      x.drawImage(b._adjC, dx0, dy0, dw, dh);
     } else x.drawImage(b.img, dx0, dy0, dw, dh);
     x.restore();
   }
@@ -2878,7 +3070,51 @@ function handlePts(w, h, o) { // 角=缩放, 边=裁剪;有变形时跟随四边
     { k: 'bl', x: -w / 2, y: h / 2 }, { k: 'bc', x: 0, y: h / 2 }, { k: 'br', x: w / 2, y: h / 2 }
   ];
 }
-function renderCanvas() {
+/* ═══════════ 缩略图懒加载:大库不卡 ═══════════ */
+const _lazyObs = ('IntersectionObserver' in window) ? new IntersectionObserver(es => {
+  es.forEach(en => {
+    if (!en.isIntersecting) return;
+    const el = en.target, src = el.dataset.lazy;
+    if (src) { el.src = src; delete el.dataset.lazy; }
+    _lazyObs.unobserve(el);
+  });
+}, { rootMargin: '220px' }) : null;
+function lazyImg(im, url) {
+  if (_lazyObs) { im.dataset.lazy = url; _lazyObs.observe(im); }
+  else im.src = url;
+}
+/* 画布重绘节流:素材多时降低预览精度(导出不受影响) */
+function previewScale() {
+  const n = S.stks.filter(x => x.checked).length + (S.extras || []).length;
+  return n > 24 ? 0.6 : n > 12 ? 0.8 : 1;
+}
+
+/* ═══════════ 渲染调度:rAF 合并,避免一帧内重复绘制 ═══════════ */
+let _rafPending = false, _rafPanel = false;
+const _realRender = () => { _rafPending = false; renderCanvasNow(); };
+function renderCanvas() {            // 对外接口:合并到下一帧
+  if (_rafPending) return;
+  _rafPending = true;
+  requestAnimationFrame(_realRender);
+}
+/* 面板同步也合并(拖动时每帧刷新数字即可) */
+function schedulePanel(fn) {
+  if (_rafPanel) return;
+  _rafPendingGuard(fn);
+}
+function _rafPendingGuard(fn) {
+  _rafPanel = true;
+  requestAnimationFrame(() => { _rafPanel = false; try { fn(); } catch (e) {} });
+}
+/* 拖动期间降级:临时关闭高开销特效,松手后恢复 */
+let _dragQuality = false;
+function setDragQuality(on) {
+  if (_dragQuality === on) return;
+  _dragQuality = on;
+  document.body.classList.toggle('dragging-now', on);
+}
+
+function renderCanvasNow() {
   const { W, H } = outSize();
   if (cv.width !== W || cv.height !== H) { cv.width = W; cv.height = H; }
   cv.style.width = (W * S.pv) + 'px';
@@ -2950,6 +3186,7 @@ function refreshAll() {
   if (typeof renderLibStrips === 'function') renderLibStrips();
   renderBaseGrid(); renderStkGrid(); renderLogoBoxes();
   if (typeof renderExtraGrid === 'function') renderExtraGrid();
+  if (typeof checkCanvasLoad === 'function') checkCanvasLoad();
   syncStkPanel(); syncTextPanel(); syncAdjPanel();
   if (typeof updSelBar === 'function') updSelBar(); syncLogoPanel('brand'); syncLogoPanel('ip');
   renderCanvas();
@@ -3349,14 +3586,14 @@ cv.addEventListener('mousedown', e => {
   if (wc) {
     snapshot();
     drag = { mode: 'warp', c: wc.i, kind: wc.kind, ends: wc.ends, t: wc.t, fr: wc.fr, q0: effQuad(wc.t.o), p0: p, alt: e.altKey };
-    cv.classList.add('grabbing');
+    cv.classList.add('grabbing'); setDragQuality(true);
     return;
   }
   if (hitLogoHandle(p)) { // Logo 角手柄 → 中心等比缩放
     const k = S.activeLogo, r = logoRect(k);
     snapshot();
     drag = { mode: 'logo-scale', k, s0: S.logos[k].scale, c: { x: r.x + r.w / 2, y: r.y + r.h / 2 }, p0: p };
-    cv.classList.add('grabbing');
+    cv.classList.add('grabbing'); setDragQuality(true);
     return;
   }
   const h = hitHandle(p);
@@ -3365,7 +3602,7 @@ cv.addEventListener('mousedown', e => {
     snapshot();
     drag = { mode: 'handle', h: h.k, s: a, start: { ...a }, p0: p,
       crop0: a.crop ? { ...a.crop } : { x: 0, y: 0, w: a.img.naturalWidth, h: a.img.naturalHeight } };
-    cv.classList.add('grabbing');
+    cv.classList.add('grabbing'); setDragQuality(true);
     return;
   }
   const lk = hitLogo(p); // Logo 绘制在素材之上，优先命中
@@ -3374,7 +3611,7 @@ cv.addEventListener('mousedown', e => {
     snapshot();
     const L = S.logos[lk];
     drag = { mode: 'logo-move', k: lk, x0: L.x, y0: L.y, p0: p };
-    cv.classList.add('grabbing');
+    cv.classList.add('grabbing'); setDragQuality(true);
     return;
   }
   const tx = hitText(p);
@@ -3382,7 +3619,7 @@ cv.addEventListener('mousedown', e => {
     if (S.activeText !== tx.id) { S.activeText = tx.id; S.activeStk = null; S.activeLogo = null; switchTab('text'); refreshAll(); }
     snapshot();
     drag = { mode: 'textmove', t: tx, x0: tx.x, y0: tx.y, p0: p };
-    cv.classList.add('grabbing');
+    cv.classList.add('grabbing'); setDragQuality(true);
     return;
   }
   const s = hitStk(p);
@@ -3398,7 +3635,7 @@ cv.addEventListener('mousedown', e => {
     snapshot();
     const tg = grpTargets();
     drag = { mode: 'move', p0: p, starts: tg.map(t => ({ t, x: t.x, y: t.y })) };
-    cv.classList.add('grabbing');
+    cv.classList.add('grabbing'); setDragQuality(true);
   } else {
     // 空白处拖动 = 框选多个素材
     if (!e.shiftKey) { selSet.clear(); S.activeStk = null; S.activeLogo = null; S.activeText = null; }
@@ -3421,7 +3658,7 @@ window.addEventListener('mousemove', e => {
     drag.starts.forEach(({ t, x, y }) => { t.x = Math.round(x + dx); t.y = Math.round(y + dy); });
     const a = activeStkObj();
     showDragInfo(`x:${a.x} y:${a.y}` + (drag.starts.length > 1 ? ` · 编组×${drag.starts.length}` : ''));
-    syncStkPanel(); renderCanvas();
+    schedulePanel(syncStkPanel); renderCanvas();
   } else if (drag.mode === 'handle') {
     const s = drag.s, st = drag.start, l = toLocal({ ...s, x: st.x, y: st.y, rot: st.rot }, p);
     // 基准必须取自「起拖时」的裁切框,否则拖动中 crop 变化会让基准漂移
@@ -3480,7 +3717,7 @@ window.addEventListener('mousemove', e => {
       showDragInfo(`裁剪 ${nc.w} × ${nc.h}px`);
     }
     if (S.group && corner) grpTargets().forEach(t => { if (t !== s) { t.scale = s.scale; t.sx = s.sx; t.sy = s.sy; } });
-    syncStkPanel(); renderCanvas();
+    schedulePanel(syncStkPanel); renderCanvas();
   } else if (drag.mode === 'logo-move') {
     const L = S.logos[drag.k];
     let lx = drag.x0 + (p.x - drag.p0.x), ly = drag.y0 + (p.y - drag.p0.y);
@@ -3532,7 +3769,7 @@ window.addEventListener('mousemove', e => {
     if (t.kind === 'base') o._body = undefined;
     showDragInfo(`${label} ${(du * 100).toFixed(0)}%, ${(dv * 100).toFixed(0)}%`);
     if (t.kind === 'logo') syncLogoPanel(t.k); else if (t.kind === 'base') syncAdjPanel();
-    syncStkPanel(); renderCanvas();
+    schedulePanel(syncStkPanel); renderCanvas();
   } else if (drag.mode === 'selrect') {
     drag.r = { x: Math.min(drag.p0.x, p.x), y: Math.min(drag.p0.y, p.y), w: Math.abs(p.x - drag.p0.x), h: Math.abs(p.y - drag.p0.y) };
     showDragInfo(`框选 ${Math.round(drag.r.w)} × ${Math.round(drag.r.h)}`);
@@ -3546,7 +3783,7 @@ window.addEventListener('mousemove', e => {
     } else S.guides = [];
     drag.t.x = Math.round(nx); drag.t.y = Math.round(ny);
     showDragInfo(`文字 x:${drag.t.x} y:${drag.t.y}`);
-    syncTextPanel(); renderCanvas();
+    schedulePanel(syncTextPanel); renderCanvas();
   } else if (drag.mode === 'marquee') {
     drag.r = { x: Math.min(drag.p0.x, p.x), y: Math.min(drag.p0.y, p.y), w: Math.abs(p.x - drag.p0.x), h: Math.abs(p.y - drag.p0.y) };
     showDragInfo(`✂ 裁切 ${Math.round(drag.r.w)} × ${Math.round(drag.r.h)}`);
@@ -3558,6 +3795,7 @@ window.addEventListener('mousemove', e => {
   } else if (drag.mode && drag.mode.startsWith('crop')) cropMove(p);
 });
 window.addEventListener('mouseup', () => {
+  setDragQuality(false);
   if (drag && drag.mode === 'selrect') {
     const r = drag.r; drag = null; hideDragInfo();
     if (r.w > 6 && r.h > 6) {
@@ -3981,7 +4219,7 @@ function cropDown(p) {
   c.hist.push({ R: { ...c.R }, C: { ...c.C } });
   if (c.hist.length > 30) c.hist.shift();
   drag = { mode: 'crop-' + hit, p0: p, R0: { ...c.R }, C0: { ...c.C } };
-  cv.classList.add('grabbing');
+  cv.classList.add('grabbing'); setDragQuality(true);
 }
 function cropMove(p) {
   const c = S.crop, dx = p.x - drag.p0.x, dy = p.y - drag.p0.y;
@@ -5158,7 +5396,7 @@ async function appendLibItems(kind) {
     const u = URL.createObjectURL(a.blob);
     stripUrls2.push(u);
     if (stripUrls2.length > 150) URL.revokeObjectURL(stripUrls2.shift());
-    im.src = u; d.appendChild(im);
+    lazyImg(im, u); d.appendChild(im);
     const pl = document.createElement('span'); pl.className = 'libi-plus'; pl.textContent = '＋'; d.appendChild(pl);
     const del = document.createElement('button'); del.className = 'libi-del'; del.textContent = '✕';
     del.title = '从素材库永久删除';
@@ -5290,17 +5528,59 @@ function selDuplicate() {
   notify(`已复制 ${ids.length} 个实例`, 'ok');
 }
 
+/* 批量加入后自动平铺,避免全部叠在画布中心造成拥挤与卡顿 */
+function tileRecentStks(count) {
+  const n = Math.min(count, S.stks.length);
+  if (n < 2) return;
+  const list = S.stks.slice(-n);
+  const { W, H } = outSize();
+  const r = bodyRect();
+  const x0 = r ? r.x : W * 0.15, y0 = r ? r.y : H * 0.15;
+  const bw = r ? r.w : W * 0.7, bh = r ? r.h : H * 0.7;
+  const cols = Math.ceil(Math.sqrt(n));
+  const rows = Math.ceil(n / cols);
+  const cw = bw / cols, ch = bh / rows;
+  list.forEach((s, i) => {
+    const cx = i % cols, cy = (i / cols) | 0;
+    s.x = Math.round(x0 + cw * (cx + 0.5));
+    s.y = Math.round(y0 + ch * (cy + 0.5));
+    // 缩放到单元格内
+    const sw = srcW(s), sh = srcH(s);
+    if (sw && sh) s.scale = clamp(Math.min(cw * 0.82 / sw, ch * 0.82 / sh) * 100, 3, 300);
+  });
+  refreshAll();
+}
+/* 画布素材过多时提示 */
+function checkCanvasLoad() {
+  const n = S.stks.filter(x => x.checked).length;
+  const el = G('load-warn');
+  if (!el) return;
+  el.style.display = n > 20 ? '' : 'none';
+  if (n > 20) el.textContent = `画布上有 ${n} 个素材，可能影响流畅度 · 取消勾选不用的可加速`;
+}
+
 /* ================= 侧栏缩略图框选 ================= */
 function enableGridMarquee(gridId, onPick) {
   const g = G(gridId);
   if (!g || g._mq) return;
   g._mq = true;
-  let st = null, box = null;
+  let st = null, box = null, autoT = null;
+  const rectOf = (e) => {
+    const r = g.getBoundingClientRect();
+    // 以网格内容坐标系计算(含滚动),四个方向都正确
+    const cx = clamp(e.clientX, r.left, r.right) - r.left + g.scrollLeft;
+    const cy = clamp(e.clientY, r.top, r.bottom) - r.top + g.scrollTop;
+    return {
+      x: Math.min(st.ox, cx), y: Math.min(st.oy, cy),
+      w: Math.abs(cx - st.ox), h: Math.abs(cy - st.oy)
+    };
+  };
   g.addEventListener('mousedown', e => {
     if (e.button !== 0) return;
-    if (e.target.closest('.ti,.sti,.libi,button,input,label,[draggable]')) return;   // 卡片上交给拖拽排序
+    if (e.target.closest('.ti,.sti,.libi,.xi,button,input,label,[draggable]')) return;
     const r = g.getBoundingClientRect();
-    st = { x: e.clientX, y: e.clientY, sx: g.scrollLeft, sy: g.scrollTop, moved: false };
+    st = { x: e.clientX, y: e.clientY, moved: false,
+      ox: e.clientX - r.left + g.scrollLeft, oy: e.clientY - r.top + g.scrollTop };
     box = document.createElement('div');
     box.className = 'grid-mq';
     g.style.position = 'relative';
@@ -5309,26 +5589,40 @@ function enableGridMarquee(gridId, onPick) {
   });
   window.addEventListener('mousemove', e => {
     if (!st) return;
-    const dx = Math.abs(e.clientX - st.x), dy = Math.abs(e.clientY - st.y);
-    if (dx > 3 || dy > 3) st.moved = true;
+    if (Math.abs(e.clientX - st.x) > 3 || Math.abs(e.clientY - st.y) > 3) st.moved = true;
     if (!box) return;
+    const b = rectOf(e);
+    box.style.left = b.x + 'px'; box.style.top = b.y + 'px';
+    box.style.width = b.w + 'px'; box.style.height = b.h + 'px';
+    // 贴近上下边缘时自动滚动
     const r = g.getBoundingClientRect();
-    const x0 = Math.min(st.x, e.clientX) - r.left + g.scrollLeft;
-    const y0 = Math.min(st.y, e.clientY) - r.top + g.scrollTop;
-    box.style.left = x0 + 'px'; box.style.top = y0 + 'px';
-    box.style.width = Math.abs(e.clientX - st.x) + 'px';
-    box.style.height = Math.abs(e.clientY - st.y) + 'px';
+    clearInterval(autoT);
+    const up = e.clientY < r.top + 26, dn = e.clientY > r.bottom - 26;
+    if ((up || dn) && g.scrollHeight > g.clientHeight) {
+      autoT = setInterval(() => {
+        g.scrollTop += up ? -14 : 14;
+        const b2 = rectOf(e);
+        box.style.left = b2.x + 'px'; box.style.top = b2.y + 'px';
+        box.style.width = b2.w + 'px'; box.style.height = b2.h + 'px';
+      }, 30);
+    }
   });
   window.addEventListener('mouseup', e => {
     if (!st) return;
+    clearInterval(autoT);
     const moved = st.moved;
     if (box) {
       if (moved) {
         const br = box.getBoundingClientRect();
         const hits = [...g.children].filter(c => {
-          if (!c.classList || !(c.classList.contains('ti') || c.classList.contains('sti') || c.classList.contains('libi'))) return false;
+          if (!c.classList) return false;
+          if (!(c.classList.contains('ti') || c.classList.contains('sti') ||
+                c.classList.contains('libi') || c.classList.contains('xi'))) return false;
           const cr = c.getBoundingClientRect();
-          return !(cr.right < br.left || cr.left > br.right || cr.bottom < br.top || cr.top > br.bottom);
+          // 需真正重叠一定面积,避免擦边误选
+          const ox = Math.min(cr.right, br.right) - Math.max(cr.left, br.left);
+          const oy = Math.min(cr.bottom, br.bottom) - Math.max(cr.top, br.top);
+          return ox > cr.width * 0.25 && oy > cr.height * 0.25;
         });
         if (hits.length && onPick) onPick(hits, e.shiftKey);
       }
@@ -5348,15 +5642,23 @@ function gridPickHandler(kind) {
     }
     const inProj = els.filter(el => el.classList.contains('ti') || el.classList.contains('sti'));
     const inLib = els.filter(el => el.classList.contains('libi'));
-    if (inLib.length) {          // 框到库中未使用的 → 批量加入项目
+    if (inLib.length) {
+      // 一次加入过多会让画布拥挤且卡顿 → 超过阈值先确认,并自动平铺排布
+      const MAXQ = 12;
+      if (inLib.length > MAXQ &&
+          !confirm(`选中了 ${inLib.length} 个素材。\n\n一次全部加入画布可能造成拥挤和卡顿。\n\n确定 = 全部加入（自动平铺）\n取消 = 放弃`)) return;
+      setProg(true, '加入素材…', 5);
       let n = 0;
       for (const el of inLib) {
         const aid = el.dataset.aid;
         if (!aid) continue;
         await addFromLibrary(aid);
         n++;
-        await new Promise(r => setTimeout(r, 40));
+        setProg(true, `加入 ${n}/${inLib.length}`, 5 + n / inLib.length * 90);
+        await new Promise(r => setTimeout(r, 10));
       }
+      setProg(false);
+      if (n > 2) tileRecentStks(n);     // 平铺排布,避免全部叠在中心
       if (n) notify(`已加入 ${n} 个到项目`, 'ok');
     }
     if (inProj.length && !inLib.length) {   // 框到项目内的 → 批量切换勾选
@@ -6015,7 +6317,7 @@ function renderExtraCanvas(x, cv2) {
    3) 色彩去污(decontaminate):去掉边缘像素里混入的背景色 → 消除白边光晕
    4) 泛洪只在"明确是背景"的像素间扩散,半透明区不参与 → 不啃掉主体   */
 function cutoutCanvas(img, tol, opts) {
-  const o = Object.assign({ feather: 2, despeckle: 1, shrink: 0, keepInner: true }, opts || {});
+  const o = Object.assign({ feather: 2, despeckle: 1, shrink: 0, keepInner: true, innerKeep: 0 }, opts || {});
   const w = img.naturalWidth, h = img.naturalHeight;
   if (!w || !h) return null;
   const c = document.createElement('canvas');
@@ -6065,7 +6367,7 @@ function cutoutCanvas(img, tol, opts) {
     while (st.length) {
       const p2 = st.pop();
       if (p2 < 0 || p2 >= N || bg[p2]) continue;
-      if (alpha[p2] > 0.5) continue;               // 碰到主体就停
+      if (alpha[p2] > 0.5) continue;
       bg[p2] = 1;
       const cx = p2 % w, cy = (p2 / w) | 0;
       if (cx > 0) st.push(p2 - 1);
@@ -6073,9 +6375,45 @@ function cutoutCanvas(img, tol, opts) {
       if (cy > 0) st.push(p2 - w);
       if (cy < h - 1) st.push(p2 + w);
     }
-    // 未与边缘连通的低 alpha 区域(图案内部的白) → 恢复为不透明
-    for (let p2 = 0; p2 < N; p2++) if (!bg[p2] && alpha[p2] < 1) alpha[p2] = 1;
-    // 与边缘连通的软过渡带保留其连续 alpha
+    /* 内部封闭白区:按面积分级处理
+       · 小洞(字母 O/A 的孔、图案镂空) → 去掉,否则留一块白斑
+       · 大片(被主体包围的背景区域)   → 也去掉
+       · 极小噪点                      → 保留,避免把抗锯齿像素打穿
+       innerKeep 控制阈值:0=全去 1=全留 中间=按比例 */
+    const keepRatio = o.innerKeep === undefined ? 0 : clamp(o.innerKeep, 0, 1);
+    const seen = new Uint8Array(N);
+    const areaMin = Math.max(4, Math.round(N * 0.00012));   // 小于此视为噪点,保留
+    for (let p0 = 0; p0 < N; p0++) {
+      if (bg[p0] || seen[p0] || alpha[p0] > 0.5) continue;
+      // 收集这一块封闭低 alpha 区域
+      const blob = [];
+      const q = [p0];
+      seen[p0] = 1;
+      while (q.length) {
+        const p2 = q.pop();
+        blob.push(p2);
+        const cx = p2 % w, cy = (p2 / w) | 0;
+        const nb = [];
+        if (cx > 0) nb.push(p2 - 1);
+        if (cx < w - 1) nb.push(p2 + 1);
+        if (cy > 0) nb.push(p2 - w);
+        if (cy < h - 1) nb.push(p2 + w);
+        for (const nn of nb) {
+          if (seen[nn] || bg[nn] || alpha[nn] > 0.5) continue;
+          seen[nn] = 1; q.push(nn);
+        }
+      }
+      const area = blob.length;
+      const frac = area / N;
+      let keep;
+      if (area <= areaMin) keep = true;                       // 噪点级,保留
+      else if (keepRatio >= 1) keep = true;                   // 用户要求全留
+      else if (keepRatio <= 0) keep = false;                  // 全去(默认)
+      else keep = frac < keepRatio * 0.06;                    // 按比例:小于阈值才留
+      if (keep) blob.forEach(p2 => { alpha[p2] = 1; });
+      else blob.forEach(p2 => { bg[p2] = 1; alpha[p2] = 0; });
+    }
+    // 软过渡带:与背景相邻的像素按色差给连续 alpha
     for (let p2 = 0; p2 < N; p2++) {
       if (bg[p2]) { alpha[p2] = 0; continue; }
       const cx = p2 % w, cy = (p2 / w) | 0;
@@ -6164,17 +6502,164 @@ function cutoutCanvas(img, tol, opts) {
 }
 /* 抠图参数弹窗:实时预览再确认 */
 let cutState = null;
+/* ═══════════ 抠图手动修补:擦除 / 恢复画笔 ═══════════ */
+let cutMask = null;        // Float32Array:1=保留 0=擦除(用户手动覆盖层)
+let cutBrush = { size: 24, mode: 'erase', drawing: false, last: null };
+function initCutMask(w, h) {
+  cutMask = new Float32Array(w * h).fill(1);
+  cutBrush.w = w; cutBrush.h = h;
+}
+function setBrushMode(m) {
+  cutBrush.mode = m;
+  ['erase', 'restore'].forEach(k => {
+    const b = G('cb-' + k);
+    if (b) b.classList.toggle('act', k === m);
+  });
+  const pv = G('cut-prev');
+  if (pv) pv.classList.toggle('erasing', m === 'erase');
+}
+function setBrushSize(v) {
+  cutBrush.size = clamp(+v || 24, 4, 160);
+  const r = G('cb-size'), n = G('cb-size-n');
+  if (r) r.value = cutBrush.size; if (n) n.value = cutBrush.size;
+  updBrushCursor();
+}
+function updBrushCursor() {
+  const el = G('cut-cursor');
+  if (!el || !cutState) return;
+  const sc = cutState.viewScale || 1;
+  const d = Math.max(6, cutBrush.size * sc);
+  el.style.width = d + 'px'; el.style.height = d + 'px';
+}
+/* 在 mask 上画圆(软边) */
+function paintMask(cx, cy, val) {
+  if (!cutMask) return;
+  const w = cutBrush.w, h = cutBrush.h, R = cutBrush.size / 2;
+  const x0 = Math.max(0, Math.floor(cx - R)), x1 = Math.min(w - 1, Math.ceil(cx + R));
+  const y0 = Math.max(0, Math.floor(cy - R)), y1 = Math.min(h - 1, Math.ceil(cy + R));
+  for (let y = y0; y <= y1; y++) {
+    for (let x = x0; x <= x1; x++) {
+      const dx = x - cx, dy = y - cy, d = Math.sqrt(dx * dx + dy * dy);
+      if (d > R) continue;
+      const soft = d > R * 0.72 ? 1 - (d - R * 0.72) / (R * 0.28) : 1;   // 软边
+      const i = y * w + x;
+      cutMask[i] = val === 0 ? Math.min(cutMask[i], 1 - soft) : Math.max(cutMask[i], soft);
+    }
+  }
+}
+function cutPointerPos(e) {
+  const cv2 = G('cut-canvas');
+  if (!cv2 || !cutState) return null;
+  const r = cv2.getBoundingClientRect();
+  const sc = cutState.viewScale || 1;
+  return { x: (e.clientX - r.left) / sc, y: (e.clientY - r.top) / sc };
+}
+function cutBrushDown(e) {
+  if (!cutState || !cutMask) return;
+  e.preventDefault();
+  cutBrush.drawing = true;
+  const p = cutPointerPos(e);
+  if (!p) return;
+  cutBrush.last = p;
+  paintMask(p.x, p.y, cutBrush.mode === 'erase' ? 0 : 1);
+  applyCutMask();
+}
+function cutBrushMove(e) {
+  const cur = G('cut-cursor');
+  if (cur && cutState) {
+    const box = G('cut-prev').getBoundingClientRect();
+    cur.style.display = '';
+    cur.style.left = (e.clientX - box.left) + 'px';
+    cur.style.top = (e.clientY - box.top) + 'px';
+  }
+  if (!cutBrush.drawing || !cutState || !cutMask) return;
+  const p = cutPointerPos(e);
+  if (!p) return;
+  const v = cutBrush.mode === 'erase' ? 0 : 1;
+  if (cutBrush.last) {            // 连线插值,快速拖动不断笔
+    const dx = p.x - cutBrush.last.x, dy = p.y - cutBrush.last.y;
+    const steps = Math.max(1, Math.ceil(Math.hypot(dx, dy) / (cutBrush.size * 0.28)));
+    for (let i = 1; i <= steps; i++) paintMask(cutBrush.last.x + dx * i / steps, cutBrush.last.y + dy * i / steps, v);
+  } else paintMask(p.x, p.y, v);
+  cutBrush.last = p;
+  applyCutMask();
+}
+function cutBrushUp() { cutBrush.drawing = false; cutBrush.last = null; }
+function clearCutMask() {
+  if (!cutMask) return;
+  cutMask.fill(1);
+  applyCutMask();
+  notify('已清除手动修改');
+}
+/* 把算法结果 + 手动 mask 合成到预览画布 */
+let _maskRaf = false;
+function applyCutMask() {
+  if (_maskRaf) return;
+  _maskRaf = true;
+  requestAnimationFrame(() => {
+    _maskRaf = false;
+    if (!cutState || !cutState.baseCanvas) return;
+    const src = cutState.baseCanvas, w = src.width, h = src.height;
+    const out = cutState.canvas || (cutState.canvas = document.createElement('canvas'));
+    out.width = w; out.height = h;
+    const ox = out.getContext('2d', { willReadFrequently: true });
+    ox.clearRect(0, 0, w, h);
+    ox.drawImage(src, 0, 0);
+    if (cutMask) {
+      const d = ox.getImageData(0, 0, w, h), px = d.data;
+      for (let i = 0; i < cutMask.length; i++) {
+        const m = cutMask[i];
+        if (m >= 1) continue;
+        px[i * 4 + 3] = Math.round(px[i * 4 + 3] * m);
+      }
+      // 恢复笔:把原图像素补回(算法误删的部分)
+      if (cutState.origData) {
+        const od = cutState.origData.data;
+        for (let i = 0; i < cutMask.length; i++) {
+          if (cutMask[i] > 1.0001) continue;
+          if (cutMask[i] === 1 && px[i * 4 + 3] === 0 && cutState.restored && cutState.restored[i]) {
+            px[i * 4] = od[i * 4]; px[i * 4 + 1] = od[i * 4 + 1];
+            px[i * 4 + 2] = od[i * 4 + 2]; px[i * 4 + 3] = 255;
+          }
+        }
+      }
+      ox.putImageData(d, 0, 0);
+    }
+    drawCutPreview(out);
+  });
+}
+function drawCutPreview(c) {
+  const cv2 = G('cut-canvas');
+  if (!cv2) return;
+  const box = Math.max(320, Math.min(window.innerWidth * 0.46, window.innerHeight * 0.52));
+  const sc = Math.min(1, box / Math.max(c.width, c.height));
+  cutState.viewScale = sc;
+  cv2.width = Math.max(1, Math.round(c.width * sc));
+  cv2.height = Math.max(1, Math.round(c.height * sc));
+  cv2.style.width = cv2.width + 'px';
+  cv2.style.height = cv2.height + 'px';
+  const x = cv2.getContext('2d');
+  x.clearRect(0, 0, cv2.width, cv2.height);
+  x.imageSmoothingQuality = 'high';
+  x.drawImage(c, 0, 0, cv2.width, cv2.height);
+  updBrushCursor();
+}
+
 function openCutout(aid, name, onDone) {
   assetLoad(aid).then(a => {
     if (!a || !a.img) return notify('素材加载失败', 'err');
     cutState = { aid, name: name || a.name, img: a.img, onDone,
-      tol: 26, feather: 2, shrink: 0, despeckle: 1, keepInner: true };
+      tol: 24, feather: 2, shrink: 0, despeckle: 1, keepInner: true, innerKeep: 0 };
+    initCutMask(a.img.naturalWidth, a.img.naturalHeight);
     G('cut-ov').classList.add('on');
-    syncCutUI();
+    syncCutUI(); setBrushMode('erase'); setBrushSize(24);
     renderCutPreview();
   });
 }
-function closeCutout() { G('cut-ov').classList.remove('on'); cutState = null; }
+function closeCutout() {
+  G('cut-ov').classList.remove('on');
+  cutState = null; cutMask = null; cutBrush.drawing = false;
+}
 function syncCutUI() {
   if (!cutState) return;
   const set = (id, v) => { const e = G(id); if (e) e.value = v; };
@@ -6183,24 +6668,27 @@ function syncCutUI() {
   set('cut-shrink', cutState.shrink); set('cut-shrink-n', cutState.shrink);
   set('cut-despeckle', cutState.despeckle); set('cut-despeckle-n', cutState.despeckle);
   const kb = G('cut-keepinner'); if (kb) kb.checked = !!cutState.keepInner;
+  set('cut-inner', Math.round((cutState.innerKeep || 0) * 100));
+  set('cut-inner-n', Math.round((cutState.innerKeep || 0) * 100));
 }
 function setCutOpt(k, v) {
   if (!cutState) return;
   if (k === 'keepInner') cutState.keepInner = !!v;
-  else if (k === 'tol') cutState.tol = clamp(+v || 26, 4, 120);
+  else if (k === 'tol') cutState.tol = clamp(+v || 24, 4, 120);
   else if (k === 'feather') cutState.feather = clamp(+v || 0, 0, 6);
   else if (k === 'shrink') cutState.shrink = clamp(+v || 0, 0, 5);
   else if (k === 'despeckle') cutState.despeckle = clamp(+v || 0, 0, 4);
+  else if (k === 'innerKeep') cutState.innerKeep = clamp((+v || 0) / 100, 0, 1);
   syncCutUI();
   renderCutPreview();
 }
 function cutPreset(k) {
   if (!cutState) return;
   const P = {
-    pure:  { tol: 24, feather: 2, shrink: 0, despeckle: 1, keepInner: true },
-    soft:  { tol: 34, feather: 3, shrink: 1, despeckle: 2, keepInner: true },
-    hard:  { tol: 58, feather: 2, shrink: 2, despeckle: 3, keepInner: false },
-    crisp: { tol: 26, feather: 0, shrink: 0, despeckle: 0, keepInner: true }
+    pure:  { tol: 24, feather: 2, shrink: 0, despeckle: 1, keepInner: true, innerKeep: 0 },
+    soft:  { tol: 34, feather: 3, shrink: 1, despeckle: 2, keepInner: true, innerKeep: 0 },
+    hard:  { tol: 58, feather: 2, shrink: 2, despeckle: 3, keepInner: false, innerKeep: 0 },
+    crisp: { tol: 26, feather: 0, shrink: 0, despeckle: 0, keepInner: true, innerKeep: 0 }
   }[k];
   if (!P) return;
   Object.assign(cutState, P);
@@ -6210,28 +6698,20 @@ function cutPreset(k) {
 let cutT = null;
 function renderCutPreview() {
   clearTimeout(cutT);
-  const box = G('cut-prev');
-  if (box) box.style.opacity = '.5';
   cutT = setTimeout(() => {
     if (!cutState) return;
     const c = cutoutCanvas(cutState.img, cutState.tol, cutState);
-    if (box) box.style.opacity = '1';
-    if (!box) return;
-    box.innerHTML = '';
-    if (!c) { box.textContent = '无法预览（图片跨域受限）'; return; }
-    const sc = Math.min(1, 300 / Math.max(c.width, c.height));
-    const t = document.createElement('canvas');
-    t.width = Math.max(1, Math.round(c.width * sc)); t.height = Math.max(1, Math.round(c.height * sc));
-    t.getContext('2d').drawImage(c, 0, 0, t.width, t.height);
-    box.appendChild(t);
-    cutState.canvas = c;
+    if (!c) { const b = G('cut-prev'); if (b) b.textContent = '无法预览（图片跨域受限）'; return; }
+    cutState.baseCanvas = c;
     const st = G('cut-stat');
-    if (st && c._cutStat) st.textContent = `去掉 ${Math.round(c._cutStat.removed / c._cutStat.total * 100)}% 区域 · ${c.width}×${c.height}`;
-  }, 140);
+    if (st && c._cutStat) st.textContent = `去掉 ${Math.round(c._cutStat.removed / c._cutStat.total * 100)}% · ${c.width}×${c.height}`;
+    applyCutMask();
+  }, 130);
 }
 async function confirmCutout() {
   if (!cutState) return;
-  const c = cutState.canvas || cutoutCanvas(cutState.img, cutState.tol, cutState);
+  if (!cutState.canvas) { renderCutPreview(); await new Promise(r => setTimeout(r, 220)); }
+  const c = cutState.canvas || cutState.baseCanvas;
   if (!c) return notify('抠图失败', 'err');
   setProg(true, '写入素材库…', 60);
   try {
@@ -6358,8 +6838,10 @@ async function renderLibrary() {
     d.appendChild(sel);
     if (usedIds.has(a.id)) { const u = document.createElement('span'); u.className = 'lib-used-b'; u.textContent = '已用'; d.appendChild(u); }
     const th = document.createElement('div'); th.className = 'lib-th';
-    const im = document.createElement('img'); im.src = URL.createObjectURL(a.blob);
-    im.onload = () => setTimeout(() => URL.revokeObjectURL(im.src), 1000);
+    const im = document.createElement('img');
+    const u2 = URL.createObjectURL(a.blob);
+    lazyImg(im, u2);
+    im.onload = () => setTimeout(() => URL.revokeObjectURL(u2), 2500);
     th.appendChild(im); d.appendChild(th);
     const nm = document.createElement('div'); nm.className = 'lib-nm'; nm.textContent = a.name; d.appendChild(nm);
     if (a.kind !== 'base') {
@@ -7174,6 +7656,20 @@ G('tag-ov').addEventListener('click', e => { if (e.target === G('tag-ov')) close
 G('lib-ov').addEventListener('click', e => { if (e.target === G('lib-ov')) closeLibrary(); });
 G('tpls-ov').addEventListener('click', e => { if (e.target === G('tpls-ov')) closeTpls(); });
 G('cut-ov').addEventListener('click', e => { if (e.target === G('cut-ov')) closeCutout(); });
+(function bindCutBrush() {
+  const cv2 = G('cut-canvas'), box = G('cut-prev');
+  if (!cv2 || !box) return;
+  cv2.addEventListener('mousedown', cutBrushDown);
+  box.addEventListener('mousemove', cutBrushMove);
+  box.addEventListener('mouseleave', () => { const c = G('cut-cursor'); if (c) c.style.display = 'none'; });
+  window.addEventListener('mouseup', cutBrushUp);
+  // 滚轮调笔刷大小
+  box.addEventListener('wheel', e => {
+    if (!cutState) return;
+    e.preventDefault();
+    setBrushSize(cutBrush.size + (e.deltaY < 0 ? 4 : -4));
+  }, { passive: false });
+})();
 G('pm-ov').addEventListener('click', e => { if (e.target === G('pm-ov')) closeProjMgr(); });
 G('tag-input').addEventListener('keydown', e => {
   if (e.key === 'Enter') { e.preventDefault(); addTagFromInput(); }
