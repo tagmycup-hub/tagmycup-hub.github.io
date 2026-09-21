@@ -319,19 +319,19 @@ input::placeholder{color:var(--mut)!important;}
 <div id="mob">
   <div id="mob-top">
     <button class="mb-ico" onclick="mobOpenProjects()" title="项目">☰</button>
-    <span id="mob-title">默认项目</span>
-    <button class="mb-ico" onclick="mobSave()" title="保存到相册">⤓</button>
+    <button class="mb-ico sm" id="mob-undo" onclick="mobUndo()" title="撤销">↶</button>
+    <button class="mb-ico sm" id="mob-redo" onclick="mobRedo()" title="重做">↷</button>
+    <span id="mob-title" onclick="mobOpenProjects()">默认项目</span>
+    <button class="mb-save" onclick="mobSave()">保存</button>
   </div>
+  <input type="file" id="mob-inp" accept="image/*" multiple hidden onchange="mobUpload(this)">
+  <div id="mob-prog"><div class="mp-box"><div class="mp-spin"></div><div id="mob-prog-txt">处理中…</div><div class="mp-bar"><i id="mob-prog-fill"></i></div></div></div>
+  <div id="mob-sheet-bg" onclick="mobCloseSheet()"></div>
+  <div id="mob-sheet"><div class="ms-grip"></div><div id="mob-sheet-body"></div></div>
   <div id="mob-canvas-wrap"><canvas id="mob-canvas"></canvas></div>
   <div id="mob-hint"></div>
   <div id="mob-panel"></div>
-  <div id="mob-tabs">
-    <button class="mtab act" data-t="base" onclick="mobTab('base')"><i>▢</i><span>底图</span></button>
-    <button class="mtab" data-t="sticker" onclick="mobTab('sticker')"><i>◈</i><span>素材</span></button>
-    <button class="mtab" data-t="adjust" onclick="mobTab('adjust')"><i>◑</i><span>调整</span></button>
-    <button class="mtab" data-t="text" onclick="mobTab('text')"><i>T</i><span>文字</span></button>
-    <button class="mtab" data-t="export" onclick="mobTab('export')"><i>⤓</i><span>导出</span></button>
-  </div>
+  <div id="mob-tabs"><button class="mtab act" data-t="base" onclick="mobTab('base')"><i>▢</i><span>底图</span></button><button class="mtab" data-t="sticker" onclick="mobTab('sticker')"><i>◈</i><span>素材</span></button><button class="mtab" data-t="logo" onclick="mobTab('logo')"><i>®</i><span>Logo</span></button><button class="mtab" data-t="text" onclick="mobTab('text')"><i>T</i><span>文字</span></button><button class="mtab" data-t="adjust" onclick="mobTab('adjust')"><i>◑</i><span>调色</span></button><button class="mtab" data-t="export" onclick="mobTab('export')"><i>⤓</i><span>导出</span></button></div>
 </div>
 
 <div id="proj-tabs"></div>
@@ -659,6 +659,7 @@ input::placeholder{color:var(--mut)!important;}
     <button class="lib-tab act" data-k="sticker" onclick="switchLibTab('sticker')">🎨 素材</button>
     <button class="lib-tab" data-k="base" onclick="switchLibTab('base')">🖼 底图</button>
     <button class="lib-tab" data-k="logo" onclick="switchLibTab('logo')">🏷 Logo</button>
+    <button class="bi" id="lib-batch-btn" onclick="toggleLibBatch()">☑ 批量选择</button>
     <input type="text" id="lib-search" placeholder="搜索…" oninput="renderLibrary()"><select id="lib-sort" onchange="renderLibrary()" style="background:var(--surf3);color:var(--txt);border:1px solid var(--bd);border-radius:6px;padding:5px 7px;font-size:11px;outline:none;cursor:pointer"><option value="recent">最新上传</option><option value="used">最近使用</option><option value="name">名称</option></select>
     <button class="bi" onclick="cleanOrphanAssets()" title="删除所有项目都未使用的素材">清理未用</button>
     <button class="bp" onclick="G('lib-file').click()">上传到库</button>
@@ -688,6 +689,8 @@ input::placeholder{color:var(--mut)!important;}
       <option value="name">名称</option>
       <option value="size">内容多少</option>
     </select>
+    <button class="bi" id="pm-batch-btn" onclick="togglePmBatch()">☑ 批量选择</button>
+    <button class="bi" onclick="pmSelAll()">全选</button>
     <button class="bi" onclick="pmRefresh()" title="重新读取项目数据">↻ 刷新</button>
     <button class="bp" onclick="pmNew()">新建项目</button>
   </div>
@@ -763,7 +766,7 @@ input::placeholder{color:var(--mut)!important;}
 </div></div>
 <div id="tpls-ov" class="ov"><div class="ov-card wide">
   <div class="ov-t">▤ 排版模板 <span id="tpls-info" style="font-size:11px;color:var(--dim);font-weight:400"></span></div>
-  <div style="display:flex;gap:6px;margin-bottom:10px"><button class="bp" onclick="saveAsTemplate()">＋ 保存当前排版为模板</button></div>
+  <div style="display:flex;gap:6px;margin-bottom:10px"><button class="bi" id="tpl-batch-btn" onclick="toggleTplBatch()">☑ 批量选择</button><button class="bi" id="tpl-del-btn" onclick="tplDeletePicked()" style="display:none">删除选中</button><button class="bp" onclick="saveAsTemplate()">＋ 保存当前排版为模板</button></div>
   <div id="tpls-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;max-height:56vh;overflow-y:auto"></div>
   <div style="font-size:11px;color:var(--dim);margin-top:8px">模板保存素材引用与全部参数，套用后可直接换底图导出</div>
   <div class="mbtns"><button class="bg" onclick="closeTpls()">关闭</button></div>
@@ -792,10 +795,17 @@ input::placeholder{color:var(--mut)!important;}
   <button onclick="clearSel()">取消选择</button>
 </div>
 <div id="sbatch-bar">
-  <span>批量管理 <b id="sb-kind">素材</b> · 已选 <b id="sb-n">0</b></span>
+  <span>批量 <b id="sb-kind">素材</b> · 已选 <b id="sb-n">0</b></span>
   <button onclick="sideBatchSelAll()">全选</button>
+  <button onclick="sideBatchInvertPick()">反选</button>
+  <span class="sb-sep"></span>
+  <button onclick="sideBatchAddToProject()" title="把选中的云端素材加入当前项目">加入项目</button>
+  <button onclick="sideBatchSetChecked(true)" title="在画布/导出中启用">选中</button>
+  <button onclick="sideBatchSetChecked(false)" title="在画布/导出中停用">取消选中</button>
+  <button onclick="sideBatchRemoveFromProject()" title="从当前项目移出，云端保留">移出项目</button>
+  <span class="sb-sep"></span>
   <button class="del" onclick="sideBatchDelete()">从云端删除</button>
-  <button onclick="exitSideBatch()">退出</button>
+  <button onclick="exitSideBatch()">完成</button>
 </div>
 <div id="ctx-menu"></div>
 <div id="notif"></div>
@@ -1810,6 +1820,127 @@ input[type=range]::-webkit-slider-thumb{transition:transform .1s var(--ease),box
   .m-chip.on{background:var(--grad);color:#fff;}
   .m-empty{text-align:center;padding:22px 10px;color:var(--mut);font-size:12px;line-height:1.8;}
 }
+
+@media (max-width:820px), (pointer:coarse) and (max-width:1024px){
+  .mb-ico.sm{width:34px;height:34px;font-size:16px;}
+  .mb-ico:disabled{opacity:.3;}
+  #mob-title{cursor:pointer;}
+  #mob-title::after{content:' \25BE';font-size:10px;color:var(--mut);}
+  .mb-save{flex-shrink:0;height:36px;padding:0 16px;border-radius:999px;border:none;background:var(--grad);
+    color:#fff;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 3px 12px rgba(59,130,246,.35);}
+  .mb-save:active{transform:scale(.95);}
+  .mtab{font-size:9.5px;}
+  .mtab i{font-size:17px;}
+  /* 进度层 */
+  #mob-prog{display:none;position:fixed;inset:0;z-index:9000;background:rgba(8,20,32,.55);
+    align-items:center;justify-content:center;backdrop-filter:blur(3px);}
+  #mob-prog.on{display:flex;}
+  .mp-box{background:var(--surf2);border-radius:18px;padding:22px 26px;min-width:200px;text-align:center;
+    box-shadow:0 12px 40px rgba(0,0,0,.5);}
+  .mp-spin{width:34px;height:34px;margin:0 auto 12px;border-radius:50%;border:3px solid var(--surf3);
+    border-top-color:var(--acc);animation:mpspin .8s linear infinite;}
+  @keyframes mpspin{to{transform:rotate(360deg)}}
+  #mob-prog-txt{font-size:13px;color:var(--txt);margin-bottom:10px;}
+  .mp-bar{height:5px;background:var(--surf3);border-radius:999px;overflow:hidden;}
+  .mp-bar i{display:block;height:100%;width:0;background:var(--grad);transition:width .2s;}
+  /* 底部抽屉 */
+  #mob-sheet-bg{display:none;position:fixed;inset:0;z-index:8000;background:rgba(0,0,0,.45);}
+  #mob-sheet-bg.on{display:block;}
+  #mob-sheet{position:fixed;left:0;right:0;bottom:0;z-index:8001;background:var(--surf);
+    border-radius:20px 20px 0 0;max-height:78vh;overflow-y:auto;transform:translateY(105%);
+    transition:transform .26s cubic-bezier(.16,1,.3,1);padding:6px 16px calc(18px + env(safe-area-inset-bottom));}
+  #mob-sheet.on{transform:none;}
+  .ms-grip{width:40px;height:5px;border-radius:999px;background:var(--bd);margin:6px auto 12px;}
+  .ms-item{display:flex;align-items:center;gap:12px;padding:11px 10px;border-radius:12px;cursor:pointer;}
+  .ms-item:active{background:var(--surf3);}
+  .ms-item.cur{background:var(--acc-d);}
+  .ms-th{width:44px;height:44px;border-radius:10px;background:var(--surf3) center/cover;flex-shrink:0;}
+  .ms-nm{flex:1;min-width:0;font-size:14px;color:var(--txt);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .ms-meta{font-size:11px;color:var(--mut);}
+  .ms-ttl{font-size:15px;font-weight:700;margin:0 4px 10px;}
+  /* 工具快捷行 */
+  .m-tools{display:flex;gap:8px;overflow-x:auto;padding:2px 0 6px;scrollbar-width:none;}
+  .m-tools::-webkit-scrollbar{display:none;}
+  .m-tool{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:4px;min-width:58px;
+    padding:9px 6px;border-radius:12px;background:var(--surf3);border:none;color:var(--txt);font-size:11px;cursor:pointer;}
+  .m-tool i{font-style:normal;font-size:18px;}
+  .m-tool:active{transform:scale(.94);background:var(--acc-d);}
+  .m-tool.dg{color:var(--err);}
+  .m-seg{display:flex;background:var(--surf3);border-radius:10px;padding:3px;margin-bottom:10px;}
+  .m-seg button{flex:1;padding:8px;border:none;background:transparent;color:var(--dim);font-size:12px;border-radius:8px;cursor:pointer;}
+  .m-seg button.on{background:var(--surf);color:var(--txt);font-weight:600;box-shadow:0 1px 4px rgba(0,0,0,.25);}
+  /* 抠图弹窗手机适配 */
+  #cut-ov .ov-card{width:100vw!important;max-width:100vw!important;height:100%!important;max-height:100%!important;
+    border-radius:0!important;padding:10px 12px calc(10px + env(safe-area-inset-bottom))!important;}
+  .cut-body{flex-direction:column!important;gap:8px;}
+  .cut-right{flex:0 0 auto!important;max-height:30vh;}
+  #cut-stage{touch-action:none;cursor:default;}
+  .cut-tools{gap:5px;}
+  .cut-tools .bi{padding:8px 11px!important;font-size:12px!important;}
+  #cut-hud{bottom:8px;right:8px;}
+  #cut-hud button{width:32px;height:32px;}
+  /* 通知位置避开底栏 */
+  #notif{bottom:calc(84px + env(safe-area-inset-bottom))!important;max-width:88vw;}
+}
+
+/* ═══════════ 缩略图:规整方形 + 点击即选 ═══════════ */
+.ti,.sti,.libi,.xi{border-radius:6px!important;border:2px solid transparent!important;overflow:hidden!important;
+  background:var(--surf3);box-shadow:none;}
+.ti img,.sti>img,.libi img,.xi img{border-radius:0!important;width:100%;height:100%;object-fit:contain;display:block;}
+#extra-grid .xi img{object-fit:cover;}
+/* 悬停只轻微上浮,不再缩放(缩放会让点击位置跳动) */
+.ti:hover,.sti:hover,.libi:hover,.xi:hover{transform:translate3d(0,-2px,0)!important;box-shadow:0 5px 14px rgba(0,0,0,.3)!important;}
+/* 选中 / 未选中 */
+.ti.is-off,.sti.is-off,.xi.is-off{opacity:.42;filter:saturate(.6);}
+.ti.is-off:hover,.sti.is-off:hover,.xi.is-off:hover{opacity:.8;filter:none;}
+.ti.is-on,.sti.is-on,.xi.is-on{border-color:rgba(59,130,246,.55)!important;}
+.ti.is-active,.sti.is-active{border-color:var(--acc)!important;box-shadow:0 0 0 2px var(--acc-g)!important;}
+/* 选中角标:右下小勾,仅展示不可点 */
+.ti.is-on::after,.sti.is-on::after,.xi.is-on::after{content:'✓';position:absolute;right:3px;bottom:3px;width:15px;height:15px;
+  border-radius:50%;background:var(--acc);color:#fff;font-size:9px;line-height:15px;text-align:center;
+  box-shadow:0 1px 3px rgba(0,0,0,.4);pointer-events:none;z-index:2;}
+body.sbatch .ti::after,body.sbatch .sti::after,body.sbatch .xi::after{display:none;}
+/* 勾选框:普通模式隐藏,批量模式才出现 */
+body:not(.sbatch) .ti-ck,body:not(.sbatch) .sti-ck,body:not(.sbatch) .xi-ck{display:none!important;}
+body.sbatch .ti-ck,body.sbatch .sti-ck,body.sbatch .xi-ck{display:flex!important;position:absolute;top:4px;left:4px;
+  width:20px;height:20px;border-radius:5px;background:rgba(15,23,32,.72);border:2px solid #fff;z-index:4;
+  align-items:center;justify-content:center;color:#fff;font-size:11px;box-shadow:0 1px 4px rgba(0,0,0,.5);}
+body.sbatch .ti-ck.on,body.sbatch .sti-ck.on,body.sbatch .xi-ck.on{background:var(--warm);border-color:var(--warm);}
+body.sbatch .ti-ck svg,body.sbatch .sti-ck svg{display:none;}
+body.sbatch .ti,body.sbatch .sti,body.sbatch .xi{opacity:1!important;filter:none!important;}
+.ti.sbpick,.sti.sbpick,.xi.sbpick,.libi.sbpick{border-color:var(--warm)!important;box-shadow:0 0 0 2px rgba(245,158,11,.3)!important;}
+/* 序号放左上(普通模式),批量模式让位给勾选框 */
+.ti-n,.sti-n{top:4px!important;left:4px!important;}
+body.sbatch .ti-n,body.sbatch .sti-n{display:none;}
+/* 删除键只在悬停时出现,不挡图 */
+.ti .tdel,.ti .tdel2,.sti .tdel,.sti .tdel2{opacity:0;transition:opacity .12s;}
+.ti:hover .tdel,.ti:hover .tdel2,.sti:hover .tdel,.sti:hover .tdel2{opacity:1;}
+body.sbatch .tdel,body.sbatch .tdel2,body.sbatch .xi-del,body.sbatch .libi-del{display:none!important;}
+/* 批量工具条 */
+.sb-sep{width:1px;height:18px;background:var(--bd);margin:0 2px;}
+#sbatch-bar{flex-wrap:wrap;justify-content:center;max-width:min(94vw,760px)!important;}
+
+/* 项目管理:勾选框仅批量模式显示 */
+.pm-card:not(.batch) .pm-sel{display:none!important;}
+.pm-card.batch .pm-i{cursor:pointer;}
+.pm-card.batch .pm-i:not(.picked){opacity:.72;}
+.pm-card.batch .pm-sel{width:22px;height:22px;border-radius:6px;background:rgba(15,23,32,.72);border:2px solid #fff;color:#fff;}
+.pm-card.batch .pm-sel.on{background:var(--warm);border-color:var(--warm);}
+.pm-i.picked{border-color:var(--warm)!important;box-shadow:0 0 0 2px rgba(245,158,11,.3)!important;opacity:1!important;}
+.pm-card.batch .pm-acts{pointer-events:none;opacity:.35;}
+#pm-batch-btn.act{background:var(--warm);color:#fff;border-color:var(--warm);}
+.pm-th{aspect-ratio:1;border-radius:6px!important;background:#fff center/contain no-repeat;}
+.pm-th img{object-fit:contain;background:#fff;}
+
+/* 素材库弹窗:勾选框仅批量模式显示 */
+#lib-ov:not(.batch) .lib-sel{display:none!important;}
+#lib-ov:not(.batch) #lib-batch{display:none!important;}
+#lib-ov.batch .lib-i:not(.picked){opacity:.72;}
+#lib-ov.batch .lib-sel{width:21px;height:21px;border-radius:6px;background:rgba(15,23,32,.72);border:2px solid #fff;}
+#lib-ov.batch .lib-sel.on{background:var(--warm);border-color:var(--warm);}
+#lib-batch-btn.act,#tpl-batch-btn.act{background:var(--warm);color:#fff;border-color:var(--warm);}
+.lib-th{border-radius:6px!important;}
+#tpls-grid .pm-i.picked{border-color:var(--warm)!important;box-shadow:0 0 0 2px rgba(245,158,11,.3)!important;}
 </style>
 <script>
 /* ============================================================
@@ -3244,6 +3375,118 @@ function previewScale() {
   return n > 24 ? 0.6 : n > 12 ? 0.8 : 1;
 }
 
+/* ═══════════ 统一选择模式 ═══════════
+   普通模式:点缩略图 = 选中/取消(参与画布与导出),不显示勾选框
+   批量模式:出现勾选框,点缩略图 = 加入/移出批量选择 */
+function thumbKindOf(gid) { return gid === 'base-grid' ? 'base' : gid === 'stk-grid' ? 'sticker' : gid === 'extra-grid' ? 'extra' : 'logo'; }
+function inBatchOf(kind) { return sideBatch.on && sideBatch.kind === kind; }
+function toggleThumb(kind, o) {
+  snapshot();
+  if (kind === 'base') {
+    const idx = S.bases.indexOf(o);
+    const on = o.checked !== false;
+    o.checked = !on;
+    if (o.checked) S.activeBase = idx;
+    else if (S.activeBase === idx) {
+      const nx = S.bases.findIndex(b => b.checked !== false);
+      if (nx >= 0) S.activeBase = nx;
+    }
+  } else if (kind === 'sticker') {
+    o.checked = !o.checked;
+    if (o.checked) { S.activeStk = o.id; S.activeLogo = null; S.activeText = null; }
+    else if (S.activeStk === o.id) {
+      const nx = [...S.stks].reverse().find(x => x.checked);
+      S.activeStk = nx ? nx.id : null;
+    }
+  } else if (kind === 'extra') {
+    o.checked = !o.checked;
+  }
+  refreshAll();
+}
+/* 渲染后统一重绑点击(不改动原有渲染函数内部) */
+function rebindThumbs(kind) {
+  const gid = kind === 'base' ? 'base-grid' : kind === 'sticker' ? 'stk-grid' : 'extra-grid';
+  const sel = kind === 'base' ? '.ti' : kind === 'sticker' ? '.sti' : '.xi';
+  const arr = kind === 'base' ? S.bases : kind === 'sticker' ? S.stks : S.extras;
+  const batch = inBatchOf(kind);
+  document.querySelectorAll('#' + gid + ' ' + sel).forEach(el => {
+    const id = +el.dataset.id;
+    const o = arr.find(x => x.id === id);
+    if (!o) return;
+    const on = kind === 'base' ? o.checked !== false : !!o.checked;
+    el.classList.toggle('is-on', on);
+    el.classList.toggle('is-off', !on);
+    el.classList.toggle('is-active', kind === 'base' ? S.bases.indexOf(o) === S.activeBase : kind === 'sticker' && o.id === S.activeStk);
+    const ck = el.querySelector('.ti-ck,.sti-ck,.xi-ck');
+    if (batch) {
+      const pk = !!(o.aid && sideBatch.picked.has(o.aid));
+      el.classList.toggle('sbpick', pk);
+      if (ck) { ck.classList.toggle('on', pk); ck.textContent = pk ? '✓' : ''; }
+      const h = ev => { if (ev) { ev.stopPropagation(); ev.preventDefault(); }
+        if (!o.aid) return notify('该项无库引用', 'err');
+        sideBatchToggle(o.aid, null, null); rebindThumbs(kind); };
+      el.onclick = h;
+      if (ck) ck.onclick = h;
+    } else {
+      el.classList.remove('sbpick');
+      el.onclick = ev => {
+        if (ev && ev.target && ev.target.closest('.tdel,.tdel2,.xi-del,button')) return;
+        toggleThumb(kind, o);
+      };
+      if (ck) ck.onclick = ev => { ev.stopPropagation(); toggleThumb(kind, o); };
+    }
+  });
+}
+function rebindAllThumbs() { ['base', 'sticker', 'extra'].forEach(rebindThumbs); }
+/* 批量模式下的额外动作(不删云端) */
+function sideBatchSetChecked(on) {
+  const k = sideBatch.kind;
+  const arr = k === 'base' ? S.bases : k === 'sticker' ? S.stks : k === 'extra' ? S.extras : [];
+  if (!sideBatch.picked.size) return notify('请先点选缩略图', 'err');
+  snapshot();
+  let n = 0;
+  arr.forEach(o => { if (o.aid && sideBatch.picked.has(o.aid)) { o.checked = on; n++; } });
+  refreshAll();
+  notify(n ? `已${on ? '选中' : '取消选中'} ${n} 个` : '选中的都不在当前项目里', n ? 'ok' : 'err');
+}
+async function sideBatchAddToProject() {
+  const k = sideBatch.kind;
+  if (!sideBatch.picked.size) return notify('请先点选缩略图', 'err');
+  const arr = k === 'base' ? S.bases : k === 'sticker' ? S.stks : k === 'extra' ? S.extras : [];
+  const todo = [...sideBatch.picked].filter(aid => !arr.some(o => o.aid === aid));
+  if (!todo.length) return notify('都已在项目中');
+  setProg(true, '加入项目…', 5);
+  let n = 0;
+  for (const aid of todo) {
+    if (k === 'extra') await addExtraFromLibrary(aid); else await addFromLibrary(aid);
+    n++; setProg(true, `加入 ${n}/${todo.length}`, n / todo.length * 95);
+  }
+  setProg(false);
+  if (k === 'sticker' && n > 2) tileRecentStks(n);
+  refreshAll();
+  notify(`已加入 ${n} 个`, 'ok');
+}
+function sideBatchRemoveFromProject() {
+  const k = sideBatch.kind;
+  if (!sideBatch.picked.size) return notify('请先点选缩略图', 'err');
+  snapshot();
+  const keep = o => !(o.aid && sideBatch.picked.has(o.aid));
+  const before = (k === 'base' ? S.bases : k === 'sticker' ? S.stks : S.extras).length;
+  if (k === 'base') { S.bases = S.bases.filter(keep); S.activeBase = clamp(S.activeBase, -1, S.bases.length - 1); }
+  else if (k === 'sticker') { S.stks = S.stks.filter(keep); if (!S.stks.some(x => x.id === S.activeStk)) S.activeStk = null; }
+  else if (k === 'extra') S.extras = S.extras.filter(keep);
+  const n = before - (k === 'base' ? S.bases : k === 'sticker' ? S.stks : S.extras).length;
+  refreshAll();
+  notify(`已移出 ${n} 个（云端保留，可撤销）`, 'ok');
+}
+function sideBatchInvertPick() {
+  if (!sideBatch.on) return;
+  libraryList(sideBatch.kind).then(list => {
+    list.forEach(a => { if (sideBatch.picked.has(a.id)) sideBatch.picked.delete(a.id); else sideBatch.picked.add(a.id); });
+    updSideBatchBar(); refreshAll();
+  });
+}
+
 /* ═══════════ 渲染调度:rAF 合并,避免一帧内重复绘制 ═══════════ */
 let _rafPending = false, _rafPanel = false;
 const _realRender = () => { _rafPending = false; renderCanvasNow(); };
@@ -3341,8 +3584,9 @@ function refreshAll() {
   if (typeof renderLibStrips === 'function') renderLibStrips();
   renderBaseGrid(); renderStkGrid(); renderLogoBoxes();
   if (typeof renderExtraGrid === 'function') renderExtraGrid();
+  if (typeof rebindAllThumbs === 'function') rebindAllThumbs();
   if (typeof checkCanvasLoad === 'function') checkCanvasLoad();
-  if (typeof isMob === 'function' && isMob() && typeof mobRenderCanvas === 'function') { mobRenderCanvas(); const mt = G('mob-title'); if (mt) mt.textContent = curProj; }
+  if (typeof isMob === 'function' && isMob() && typeof mobRenderCanvas === 'function') { mobRenderCanvas(); if (typeof mobUpdUndo === 'function') mobUpdUndo(); const mt = G('mob-title'); if (mt) mt.textContent = curProj; }
   syncStkPanel(); syncTextPanel(); syncAdjPanel();
   if (typeof updSelBar === 'function') updSelBar(); syncLogoPanel('brand'); syncLogoPanel('ip');
   renderCanvas();
@@ -4740,16 +4984,25 @@ async function duplicateProject() {
 /* ---------- 项目预览浮层 ---------- */
 let prevCache = {};   // 项目名 → dataURL(首图) | ''
 async function projFirstImage(name) {
-  if (name in prevCache) return prevCache[name];
+  if (prevCache[name]) return prevCache[name];
   try {
-    const d = name === curProj ? null : await idbGet(projKey(name));
+    if (name === curProj) {
+      const t = makeProjThumb();
+      if (t) { prevCache[name] = t; return t; }
+    }
+    const d = await idbGet(projKey(name));
+    if (d && d.thumb) { prevCache[name] = d.thumb; return d.thumb; }
+    // 旧项目没有 thumb:退回到第一张底图/素材(按 aid 从素材库取)
     let blob = null;
-    if (name === curProj) blob = (S.bases[0] && S.bases[0].blob) || (S.stks[0] && S.stks[0].blob) || null;
-    else if (d) blob = (d.bases && d.bases[0] && d.bases[0].blob) || (d.stks && d.stks[0] && d.stks[0].blob) || null;
+    const first = d && ((d.bases || []).find(b => b.aid || b.blob) || (d.stks || []).find(t => t.aid || t.blob));
+    if (first) {
+      if (first.blob) blob = first.blob;
+      else if (first.aid) { const a = await assetLoad(first.aid); if (a) blob = a.blob; }
+    }
     const url = blob ? await blobToDataURL(blob) : '';
-    prevCache[name] = url || '';
-    return prevCache[name];
-  } catch (e) { prevCache[name] = ''; return ''; }
+    prevCache[name] = url;
+    return url;
+  } catch (e) { return ''; }
 }
 function invalidateProjPreview(name) { if (name) delete prevCache[name]; else prevCache = {}; }
 function idbOpen() {
@@ -4900,11 +5153,36 @@ function applyExportSettings(o) {
   onZipToggle(); onPrintToggle(); onFmtChange(); onQualityInput(); onCapChange();
   updPrintDim(); onSizeChange(true);
 }
+/* ═══════════ 项目缩略图:保存时生成合成预览 ═══════════ */
+function makeProjThumb() {
+  try {
+    if (!S.bases.length && !S.stks.length) return '';
+    const { W, H } = outSize();
+    if (!W || !H) return '';
+    const T = 240, sc = T / Math.max(W, H);
+    const tw = Math.max(1, Math.round(W * sc)), th = Math.max(1, Math.round(H * sc));
+    // 先按原尺寸合成,再缩小(保证素材位置与比例正确)
+    const full = document.createElement('canvas');
+    full.width = W; full.height = H;
+    const bi = S.activeBase >= 0 ? S.activeBase : (S.bases.length ? 0 : -1);
+    drawScene(full, W, H, bi, true, true);
+    const c = document.createElement('canvas');
+    c.width = tw; c.height = th;
+    const x = c.getContext('2d');
+    x.fillStyle = '#ffffff'; x.fillRect(0, 0, tw, th);
+    x.imageSmoothingQuality = 'high';
+    x.drawImage(full, 0, 0, tw, th);
+    return c.toDataURL('image/jpeg', 0.78);
+  } catch (e) { return ''; }
+}
+
 async function saveWorkspace() {
   try {
     const pickL = k => { const L = S.logos[k]; return { aid: L.aid || null, blob: L.aid ? null : (L.blob || null), name: L.name, en: L.en, x: L.x, y: L.y, scale: L.scale, op: L.op, sx: L.sx || 1, sy: L.sy || 1, taper: L.taper || 0, skx: L.skx || 0, sky: L.sky || 0, warp: L.warp ? L.warp.slice() : null, rot: L.rot || 0, curve: L.curve || 0, cvv: L.cvv || 0, gloss: L.gloss || 0, glp: L.glp === undefined ? 34 : L.glp }; };
+    const _thumb = makeProjThumb();
+    if (_thumb) prevCache[curProj] = _thumb;
     await idbPut({
-      v: 3, ts: Date.now(),
+      v: 3, ts: Date.now(), thumb: _thumb,
       bases: S.bases.map(b => ({ name: b.name, aid: b.aid || null, blob: b.aid ? null : b.blob, checked: b.checked !== false, manualBody: b.manualBody || null, sx: b.sx || 1, sy: b.sy || 1, taper: b.taper || 0, skx: b.skx || 0, sky: b.sky || 0, warp: b.warp ? b.warp.slice() : null, adj: { ...b.adj } })),
       stks: S.stks.map(st => ({ name: st.name, aid: st.aid || null, blob: st.aid ? null : st.blob, checked: st.checked, x: st.x, y: st.y, scale: st.scale, sx: st.sx, sy: st.sy, rot: st.rot, op: st.op, curve: st.curve || 0, cvv: st.cvv || 0, gloss: st.gloss || 0, glp: st.glp === undefined ? 34 : st.glp, warp: st.warp ? st.warp.slice() : null, taper: st.taper || 0, skx: st.skx || 0, sky: st.sky || 0, crop: st.crop ? { ...st.crop } : null })),
       logos: { brand: pickL('brand'), ip: pickL('ip') },
@@ -5862,7 +6140,7 @@ function updSideBatchBar() {
   bar.classList.toggle('on', sideBatch.on);
   const n = G('sb-n'); if (n) n.textContent = sideBatch.picked.size;
   const k = G('sb-kind');
-  if (k) k.textContent = sideBatch.kind === 'base' ? '底图' : sideBatch.kind === 'logo' ? 'Logo' : '素材';
+  if (k) k.textContent = { base: '底图', logo: 'Logo', extra: '细节图', sticker: '素材' }[sideBatch.kind] || '素材';
 }
 async function sideBatchSelAll() {
   const list = await libraryList(sideBatch.kind);
@@ -5903,6 +6181,47 @@ async function sideBatchDelete() {
   if (G('lib-ov').classList.contains('on')) renderLibrary();
   setProg(false);
   notify(`已从云端删除 ${n} 个${kn}，释放 ${fmtSize(bytes)}`, 'err');
+}
+
+/* 素材库弹窗:批量模式开关 */
+let libBatchMode = false;
+function toggleLibBatch(on) {
+  libBatchMode = on === undefined ? !libBatchMode : !!on;
+  if (!libBatchMode) { libPicked.clear(); updLibBatch(); }
+  const ov = G('lib-ov');
+  if (ov) ov.classList.toggle('batch', libBatchMode);
+  const b = G('lib-batch-btn');
+  if (b) { b.classList.toggle('act', libBatchMode); b.textContent = libBatchMode ? '完成' : '☑ 批量选择'; }
+  libRebind();
+}
+function libRebind() {
+  document.querySelectorAll('#lib-grid .lib-i').forEach(d => {
+    const aid = d.dataset.aid; if (!aid) return;
+    const sel = d.querySelector('.lib-sel');
+    d.classList.toggle('picked', libPicked.has(aid));
+    if (sel) sel.classList.toggle('on', libPicked.has(aid));
+    if (libBatchMode) {
+      d.onclick = ev => { if (ev.target.closest('.lib-tools,.lib-del')) return; libTogglePick(aid, sel, ev); };
+    } else {
+      d.onclick = ev => { if (ev.target.closest('.lib-tools,.lib-del,.lib-sel')) return; addFromLibrary(aid); };
+    }
+  });
+}
+/* 模板:批量删除 */
+const tplPicked = new Set();
+let tplBatch = false;
+function toggleTplBatch() {
+  tplBatch = !tplBatch; tplPicked.clear();
+  const b = G('tpl-batch-btn'); if (b) { b.classList.toggle('act', tplBatch); b.textContent = tplBatch ? '完成' : '☑ 批量选择'; }
+  const d = G('tpl-del-btn'); if (d) d.style.display = tplBatch ? '' : 'none';
+  renderTemplates();
+}
+function tplDeletePicked() {
+  if (!tplPicked.size) return notify('请先点选模板', 'err');
+  if (!confirm(`删除选中的 ${tplPicked.size} 个模板？`)) return;
+  templates = templates.filter(t => !tplPicked.has(t.name));
+  saveTemplates(); tplPicked.clear(); renderTemplates();
+  notify('已删除', 'ok');
 }
 
 /* ================= 素材库批量编辑 ================= */
@@ -6111,6 +6430,7 @@ function updLibBatch() {
   const n = G('lib-selN'); if (n) n.textContent = libPicked.size;
 }
 function libSelAll() {
+  if (!libBatchMode) toggleLibBatch(true);
   document.querySelectorAll('#lib-grid .lib-i').forEach(c => {
     const id = c.dataset.aid; if (!id) return;
     libPicked.add(id); c.classList.add('picked');
@@ -6248,7 +6568,8 @@ async function renderTemplates() {
   for (const t of templates) {
     const d = document.createElement('div'); d.className = 'pm-i';
     const th = document.createElement('div'); th.className = 'pm-th'; th.innerHTML = '<span>···</span>';
-    th.onclick = () => applyTemplate(t.name);
+    th.onclick = () => { if (tplBatch) { tplPicked.has(t.name) ? tplPicked.delete(t.name) : tplPicked.add(t.name); d.classList.toggle('picked', tplPicked.has(t.name)); } else applyTemplate(t.name); };
+    if (tplBatch) { d.classList.toggle('picked', tplPicked.has(t.name)); d.onclick = ev => { if (ev.target.closest('.pm-acts')) return; th.onclick(); }; }
     d.appendChild(th);
     const nm = document.createElement('div'); nm.className = 'pm-nm'; nm.textContent = t.name; d.appendChild(nm);
     const meta = document.createElement('div'); meta.className = 'pm-meta';
@@ -6843,7 +7164,10 @@ function cutFitView() {
   if (!cv2 || !st || !cv2.width) return;
   const r = st.getBoundingClientRect();
   const pad = 28;
-  cutView.zoom = Math.min((r.width - pad) / cv2.width, (r.height - pad) / cv2.height) || 1;
+  let z = Math.min((r.width - pad) / cv2.width, (r.height - pad) / cv2.height);
+  // 舞台尚未布局(宽高为 0)时会算出负数/0,导致后续坐标全错 → 下一帧重试
+  if (!(z > 0) || !isFinite(z)) { z = 1; requestAnimationFrame(() => { if (cutState) cutFitView(); }); }
+  cutView.zoom = clamp(z, 0.05, 40);
   cutView.ox = 0; cutView.oy = 0;
   applyCutTransform();
 }
@@ -7128,7 +7452,8 @@ function openLibrary(kind) {
   if (kind) libTab = kind;
   document.querySelectorAll('.lib-tab').forEach(b => b.classList.toggle('act', b.dataset.k === libTab));
   G('lib-search').value = '';
-  libPicked.clear(); updLibBatch();
+  libPicked.clear(); updLibBatch(); libBatchMode = false; G('lib-ov').classList.remove('batch');
+  const lb = G('lib-batch-btn'); if (lb) { lb.classList.remove('act'); lb.textContent = '\u2611 \u6279\u91cf\u9009\u62e9'; }
   G('lib-ov').classList.add('on');
   renderLibrary();
 }
@@ -7142,6 +7467,7 @@ async function renderLibrary() {
   if (kw) list = list.filter(a => a.name.toLowerCase().includes(kw));
   const bytes = list.reduce((a, x) => a + assetBytes(x), 0);
   updLibBatch();
+  setTimeout(libRebind, 0);
   G('lib-info').textContent = `${list.length} 个${{ sticker: '素材', base: '底图', logo: 'Logo' }[libTab]}` + (bytes ? ` · ${fmtSize(bytes)}` : '');
   grid.innerHTML = '';
   if (!list.length) {
@@ -7476,6 +7802,37 @@ function renderTabs() {
 
 /* ---------- 项目管理页 ---------- */
 const pmPicked = new Set();
+/* 项目管理:批量模式开关(平时点卡片=打开项目) */
+let pmBatch = false;
+function togglePmBatch(on) {
+  pmBatch = on === undefined ? !pmBatch : !!on;
+  if (!pmBatch) { pmPicked.clear(); pmUpdBatchBar(); }
+  const card = document.querySelector('.pm-card');
+  if (card) card.classList.toggle('batch', pmBatch);
+  const b = G('pm-batch-btn');
+  if (b) { b.classList.toggle('act', pmBatch); b.textContent = pmBatch ? '完成' : '☑ 批量选择'; }
+  pmRebind();
+}
+function pmRebind() {
+  document.querySelectorAll('#pm-grid .pm-i').forEach(d => {
+    const name = d.dataset.name;
+    if (!name) return;
+    const sel = d.querySelector('.pm-sel');
+    d.classList.toggle('picked', pmPicked.has(name));
+    if (sel) sel.classList.toggle('on', pmPicked.has(name));
+    if (pmBatch) {
+      d.onclick = ev => {
+        if (ev.target.closest('.pm-acts')) return;
+        ev.preventDefault(); ev.stopPropagation();
+        pmTogglePick(name, sel);
+      };
+      d.querySelectorAll('.pm-th,.pm-nm').forEach(x => x.onclick = null);
+    } else {
+      d.onclick = ev => { if (ev.target.closest('.pm-acts,.pm-sel')) return; pmOpen(name); };
+    }
+  });
+}
+
 function pmUpdBatchBar() {
   const bar = G('pm-batch');
   if (!bar) return;
@@ -7492,6 +7849,7 @@ function pmTogglePick(name, el) {
   pmUpdBatchBar();
 }
 function pmSelAll() {
+  if (!pmBatch) togglePmBatch(true);
   document.querySelectorAll('#pm-grid .pm-i').forEach(c => {
     const n = c.dataset.name; if (n) pmPicked.add(n);
     c.classList.add('picked');
@@ -7600,6 +7958,7 @@ async function renderProjMgr() {
   G('pm-info').textContent = `${list.length} / ${projects.length} 个项目`;
   [...pmPicked].forEach(n => { if (!projects.includes(n)) pmPicked.delete(n); });
   pmUpdBatchBar();
+  setTimeout(pmRebind, 0);
   grid.innerHTML = '';
   if (!list.length) {
     const e = document.createElement('div'); e.className = 'pm-empty';
@@ -7793,7 +8152,7 @@ function toggleAllAdv() {
 }
 
 /* ═══════════════ 手机版逻辑 ═══════════════ */
-const isMob = () => window.matchMedia('(max-width:820px), (pointer:coarse) and (max-width:1024px)').matches;
+const isMob = () => !!(window.matchMedia && window.matchMedia('(max-width:820px), (pointer:coarse) and (max-width:1024px)').matches);
 let mobCur = 'base';
 let mobDrag = null;
 
@@ -7819,7 +8178,8 @@ function mobRenderCanvas() {
   const wrap = G('mob-canvas-wrap');
   if (wrap) {
     const r = wrap.getBoundingClientRect();
-    const sc = Math.min((r.width - 24) / W, (r.height - 24) / H) || 1;
+    let sc = Math.min((r.width - 24) / W, (r.height - 24) / H);
+    if (!(sc > 0) || !isFinite(sc)) sc = 1;
     mc.style.width = Math.round(W * sc) + 'px';
     mc.style.height = Math.round(H * sc) + 'px';
     mc._sc = sc;
@@ -7842,48 +8202,9 @@ function mobPt(t) {
   const { W, H } = outSize();
   return { x: (t.clientX - r.left) / r.width * W, y: (t.clientY - r.top) / r.height * H };
 }
-function mobTouchStart(e) {
-  if (e.touches.length === 2) {          // 双指:缩放选中素材
-    const a = activeStkObj(); if (!a) return;
-    e.preventDefault();
-    const [t1, t2] = e.touches;
-    mobDrag = { mode: 'pinch', d0: Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY),
-      s0: a.scale, r0: a.rot || 0,
-      a0: Math.atan2(t2.clientY - t1.clientY, t2.clientX - t1.clientX) };
-    snapshot();
-    return;
-  }
-  const p = mobPt(e.touches[0]);
-  const hit = hitStk(p);
-  if (hit) {
-    e.preventDefault();
-    if (S.activeStk !== hit.id) { S.activeStk = hit.id; mobPanel(); }
-    snapshot();
-    mobDrag = { mode: 'move', t: hit, x0: hit.x, y0: hit.y, p0: p };
-    mobRenderCanvas();
-  } else { S.activeStk = null; mobPanel(); mobRenderCanvas(); }
-}
-function mobTouchMove(e) {
-  if (!mobDrag) return;
-  e.preventDefault();
-  if (mobDrag.mode === 'pinch' && e.touches.length === 2) {
-    const a = activeStkObj(); if (!a) return;
-    const [t1, t2] = e.touches;
-    const d = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
-    a.scale = clamp(mobDrag.s0 * (d / mobDrag.d0), 5, 300);
-    const ang = Math.atan2(t2.clientY - t1.clientY, t2.clientX - t1.clientX);
-    a.rot = Math.round(clamp(mobDrag.r0 + (ang - mobDrag.a0) * 180 / Math.PI, -180, 180));
-    mobRenderCanvas(); mobSyncSliders();
-    return;
-  }
-  if (mobDrag.mode === 'move') {
-    const p = mobPt(e.touches[0]);
-    mobDrag.t.x = Math.round(mobDrag.x0 + (p.x - mobDrag.p0.x));
-    mobDrag.t.y = Math.round(mobDrag.y0 + (p.y - mobDrag.p0.y));
-    mobRenderCanvas();
-  }
-}
-function mobTouchEnd() { mobDrag = null; scheduleSave(); }
+
+
+
 /* ── 底部面板 ── */
 function mobTab(t) {
   mobCur = t;
@@ -7898,6 +8219,7 @@ function mobPanel() {
   const add = h => { const d = document.createElement('div'); d.innerHTML = h; while (d.firstChild) box.appendChild(d.firstChild); };
   if (mobCur === 'base') mobPanelBase(box, add);
   else if (mobCur === 'sticker') mobPanelStk(box, add);
+  else if (mobCur === 'logo') mobPanelLogo(box, add);
   else if (mobCur === 'adjust') mobPanelAdj(box, add);
   else if (mobCur === 'text') mobPanelText(box, add);
   else if (mobCur === 'export') mobPanelExport(box, add);
@@ -7917,48 +8239,87 @@ function mobThumbGrid(box, list, isOn, onTap) {
   box.appendChild(g);
   return g;
 }
+let mobBaseSeg = 'base';
 async function mobPanelBase(box, add) {
-  mobHint('点击选择底图 · 长按上传');
-  add('<div class="m-ttl">底图</div><label class="m-up" onclick="G(\'inp-base\').click()">＋ 上传底图</label>');
+  add(`<div class="m-seg"><button class="${mobBaseSeg === 'base' ? 'on' : ''}" onclick="mobBaseSeg='base';mobPanel()">产品底图</button>
+    <button class="${mobBaseSeg === 'extra' ? 'on' : ''}" onclick="mobBaseSeg='extra';mobPanel()">细节图</button></div>`);
+  if (mobBaseSeg === 'extra') {
+    mobHint('细节图默认不带素材与 Logo');
+    add('<label class="m-up" onclick="mobPick(\'extra\')">＋ 上传细节图</label>');
+    if (!S.extras.length) { add('<div class="m-empty">尺寸图、材质细节、场景图<br>导出时可以是纯净版</div>'); return; }
+    add('<div class="m-ttl">点击切换是否导出</div>');
+    mobThumbGrid(box, S.extras, x => x.checked, x => { x.checked = !x.checked; haptic(); mobPanel(); scheduleSave(); });
+    return;
+  }
+  mobHint('点击切换当前底图');
+  add('<label class="m-up" onclick="mobPick(\'base\')">＋ 从相册添加底图</label>');
   if (!S.bases.length) { add('<div class="m-empty">还没有底图<br>点上方按钮从相册选择</div>'); return; }
+  add('<div class="m-ttl">当前项目</div>');
   mobThumbGrid(box, S.bases, b => S.bases.indexOf(b) === S.activeBase, b => {
-    S.activeBase = S.bases.indexOf(b); mobRenderCanvas(); mobPanel(); scheduleSave();
+    S.activeBase = S.bases.indexOf(b); haptic(); mobRenderCanvas(); mobPanel(); scheduleSave();
   });
   const lib = await libraryList('base');
   const unused = lib.filter(a => !S.bases.some(b => b.aid === a.id));
   if (unused.length) {
-    add('<div class="m-ttl">素材库</div>');
-    mobThumbGrid(box, unused, () => false, async a => { await addFromLibrary(a.id); mobRenderCanvas(); mobPanel(); });
+    add('<div class="m-ttl">素材库 · 点击加入</div>');
+    mobThumbGrid(box, unused.slice(0, 24), () => false, async a => { await addFromLibrary(a.id); haptic(); mobRenderCanvas(); mobPanel(); });
   }
 }
 async function mobPanelStk(box, add) {
-  mobHint(S.stks.length ? '拖动移动 · 双指缩放旋转' : '');
-  add('<div class="m-ttl">素材</div><label class="m-up" onclick="G(\'inp-stk\').click()">＋ 上传素材</label>');
+  const a = activeStkObj();
+  mobHint(a ? '拖动移动 · 双指缩放旋转 · 双击空白取消' : (S.stks.length ? '点画布上的素材来编辑' : ''));
+  if (a) {
+    add(`<div class="m-tools">
+      <button class="m-tool" onclick="autoFitSticker();haptic();mobRenderCanvas()"><i>◎</i>对齐杯身</button>
+      <button class="m-tool" onclick="mobCutout()"><i>✂</i>抠图</button>
+      <button class="m-tool" onclick="mobInvert()"><i>◐</i>反色</button>
+      <button class="m-tool" onclick="mobFlip()"><i>⇋</i>翻转</button>
+      <button class="m-tool" onclick="mobDup()"><i>⧉</i>复制</button>
+      <button class="m-tool" onclick="mobLayer(1)"><i>⤒</i>置顶</button>
+      <button class="m-tool" onclick="mobLayer(-1)"><i>⤓</i>置底</button>
+      <button class="m-tool dg" onclick="mobRemove()"><i>✕</i>移出</button>
+    </div>
+    <div class="m-row"><label>大小</label><input type="range" id="m-scale" min="3" max="300" value="${Math.round(a.scale)}" oninput="mobSet('scale',this.value)"><span class="m-val" id="m-scale-v">${Math.round(a.scale)}%</span></div>
+    <div class="m-row"><label>旋转</label><input type="range" id="m-rot" min="-180" max="180" value="${a.rot || 0}" oninput="mobSet('rot',this.value)"><span class="m-val" id="m-rot-v">${a.rot || 0}°</span></div>
+    <div class="m-row"><label>曲面</label><input type="range" id="m-curve" min="0" max="100" value="${a.curve || 0}" oninput="mobSet('curve',this.value)"><span class="m-val" id="m-curve-v">${a.curve || 0}%</span></div>
+    <div class="m-row"><label>光泽</label><input type="range" id="m-gloss" min="0" max="100" value="${a.gloss || 0}" oninput="mobSet('gloss',this.value)"><span class="m-val" id="m-gloss-v">${a.gloss || 0}%</span></div>
+    <div class="m-row"><label>透明</label><input type="range" id="m-op" min="10" max="100" value="${a.op}" oninput="mobSet('op',this.value)"><span class="m-val" id="m-op-v">${a.op}%</span></div>`);
+  }
+  add('<label class="m-up" onclick="mobPick(\'sticker\')" style="margin-top:6px">＋ 从相册添加素材</label>');
   if (S.stks.length) {
-    mobThumbGrid(box, S.stks, t => t.id === S.activeStk, t => {
-      S.activeStk = t.id; mobRenderCanvas(); mobPanel();
-    });
-    const a = activeStkObj();
-    if (a) {
-      add(`<div class="m-ttl">调整「${a.name}」</div>
-      <div class="m-row"><label>大小</label><input type="range" id="m-scale" min="5" max="300" value="${Math.round(a.scale)}" oninput="mobSet('scale',this.value)"><span class="m-val" id="m-scale-v">${Math.round(a.scale)}%</span></div>
-      <div class="m-row"><label>旋转</label><input type="range" id="m-rot" min="-180" max="180" value="${a.rot || 0}" oninput="mobSet('rot',this.value)"><span class="m-val" id="m-rot-v">${a.rot || 0}°</span></div>
-      <div class="m-row"><label>曲面</label><input type="range" id="m-curve" min="0" max="100" value="${a.curve || 0}" oninput="mobSet('curve',this.value)"><span class="m-val" id="m-curve-v">${a.curve || 0}%</span></div>
-      <div class="m-row"><label>透明</label><input type="range" id="m-op" min="10" max="100" value="${a.op}" oninput="mobSet('op',this.value)"><span class="m-val" id="m-op-v">${a.op}%</span></div>
-      <div class="m-btns">
-        <button class="m-btn" onclick="autoFitSticker();mobRenderCanvas()">自动对齐</button>
-        <button class="m-btn" onclick="mobCutout()">一键抠图</button>
-        <button class="m-btn" onclick="mobRemove()">移出画布</button>
-        <button class="m-btn" onclick="undo();mobRenderCanvas();mobPanel()">撤销</button>
-      </div>`);
-    }
+    add('<div class="m-ttl">画布上的素材</div>');
+    mobThumbGrid(box, S.stks, t => t.id === S.activeStk, t => { S.activeStk = t.id; haptic(); mobRenderCanvas(); mobPanel(); });
   }
   const lib = await libraryList('sticker');
   const unused = lib.filter(x => !S.stks.some(t => t.aid === x.id));
   if (unused.length) {
-    add('<div class="m-ttl">素材库</div>');
-    mobThumbGrid(box, unused, () => false, async x => { await addFromLibrary(x.id); mobRenderCanvas(); mobPanel(); });
+    add('<div class="m-ttl">素材库 · 点击加入</div>');
+    mobThumbGrid(box, unused.slice(0, 30), () => false, async x => {
+      await addFromLibrary(x.id);
+      if (S.stks.length) { S.activeStk = S.stks[S.stks.length - 1].id; autoFitSticker(); }
+      haptic(); mobRenderCanvas(); mobPanel();
+    });
   }
+}
+async function mobPanelLogo(box, add) {
+  mobHint('Logo 会叠在所有图上');
+  ['brand', 'ip'].forEach(k => {
+    const L = S.logos[k];
+    const lbl = k === 'brand' ? '品牌 Logo' : 'IP Logo';
+    add(`<div class="m-ttl">${lbl}</div>`);
+    if (!L.img) { add(`<label class="m-up" onclick="mobPick('${k}')">＋ 上传${lbl}</label>`); return; }
+    add(`<div class="m-row"><label>显示</label>
+        <button class="m-chip ${L.en ? 'on' : ''}" onclick="S.logos['${k}'].en=!S.logos['${k}'].en;haptic();mobRenderCanvas();mobPanel();scheduleSave()">${L.en ? '已开启' : '已关闭'}</button>
+        <button class="m-chip" onclick="mobPick('${k}')">更换</button></div>
+      <div class="m-row"><label>大小</label><input type="range" min="5" max="300" value="${Math.round(L.scale)}" oninput="logoCtrl('${k}','scale',this.value);mobRenderCanvas()"><span class="m-val">${Math.round(L.scale)}%</span></div>
+      <div class="m-row"><label>透明</label><input type="range" min="10" max="100" value="${L.op}" oninput="logoCtrl('${k}','opacity',this.value);mobRenderCanvas()"><span class="m-val">${L.op}%</span></div>
+      <div class="m-chips">
+        <button class="m-chip" onclick="alignLogo('${k}','tl');mobRenderCanvas()">左上</button>
+        <button class="m-chip" onclick="alignLogo('${k}','tr');mobRenderCanvas()">右上</button>
+        <button class="m-chip" onclick="alignLogo('${k}','bl');mobRenderCanvas()">左下</button>
+        <button class="m-chip" onclick="alignLogo('${k}','br');mobRenderCanvas()">右下</button>
+      </div>`);
+  });
 }
 function mobPanelAdj(box, add) {
   const b = S.bases[S.activeBase];
@@ -8011,6 +8372,7 @@ function mobSet(k, v) {
   if (k === 'scale') a.scale = +v;
   else if (k === 'rot') a.rot = +v;
   else if (k === 'curve') { a.curve = +v; a._fxk = null; }
+  else if (k === 'gloss') { a.gloss = +v; a._fxk = null; }
   else if (k === 'op') a.op = +v;
   const el = G('m-' + k + '-v');
   if (el) el.textContent = k === 'rot' ? v + '°' : v + '%';
@@ -8087,22 +8449,7 @@ async function mobSave() {
     await mobDownload(blob, name);
   } catch (e) { setProg(false); notify('保存失败', 'err'); }
 }
-async function mobSaveAll() {
-  const list = S.bases.map((b, i) => i).filter(i => S.bases[i].checked !== false);
-  if (!list.length) return notify('没有可保存的底图', 'err');
-  setProg(true, '生成中…', 5);
-  let n = 0;
-  for (const i of list) {
-    try {
-      const blob = await mobCanvasBlob(i);
-      await mobDownload(blob, `${curProj}_${String(++n).padStart(2, '0')}.png`, true);
-      setProg(true, `${n}/${list.length}`, n / list.length * 95);
-      await new Promise(r => setTimeout(r, 260));
-    } catch (e) {}
-  }
-  setProg(false);
-  notify(`已保存 ${n} 张`, 'ok');
-}
+
 async function mobDownload(blob, name, quiet) {
   const file = new File([blob], name, { type: 'image/png' });
   // 优先用系统分享面板(iOS/Android 可直接存相册)
@@ -8125,16 +8472,197 @@ async function mobSharePng() {
     else await mobDownload(blob, `${curProj}.png`);
   } catch (e) {}
 }
-function mobOpenProjects() {
-  const names = projects.slice(0, 20);
-  const cur = names.indexOf(curProj) + 1;
-  const pick = prompt('切换项目（输入序号）：\n\n' + names.map((n, i) => `${i + 1}. ${n}${n === curProj ? ' ←' : ''}`).join('\n') +
-    '\n\n输入 0 新建项目', String(cur));
-  if (pick === null) return;
-  const i = parseInt(pick);
-  if (i === 0) { newProject().then(() => { mobInit(); }); return; }
-  if (i >= 1 && i <= names.length && names[i - 1] !== curProj) switchToProj(names[i - 1]).then(() => mobInit());
+
+/* ═══════════ 手机版 v2 补全 ═══════════ */
+let mobUpKind = 'base';
+/* 进度层:接管 setProg,手机上显示居中卡片 */
+const _setProgDesk = setProg;
+setProg = function (on, txt, pct) {
+  _setProgDesk(on, txt, pct);
+  if (!isMob()) return;
+  const m = G('mob-prog');
+  if (!m) return;
+  m.classList.toggle('on', !!on);
+  if (txt) G('mob-prog-txt').textContent = txt;
+  if (pct !== undefined) G('mob-prog-fill').style.width = clamp(pct, 0, 100) + '%';
+};
+function haptic(ms) { try { navigator.vibrate && navigator.vibrate(ms || 8); } catch (e) {} }
+/* 撤销 / 重做 */
+function mobUndo() { if (!undoStack.length) return notify('没有可撤销的操作'); undo(); haptic(); mobRenderCanvas(); mobPanel(); }
+function mobRedo() { if (typeof redo !== 'function' || !redoStack || !redoStack.length) return notify('没有可重做的操作'); redo(); haptic(); mobRenderCanvas(); mobPanel(); }
+function mobUpdUndo() {
+  const u = G('mob-undo'), r = G('mob-redo');
+  if (u) u.disabled = !undoStack.length;
+  if (r) r.disabled = typeof redoStack === 'undefined' || !redoStack.length;
 }
+/* 上传:手机专用 input,不依赖桌面隐藏的输入框 */
+function mobPick(kind) { mobUpKind = kind; const i = G('mob-inp'); i.value = ''; i.click(); }
+async function mobUpload(input) {
+  if (!input.files || !input.files.length) return;
+  await loadFiles(mobUpKind, input);
+  if (mobUpKind === 'sticker' && S.stks.length) { S.activeStk = S.stks[S.stks.length - 1].id; autoFitSticker(); }
+  haptic(12);
+  mobRenderCanvas(); mobPanel();
+}
+/* 底部抽屉 */
+function mobOpenSheet(html) {
+  G('mob-sheet-body').innerHTML = html;
+  G('mob-sheet-bg').classList.add('on');
+  requestAnimationFrame(() => G('mob-sheet').classList.add('on'));
+}
+function mobCloseSheet() {
+  G('mob-sheet').classList.remove('on');
+  G('mob-sheet-bg').classList.remove('on');
+}
+/* 项目切换:抽屉列表(替代 prompt) */
+async function mobOpenProjects() {
+  let h = '<div class="ms-ttl">项目</div>';
+  h += '<div class="ms-item" onclick="mobCloseSheet();newProject().then(mobInit)"><div class="ms-th" style="display:flex;align-items:center;justify-content:center;font-size:22px;color:var(--acc-l)">＋</div><div class="ms-nm">新建项目</div></div>';
+  for (const n of projects) {
+    const esc = n.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+    h += `<div class="ms-item${n === curProj ? ' cur' : ''}" onclick="mobPickProj('${esc}')">
+      <div class="ms-th" data-p="${esc}"></div>
+      <div style="flex:1;min-width:0"><div class="ms-nm">${n}</div><div class="ms-meta">${n === curProj ? '当前项目' : ''}</div></div></div>`;
+  }
+  h += `<div class="m-btns" style="margin-top:12px">
+    <button class="m-btn" onclick="mobCloseSheet();duplicateProject().then(mobInit)">复制当前</button>
+    <button class="m-btn" onclick="mobCloseSheet();renameProject().then(mobInit)">重命名</button></div>`;
+  mobOpenSheet(h);
+  document.querySelectorAll('#mob-sheet .ms-th[data-p]').forEach(el => {
+    projFirstImage(el.dataset.p).then(u => { if (u) el.style.backgroundImage = `url(${u})`; });
+  });
+}
+async function mobPickProj(n) {
+  mobCloseSheet();
+  if (n !== curProj) { await switchToProj(n); }
+  mobInit();
+}
+/* 画布触摸:文字优先,其次素材;双击空白=取消选择 */
+let _mobTapT = 0;
+function mobTouchStart(e) {
+  if (e.touches.length === 2) {
+    const a = activeStkObj(); if (!a) return;
+    e.preventDefault();
+    const [t1, t2] = e.touches;
+    mobDrag = { mode: 'pinch', d0: Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY),
+      s0: a.scale, r0: a.rot || 0, a0: Math.atan2(t2.clientY - t1.clientY, t2.clientX - t1.clientX) };
+    snapshot();
+    return;
+  }
+  const p = mobPt(e.touches[0]);
+  const tx = typeof hitText === 'function' ? hitText(p) : null;
+  if (tx) {
+    e.preventDefault();
+    S.activeText = tx.id; S.activeStk = null;
+    snapshot();
+    mobDrag = { mode: 'text', t: tx, x0: tx.x, y0: tx.y, p0: p };
+    if (mobCur !== 'text') mobTab('text'); else mobPanel();
+    mobRenderCanvas(); return;
+  }
+  const hit = hitStk(p);
+  if (hit) {
+    e.preventDefault();
+    if (S.activeStk !== hit.id) { S.activeStk = hit.id; S.activeText = null; haptic(); if (mobCur !== 'sticker') mobTab('sticker'); else mobPanel(); }
+    snapshot();
+    mobDrag = { mode: 'move', t: hit, x0: hit.x, y0: hit.y, p0: p };
+    mobRenderCanvas();
+  } else {
+    const now = Date.now();
+    if (now - _mobTapT < 300) { S.activeStk = null; S.activeText = null; mobPanel(); mobRenderCanvas(); }
+    _mobTapT = now;
+  }
+}
+function mobTouchMove(e) {
+  if (!mobDrag) return;
+  e.preventDefault();
+  if (mobDrag.mode === 'pinch' && e.touches.length === 2) {
+    const a = activeStkObj(); if (!a) return;
+    const [t1, t2] = e.touches;
+    const d = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
+    a.scale = clamp(mobDrag.s0 * (d / mobDrag.d0), 3, 400);
+    const ang = Math.atan2(t2.clientY - t1.clientY, t2.clientX - t1.clientX);
+    let r = mobDrag.r0 + (ang - mobDrag.a0) * 180 / Math.PI;
+    // 吸附到 0/±90/180
+    for (const snapA of [0, 90, -90, 180, -180]) if (Math.abs(r - snapA) < 5) r = snapA;
+    a.rot = Math.round(clamp(r, -180, 180));
+    mobRenderCanvas(); mobSyncSliders();
+    return;
+  }
+  const p = mobPt(e.touches[0]);
+  if (mobDrag.mode === 'move' || mobDrag.mode === 'text') {
+    mobDrag.t.x = Math.round(mobDrag.x0 + (p.x - mobDrag.p0.x));
+    mobDrag.t.y = Math.round(mobDrag.y0 + (p.y - mobDrag.p0.y));
+    mobRenderCanvas();
+  }
+}
+function mobTouchEnd() { if (mobDrag) scheduleSave(); mobDrag = null; mobUpdUndo(); }
+/* 素材工具 */
+function mobDup() {
+  const a = activeStkObj(); if (!a) return;
+  snapshot();
+  const nid = uid++;
+  S.stks.push({ ...a, id: nid, name: uniqueName(S.stks, a.name), x: a.x + 30, y: a.y + 30,
+    _fx: null, _fxk: null, _cb: null, _cbk: null, _wc: null, _wk: null,
+    crop: a.crop ? { ...a.crop } : null, warp: a.warp ? a.warp.slice() : null });
+  S.activeStk = nid; haptic();
+  mobRenderCanvas(); mobPanel(); scheduleSave();
+}
+function mobLayer(dir) {
+  const i = S.stks.findIndex(x => x.id === S.activeStk); if (i < 0) return;
+  snapshot();
+  const [m] = S.stks.splice(i, 1);
+  if (dir > 0) S.stks.push(m); else S.stks.unshift(m);
+  haptic(); mobRenderCanvas(); scheduleSave();
+  notify(dir > 0 ? '已置顶' : '已置底');
+}
+function mobFlip() {
+  const a = activeStkObj(); if (!a) return;
+  snapshot(); a.sx = -(a.sx || 1); a._fxk = null; a._wk = null;
+  mobRenderCanvas(); scheduleSave();
+}
+async function mobInvert() {
+  const a = activeStkObj();
+  if (!a || !a.aid) return notify('请先选中素材', 'err');
+  setProg(true, '反转颜色…', 50);
+  const c = invertCanvas(a.img, 'full');
+  if (!c) { setProg(false); return notify('反转失败', 'err'); }
+  const nid = await libraryAdd(a.kind || 'sticker', a.name + '_反色', await canvasBlob(c, 'image/png'));
+  const na = await assetLoad(nid);
+  setProg(false);
+  if (na) { snapshot(); Object.assign(a, { aid: nid, img: na.img, blob: na.blob, name: na.name,
+    _fx: null, _fxk: null, _cb: null, _cbk: null, _wc: null, _wk: null }); }
+  mobRenderCanvas(); mobPanel(); notify('已反色', 'ok');
+}
+/* 批量保存:一次分享多个文件(浏览器不允许循环弹分享) */
+async function mobSaveAll() {
+  const list = S.bases.map((b, i) => i).filter(i => S.bases[i].checked !== false);
+  if (!list.length) return notify('没有可保存的底图', 'err');
+  setProg(true, '生成中…', 5);
+  const files = [];
+  for (let k = 0; k < list.length; k++) {
+    try {
+      const blob = await mobCanvasBlob(list[k]);
+      files.push(new File([blob], `${curProj}_${String(k + 1).padStart(2, '0')}.png`, { type: 'image/png' }));
+      setProg(true, `生成 ${k + 1}/${list.length}`, (k + 1) / list.length * 90);
+    } catch (e) {}
+  }
+  setProg(false);
+  if (!files.length) return;
+  if (navigator.canShare && navigator.canShare({ files })) {
+    try { await navigator.share({ files }); return; } catch (e) { if (e && e.name === 'AbortError') return; }
+  }
+  if (files.length > 1 && typeof JSZip === 'function') {      // 兜底:打成 zip
+    try {
+      const z = new JSZip();
+      files.forEach(f => z.file(f.name, f));
+      const zb = await z.generateAsync({ type: 'blob' });
+      return mobDownload(zb, `${curProj}.zip`);
+    } catch (e) {}
+  }
+  for (const f of files) { await mobDownload(f, f.name, true); await new Promise(r => setTimeout(r, 350)); }
+  notify(`已保存 ${files.length} 张`, 'ok');
+}
+
 window.addEventListener('resize', () => { if (isMob()) mobRenderCanvas(); });
 
 /* ---------- 快捷键面板 ---------- */
@@ -8336,6 +8864,39 @@ G('cut-ov').addEventListener('click', e => { if (e.target === G('cut-ov')) close
   stage.addEventListener('mouseleave', () => { const c = G('cut-cursor'); if (c) c.style.display = 'none'; });
   window.addEventListener('mouseup', cutBrushUp);
   stage.addEventListener('contextmenu', e => e.preventDefault());
+  /* 触摸:单指涂抹,双指捏合缩放+平移 */
+  let tp = null;
+  const toMouse = t => ({ clientX: t.clientX, clientY: t.clientY, button: 0, shiftKey: false, preventDefault() {} });
+  stage.addEventListener('touchstart', e => {
+    if (!cutState) return;
+    e.preventDefault();
+    if (e.touches.length === 2) {
+      cutBrushUp();
+      const [a, b] = e.touches;
+      tp = { d0: Math.hypot(b.clientX - a.clientX, b.clientY - a.clientY), z0: cutView.zoom,
+        cx: (a.clientX + b.clientX) / 2, cy: (a.clientY + b.clientY) / 2, ox0: cutView.ox, oy0: cutView.oy };
+      return;
+    }
+    tp = null;
+    cutBrushMove(toMouse(e.touches[0]));
+    cutBrushDown(toMouse(e.touches[0]));
+  }, { passive: false });
+  stage.addEventListener('touchmove', e => {
+    if (!cutState) return;
+    e.preventDefault();
+    if (e.touches.length === 2 && tp) {
+      const [a, b] = e.touches;
+      const d = Math.hypot(b.clientX - a.clientX, b.clientY - a.clientY);
+      const cx = (a.clientX + b.clientX) / 2, cy = (a.clientY + b.clientY) / 2;
+      cutView.zoom = clamp(tp.z0 * d / tp.d0, 0.05, 24);
+      cutView.ox = tp.ox0 + (cx - tp.cx);
+      cutView.oy = tp.oy0 + (cy - tp.cy);
+      applyCutTransform();
+      return;
+    }
+    cutBrushMove(toMouse(e.touches[0]));
+  }, { passive: false });
+  stage.addEventListener('touchend', e => { if (!e.touches.length) { cutBrushUp(); tp = null; } });
   // 滚轮:缩放;Alt+滚轮:笔刷大小
   stage.addEventListener('wheel', e => {
     if (!cutState) return;
