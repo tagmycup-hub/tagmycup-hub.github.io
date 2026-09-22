@@ -329,13 +329,15 @@ input::placeholder{color:var(--mut)!important;}
   <div id="mob-sheet-bg" onclick="mobCloseSheet()"></div>
   <div id="mob-sheet"><div class="ms-grip"></div><div id="mob-sheet-body"></div></div>
   <div id="mob-canvas-wrap"><canvas id="mob-canvas"></canvas></div>
+  <div id="mob-pages"></div>
   <div id="mob-hint"></div>
   <div id="mob-panel"></div>
   <div id="mob-bbar"><span>已勾 <b id="mob-bbar-n">0</b></span>
-    <button onclick="mobBatchCheck(true)">选中</button>
-    <button onclick="mobBatchCheck(false)">取消选中</button>
-    <button onclick="mobBatchRemove()">移出</button>
-    <button class="dg" onclick="mobBatchCloudDel()">云端删除</button>
+    <button id="mbb-save" onclick="mobBatchSave()">⤓ 保存</button>
+    <button id="mbb-on" onclick="mobBatchCheck(true)">选中</button>
+    <button id="mbb-off" onclick="mobBatchCheck(false)">取消选中</button>
+    <button id="mbb-rm" onclick="mobBatchRemove()">移出</button>
+    <button id="mbb-del" class="dg" onclick="mobBatchCloudDel()">🗑 删除</button>
     <button class="ok" onclick="mobExitBatch()">完成</button></div>
   <div id="mob-tabs"><button class="mtab act" data-t="base" onclick="mobTab('base')"><i>▢</i><span>底图</span></button><button class="mtab" data-t="sticker" onclick="mobTab('sticker')"><i>◈</i><span>素材</span></button><button class="mtab" data-t="logo" onclick="mobTab('logo')"><i>®</i><span>Logo</span></button><button class="mtab" data-t="text" onclick="mobTab('text')"><i>T</i><span>文字</span></button><button class="mtab" data-t="adjust" onclick="mobTab('adjust')"><i>◑</i><span>调色</span></button><button class="mtab" data-t="export" onclick="mobTab('export')"><i>⤓</i><span>导出</span></button></div>
 </div>
@@ -449,6 +451,12 @@ input::placeholder{color:var(--mut)!important;}
       <div class="ct-sep"></div>
       <button class="ct-done" onclick="exitCropMode()">完成</button>
     </div>
+  </div>
+  <div id="page-strip">
+    <button class="ps-nav" onclick="pageStep(-1)" title="上一张（PageUp）">‹</button>
+    <div id="ps-list"></div>
+    <button class="ps-nav" onclick="pageStep(1)" title="下一张（PageDown）">›</button>
+    <span id="ps-count"></span>
   </div>
   <div id="prev-bar">
     <span class="plbl">输出：</span>
@@ -719,12 +727,19 @@ input::placeholder{color:var(--mut)!important;}
     <div class="cut-left">
       <div id="cut-stage" class="erasing">
         <canvas id="cut-canvas"></canvas>
-        <div id="cut-cursor"></div>
+        <div id="cut-cursor"></div><div id="cut-tag"></div>
         <div id="cut-hud"><span id="cut-zoom">100%</span></div>
       </div>
       <div class="cut-tools">
         <button class="bi" id="cb-erase" onclick="setBrushMode('erase')" title="擦除（E）">✕ 擦除</button>
-        <button class="bi" id="cb-restore" onclick="setBrushMode('restore')" title="恢复（R）">↺ 恢复</button>
+        <button class="bi" id="cb-restore" onclick="setBrushMode('restore')" title="恢复（R）：找回被误删的部分">↺ 恢复</button>
+        <button class="bi" id="cb-wand" onclick="setBrushMode('wand')" title="魔棒擦除（W）：点一下去掉整块同色区域，字母孔洞一点即去">✦ 魔棒</button>
+        <button class="bi" id="cb-wandr" onclick="setBrushMode('wandr')" title="魔棒恢复（Shift+W）：点一下找回整块区域">✧ 魔棒恢复</button>
+        <span class="tb-sep"></span>
+        <button class="bi" id="cb-cmp" onmousedown="cutShowOrig(true)" onmouseup="cutShowOrig(false)" onmouseleave="cutShowOrig(false)" ontouchstart="cutShowOrig(true)" ontouchend="cutShowOrig(false)" title="按住查看原图（C）">◐ 原图</button>
+        <button class="bi" id="cb-mask" onclick="toggleMaskView()" title="蒙版视图（M）：红色 = 被去掉的部分，检查边缘最直观">◩ 蒙版</button>
+        <button class="bi" id="cb-bg" onclick="cutCycleBg()" title="切换背景检查边缘（B）">▦ 浅棋盘</button>
+        <button class="bi cut-pbtn" onclick="cutToggleParams()">⚙ 参数</button>
         <span class="tb-sep"></span>
         <button class="bi" id="cb-undo" onclick="cutDoUndo()" title="撤销（Ctrl+Z）">↶</button>
         <button class="bi" id="cb-redo" onclick="cutDoRedo()" title="重做（Ctrl+Shift+Z）">↷</button>
@@ -763,7 +778,7 @@ input::placeholder{color:var(--mut)!important;}
         滑轮：缩放・ Alt+滑轮：笔刷大小<br>
         空格/中键拖动：平移画布<br>
         E 擦除 · R 恢复 · Ctrl+Z 撤销<br>
-        0 适应窗口 · 1 实际大小<br>
+        0 适应窗口 · 1 实际大小<br>[ ] 笔刷大小 · W 魔棒 · C 按住看原图<br>M 蒙版视图 · B 切换背景<br>
         内部白 0% = 字母孔洞全部挖空
       </div>
     </div>
@@ -1706,7 +1721,7 @@ input[type=range]::-webkit-slider-thumb{transition:transform .1s var(--ease),box
 .cut-right{flex:0 0 268px;overflow-y:auto;padding-right:5px;min-height:0;}
 /* 舞台:画布用 transform 缩放平移 */
 #cut-stage{flex:1 1 0%;min-height:0;position:relative;overflow:hidden;border-radius:var(--rs);
-  border:1px solid var(--bd);cursor:none;
+  border:1px solid var(--bd);cursor:crosshair;
   background:repeating-conic-gradient(#233241 0 25%,#1a2734 0 50%) 0 0/16px 16px;}
 #cut-hud{position:absolute;right:8px;bottom:8px;z-index:4;font-size:10px;font-family:var(--mono);
   color:var(--dim);background:rgba(0,0,0,.55);padding:3px 8px;border-radius:999px;pointer-events:none;}
@@ -1732,7 +1747,7 @@ input[type=range]::-webkit-slider-thumb{transition:transform .1s var(--ease),box
 .cut-right{flex:0 0 290px;overflow-y:auto;padding-right:6px;min-height:0;}
 /* 画布舞台 */
 #cut-stage{flex:1 1 0%;min-height:0;position:relative;overflow:hidden;border-radius:var(--rs);
-  border:1px solid var(--bd);cursor:none;
+  border:1px solid var(--bd);cursor:crosshair;
   background:repeating-conic-gradient(#233241 0 25%,#1a2734 0 50%) 0 0/16px 16px;}
 #cut-stage canvas{position:absolute;left:50%;top:50%;margin-left:0;margin-top:0;
   transform-origin:0 0;image-rendering:auto;pointer-events:none;}
@@ -1994,6 +2009,169 @@ body.sbatch .tdel,body.sbatch .tdel2,body.sbatch .xi-del,body.sbatch .libi-del{d
   #mob-panel{overscroll-behavior:contain;-webkit-overflow-scrolling:touch;}
   #mob-canvas-wrap{touch-action:none;}
 }
+
+/* ═══ 抠图工作台补充 ═══ */
+#cut-stage.bg-white{background:#fff!important;}
+#cut-stage.bg-black{background:#111!important;}
+#cut-stage.bg-green{background:#22c55e!important;}
+#cut-stage.wanding{cursor:crosshair!important;}
+#cut-stage.wanding #cut-cursor{display:none!important;}
+.cut-tools .bi.act{background:var(--grad)!important;color:#fff!important;border-color:transparent!important;}
+.cut-pbtn{display:none;}
+@media (max-width:820px), (pointer:coarse) and (max-width:1024px){
+  #cut-ov .ov-card{display:flex;flex-direction:column;}
+  #cut-ov .ov-t{font-size:14px;margin-bottom:6px;}
+  .cut-body{flex:1 1 0%;min-height:0;}
+  .cut-left{flex:1 1 0%!important;min-height:0;}
+  #cut-stage{flex:1 1 0%;min-height:40vh;}
+  .cut-tools{flex-wrap:nowrap!important;overflow-x:auto;padding-bottom:4px;scrollbar-width:none;}
+  .cut-tools::-webkit-scrollbar{display:none;}
+  .cut-tools .bi{flex:0 0 auto;padding:9px 12px!important;font-size:12.5px!important;border-radius:10px!important;}
+  .cut-tools input[type=range]{min-width:120px;height:30px;}
+  .cut-pbtn{display:inline-flex;}
+  .cut-right{display:none;}
+  #cut-ov.params-open .cut-right{display:block;position:absolute;left:0;right:0;bottom:64px;max-height:48vh!important;
+    background:var(--surf);border-radius:18px 18px 0 0;padding:14px 14px 10px;box-shadow:0 -10px 30px rgba(0,0,0,.45);z-index:30;overflow-y:auto;}
+  #cut-ov .mbtns{display:flex;gap:8px;}
+  #cut-ov .mbtns button{flex:1;padding:13px!important;font-size:14px!important;border-radius:12px!important;}
+}
+
+@media (max-width:820px), (pointer:coarse) and (max-width:1024px){
+  .m-thumbs{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin:4px 0 12px;}
+  .m-th{aspect-ratio:1;border-radius:6px;background:var(--surf3) center/cover no-repeat;}
+  .m-th.more{display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--dim);}
+  .m-btn.danger{background:var(--err);color:#fff;}
+  .m-btn.done{background:var(--surf3);color:var(--ok);}
+  .m-btn:disabled{opacity:.4;}
+  #mob-bbar button:disabled{opacity:.35;}
+  .m-chip.on{background:var(--grad);color:#fff;}
+}
+
+/* ═══ 编辑区底图页码条 ═══ */
+#page-strip{flex:0 0 auto;display:flex;align-items:center;gap:6px;padding:7px 12px;background:var(--surf);
+  border-top:1px solid var(--bd);min-height:0;}
+#page-strip.empty{display:none;}
+#ps-list{flex:1 1 auto;min-width:0;display:flex;gap:7px;overflow-x:auto;padding:3px 2px;scrollbar-width:thin;scroll-behavior:smooth;}
+#ps-list::-webkit-scrollbar{height:5px;}
+#ps-list::-webkit-scrollbar-thumb{background:var(--bd);border-radius:999px;}
+.ps-i{flex:0 0 auto;position:relative;width:52px;height:52px;border-radius:6px;border:2px solid transparent;
+  background:var(--surf3) center/cover no-repeat;cursor:pointer;opacity:.62;transition:opacity .12s,border-color .12s,transform .12s;padding:0;}
+.ps-i:hover{opacity:1;transform:translateY(-2px);}
+.ps-i.act{opacity:1;border-color:var(--acc);box-shadow:0 0 0 2px var(--acc-g);}
+.ps-i span{position:absolute;left:3px;bottom:3px;min-width:15px;height:15px;padding:0 3px;border-radius:4px;
+  background:rgba(10,18,26,.72);color:#fff;font-size:9px;line-height:15px;text-align:center;font-family:var(--mono);}
+.ps-i.act span{background:var(--acc);}
+.ps-nav{flex:0 0 28px;height:28px;border-radius:50%;border:1px solid var(--bd);background:var(--surf2);color:var(--txt);
+  font-size:16px;line-height:1;cursor:pointer;padding:0;}
+.ps-nav:hover{border-color:var(--acc);color:var(--acc-l);}
+#ps-count{flex:0 0 auto;font-size:11px;color:var(--dim);font-family:var(--mono);min-width:42px;text-align:right;}
+/* 手机页码条 */
+#mob-pages{display:none;}
+@media (max-width:820px), (pointer:coarse) and (max-width:1024px){
+  #mob-pages{display:flex;flex:0 0 auto;gap:6px;overflow-x:auto;padding:6px 12px 2px;scrollbar-width:none;}
+  #mob-pages::-webkit-scrollbar{display:none;}
+  #mob-pages.empty{display:none;}
+  .mp-i{flex:0 0 auto;width:42px;height:42px;border-radius:6px;border:2px solid transparent;background:var(--surf3) center/cover no-repeat;
+    color:#fff;font-size:10px;font-weight:700;text-shadow:0 1px 3px rgba(0,0,0,.9);display:flex;align-items:flex-end;justify-content:flex-start;padding:2px 4px;opacity:.6;}
+  .mp-i.act{opacity:1;border-color:var(--acc);}
+}
+
+/* ═══════════ 抠图:可见的光标 + 浅色背景 ═══════════ */
+#cut-stage{cursor:crosshair!important;
+  background-color:#fff!important;
+  background-image:linear-gradient(45deg,#d4d4d4 25%,transparent 25%),linear-gradient(-45deg,#d4d4d4 25%,transparent 25%),
+    linear-gradient(45deg,transparent 75%,#d4d4d4 75%),linear-gradient(-45deg,transparent 75%,#d4d4d4 75%)!important;
+  background-size:18px 18px!important;background-position:0 0,0 9px,9px -9px,-9px 0!important;}
+#cut-stage.bg-dark{background-color:#2b2f36!important;
+  background-image:linear-gradient(45deg,#3b4049 25%,transparent 25%),linear-gradient(-45deg,#3b4049 25%,transparent 25%),
+    linear-gradient(45deg,transparent 75%,#3b4049 75%),linear-gradient(-45deg,transparent 75%,#3b4049 75%)!important;}
+#cut-stage.bg-white{background:#fff!important;}
+#cut-stage.bg-black{background:#0b0b0b!important;}
+#cut-stage.bg-green{background:#22c55e!important;}
+#cut-stage.panning{cursor:grabbing!important;}
+/* 画笔圈:白+黑双环,任何颜色上都看得见 */
+#cut-cursor{position:absolute;display:none;pointer-events:none;z-index:25;border-radius:50%;
+  transform:translate(-50%,-50%);border:1.5px solid #fff!important;
+  box-shadow:0 0 0 1.5px #000,inset 0 0 0 1.5px #000!important;background:transparent;}
+#cut-stage.erasing #cut-cursor{border-color:#fff!important;box-shadow:0 0 0 1.5px #000,inset 0 0 0 1.5px #000,inset 0 0 0 3.5px rgba(255,64,96,.9)!important;background:rgba(255,64,96,.10);}
+#cut-stage:not(.erasing):not(.wanding) #cut-cursor{box-shadow:0 0 0 1.5px #000,inset 0 0 0 1.5px #000,inset 0 0 0 3.5px rgba(34,197,94,.95)!important;background:rgba(34,197,94,.10);}
+#cut-cursor::after{content:'';position:absolute;left:50%;top:50%;width:5px;height:5px;border-radius:50%;
+  background:#fff;transform:translate(-50%,-50%);box-shadow:0 0 0 1.5px #000;}
+#cut-stage.wanding{cursor:crosshair!important;}
+/* 跟随鼠标的模式标签 */
+#cut-tag{position:absolute;display:none;pointer-events:none;z-index:26;padding:3px 8px;border-radius:999px;
+  font-size:11px;font-weight:600;white-space:nowrap;color:#fff;background:rgba(15,23,32,.86);
+  box-shadow:0 2px 8px rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.35);}
+#cut-tag.m-erase{background:rgba(220,38,72,.92);}
+#cut-tag.m-restore{background:rgba(22,163,74,.92);}
+#cut-tag.m-wand,#cut-tag.m-wandr{background:rgba(37,99,235,.92);}
+/* 缩放 HUD 在浅背景上也看得清 */
+#cut-hud{background:rgba(15,23,32,.82)!important;color:#fff!important;}
+
+/* 抠图画布定位:左上角对齐舞台,位置完全由 transform 决定(与坐标换算同一公式) */
+#cut-stage canvas{left:0!important;top:0!important;margin:0!important;transform-origin:0 0!important;
+  max-width:none!important;max-height:none!important;will-change:transform;}
+
+/* ═══════════ UI 缺陷修复 ═══════════ */
+/* 右侧:编辑区保底高度,导出区按需滚动,按钮固定在底部 */
+#edit{display:flex;flex-direction:column;}
+.tab-pane.show{flex:1 1 auto!important;min-height:230px!important;}
+#exp-zone{flex:0 1 auto!important;max-height:56%!important;overflow-y:auto!important;overflow-x:hidden!important;
+  padding:9px 11px 0!important;position:relative;}
+.exp-grp{margin:6px 0;border-radius:var(--rs);background:var(--surf2);}
+.exp-grp-h{width:100%;display:flex;align-items:center;justify-content:space-between;gap:6px;padding:7px 9px;
+  background:transparent;border:none;color:var(--dim);font-size:10.5px;font-weight:600;cursor:pointer;text-align:left;}
+.exp-grp-h:hover{color:var(--txt);}
+.exp-grp-h i{font-style:normal;transition:transform .15s;}
+.exp-grp.open .exp-grp-h i{transform:rotate(90deg);}
+.exp-grp-b{display:none;padding:2px 9px 8px;}
+.exp-grp.open .exp-grp-b{display:block;}
+.exp-actions{position:sticky;bottom:0;z-index:4;display:flex;flex-direction:column;gap:6px;padding:8px 0 10px;
+  background:linear-gradient(to bottom,transparent,var(--surf) 30%);margin-top:4px;}
+.exp-actions .bexp,.exp-actions .bfolder{position:static!important;width:100%;margin:0!important;}
+/* 滑块行:数字框不再溢出 */
+.cr{min-width:0;}
+.cr input[type=range]{min-width:0!important;flex:1 1 auto!important;width:auto!important;}
+.cr input[type=number]{flex:0 0 48px!important;width:48px!important;min-width:0!important;}
+.cr .cl{flex:0 0 auto;}
+.tab-pane{overflow-x:hidden!important;}
+/* 底部工具栏标签不换行 */
+.plbl{white-space:nowrap;flex-shrink:0;}
+#prev-bar{flex-wrap:wrap;row-gap:6px;}
+/* 通知移到顶部居中,不再挡住导出按钮 */
+#notif{left:50%!important;right:auto!important;top:64px!important;bottom:auto!important;transform:translateX(-50%)!important;
+  max-width:min(560px,90vw);text-align:center;}
+@keyframes barInTop{from{opacity:0;transform:translate(-50%,-10px)}to{opacity:1;transform:translate(-50%,0)}}
+#notif{animation:barInTop .2s var(--ease)!important;}
+@media (max-width:820px), (pointer:coarse) and (max-width:1024px){
+  #notif{top:calc(58px + env(safe-area-inset-top))!important;bottom:auto!important;}
+  /* 多选操作条:两行网格,不再截断 */
+  #mob-bbar{display:none;flex-wrap:wrap!important;overflow-x:visible!important;gap:6px!important;}
+  #mob-bbar.on{display:grid!important;grid-template-columns:repeat(4,1fr);align-items:stretch;}
+  #mob-bbar span{grid-column:1/-1;display:flex;align-items:center;gap:4px;}
+  #mob-bbar button{padding:10px 4px!important;font-size:12px!important;}
+  #mob-bbar button.ok{grid-column:span 2;}
+  /* 主按钮占满宽度 */
+  .m-btn.full{display:block;width:100%;box-sizing:border-box;}
+  #mob-panel > .m-btn.pri{display:block;width:100%;}
+  /* 抠图:笔刷行换行,硬度不被截断 */
+  .cut-tools:has(#cb-size){flex-wrap:wrap!important;overflow:visible!important;row-gap:6px;}
+  .cut-tools:has(#cb-size) input[type=range]{flex:1 1 40%!important;min-width:90px!important;}
+  #cut-ov .ov-t{padding-top:env(safe-area-inset-top);}
+}
+
+/* 导出区按自然高度显示(上限 56%),不被压缩;编辑区拿剩余空间 */
+#exp-zone{flex:0 0 auto!important;}
+.exp-actions{background:var(--surf)!important;box-shadow:0 -8px 12px -6px var(--surf);}
+/* 通知:画布底部居中(避开浮动工具栏、页码条和导出按钮) */
+#notif{top:auto!important;bottom:150px!important;}
+@keyframes barInTop{from{opacity:0;transform:translate(-50%,10px)}to{opacity:1;transform:translate(-50%,0)}}
+@media (max-width:820px), (pointer:coarse) and (max-width:1024px){
+  #notif{top:calc(58px + env(safe-area-inset-top))!important;bottom:auto!important;}
+}
+
+@keyframes rowFlash{0%,100%{background:transparent}30%{background:rgba(245,158,11,.25)}}
+.flash{animation:rowFlash 1.2s ease;border-radius:6px;}
 </style>
 <script>
 /* ============================================================
@@ -3540,6 +3718,118 @@ function sideBatchInvertPick() {
   });
 }
 
+/* ═══════════ 导出区收纳:常用项常显,其余收进可展开分组 ═══════════ */
+function restructureExport() {
+  const z = G('exp-zone');
+  if (!z || z._rs) return;
+  z._rs = true;
+  const kids = [...z.children];
+  const byIdx = i => kids[i];
+  const mkGroup = (key, title, nodes) => {
+    const g = document.createElement('div');
+    g.className = 'exp-grp' + (store.get('tm_expg_' + key) === '1' ? ' open' : '');
+    const h = document.createElement('button');
+    h.type = 'button'; h.className = 'exp-grp-h';
+    h.innerHTML = `<span>${title}</span><i>▸</i>`;
+    h.onclick = () => { const on = g.classList.toggle('open'); store.set('tm_expg_' + key, on ? '1' : '0'); };
+    const b = document.createElement('div'); b.className = 'exp-grp-b';
+    nodes.filter(Boolean).forEach(n => b.appendChild(n));
+    g.appendChild(h); g.appendChild(b);
+    return g;
+  };
+  // 按结构定位(用 id/类名找,不依赖顺序)
+  const fmtRow = G('fmt-sel') && G('fmt-sel').closest('.folder-row');
+  const modeRow = G('exp-mode') ? G('exp-mode').closest('.folder-row') : kids.find(k => /组合导出/.test(k.textContent));
+  const btnFolder = G('btn-folder'), btnExp = G('btn-exp'), prog = G('prog-wrap');
+  const keepTop = new Set([G('exp-desc'), G('exp-eta'), fmtRow, G('bg-warn'), modeRow, btnFolder, btnExp, prog]);
+  const printStart = kids.findIndex(k => /同时导出印花/.test(k.textContent));
+  const fileNodes = [], printNodes = [];
+  kids.forEach((k, i) => {
+    if (keepTop.has(k)) return;
+    if (printStart >= 0 && i >= printStart) printNodes.push(k); else fileNodes.push(k);
+  });
+  const gFile = mkGroup('file', '文件与压缩（大小限制、白底、命名、ZIP）', fileNodes);
+  const gPrint = mkGroup('print', '印花导出设置（DPI、尺寸、杯身直径）', printNodes);
+  const act = document.createElement('div'); act.className = 'exp-actions';
+  if (btnFolder) act.appendChild(btnFolder);
+  if (btnExp) act.appendChild(btnExp);
+  // 重新排列
+  [G('exp-desc'), G('exp-eta'), fmtRow, G('bg-warn'), modeRow, gFile, gPrint, act, prog].filter(Boolean).forEach(n => z.appendChild(n));
+  const warn = G('bg-warn');
+  if (warn) {
+    warn.style.cursor = 'pointer';
+    warn.title = '点击展开「白底填充」开关';
+    warn.addEventListener('click', () => {
+      gFile.classList.add('open'); store.set('tm_expg_file', '1');
+      const t = gFile.querySelector('input[type=checkbox]') ;
+      const row = [...gFile.querySelectorAll('.zip-row')].find(r => /白底/.test(r.textContent)) || t;
+      if (row) { row.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); row.classList.add('flash'); setTimeout(() => row.classList.remove('flash'), 1200); }
+    });
+  }
+}
+
+/* ═══════════ 底图页码条:在编辑区直接切换查看,不改变勾选 ═══════════ */
+let _psSig = '';
+const _psUrls = new Map();          // base.id → objectURL(复用,避免反复生成)
+function pageList() {
+  const on = S.bases.map((b, i) => i).filter(i => S.bases[i].checked !== false);
+  return on.length ? on : [];
+}
+function renderPageStrip(force) {
+  const box = G('ps-list'), strip = G('page-strip');
+  if (!box || !strip) return;
+  const list = pageList();
+  const sig = list.map(i => S.bases[i].id).join(',') + '|' + S.activeBase;
+  if (!force && sig === _psSig) return;
+  _psSig = sig;
+  strip.classList.toggle('empty', list.length < 2);
+  // 清理已删除底图的 URL
+  const alive = new Set(S.bases.map(b => b.id));
+  for (const [id, u] of _psUrls) if (!alive.has(id)) { URL.revokeObjectURL(u); _psUrls.delete(id); }
+  box.innerHTML = '';
+  list.forEach((bi, k) => {
+    const b = S.bases[bi];
+    const d = document.createElement('button');
+    d.className = 'ps-i' + (bi === S.activeBase ? ' act' : '');
+    d.title = `${k + 1}. ${b.name}`;
+    if (b.blob) {
+      let u = _psUrls.get(b.id);
+      if (!u) { u = URL.createObjectURL(b.blob); _psUrls.set(b.id, u); }
+      d.style.backgroundImage = `url(${u})`;
+    }
+    const n = document.createElement('span'); n.textContent = k + 1; d.appendChild(n);
+    d.onclick = () => gotoPage(bi);
+    box.appendChild(d);
+  });
+  const k = list.indexOf(S.activeBase);
+  const c = G('ps-count');
+  if (c) c.textContent = list.length ? `${k >= 0 ? k + 1 : '–'} / ${list.length}` : '';
+  const act = box.querySelector('.ps-i.act');
+  if (act && act.scrollIntoView) act.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+}
+function gotoPage(bi) {
+  if (bi === S.activeBase) return;
+  S.activeBase = bi;
+  renderCanvas(); renderPageStrip();
+  // 左侧只更新高亮,不重建
+  document.querySelectorAll('#base-grid .ti').forEach(el => el.classList.toggle('is-active', +el.dataset.id === (S.bases[bi] || {}).id));
+  if (typeof mobRenderCanvas === 'function' && typeof isMob === 'function' && isMob()) mobRenderCanvas();
+  scheduleSave();
+}
+function pageStep(d) {
+  const list = pageList();
+  if (list.length < 2) return;
+  let k = list.indexOf(S.activeBase);
+  k = k < 0 ? 0 : (k + d + list.length) % list.length;
+  gotoPage(list[k]);
+}
+document.addEventListener('keydown', e => {
+  if (e.target && /INPUT|TEXTAREA|SELECT/.test(e.target.tagName)) return;
+  if (document.querySelector('.ov.on')) return;
+  if (e.key === 'PageDown') { e.preventDefault(); pageStep(1); }
+  else if (e.key === 'PageUp') { e.preventDefault(); pageStep(-1); }
+});
+
 /* ═══════════ 渲染调度:rAF 合并,避免一帧内重复绘制 ═══════════ */
 let _rafPending = false, _rafPanel = false;
 const _realRender = () => { _rafPending = false; renderCanvasNow(); };
@@ -3638,6 +3928,7 @@ function refreshAll() {
   renderBaseGrid(); renderStkGrid(); renderLogoBoxes();
   if (typeof renderExtraGrid === 'function') renderExtraGrid();
   if (typeof rebindAllThumbs === 'function') rebindAllThumbs();
+  if (typeof renderPageStrip === 'function') renderPageStrip();
   if (typeof checkCanvasLoad === 'function') checkCanvasLoad();
   if (typeof isMob === 'function' && isMob() && typeof mobRenderCanvas === 'function') { mobRenderCanvas(); if (typeof mobUpdUndo === 'function') mobUpdUndo(); const mt = G('mob-title'); if (mt) mt.textContent = curProj; }
   syncStkPanel(); syncTextPanel(); syncAdjPanel();
@@ -5148,7 +5439,7 @@ let libCacheList = null;
 function invalidateLibCache() { libCacheList = null; }
 async function libraryList(kind, sort) {
   if (!libCacheList) libCacheList = await assetAll();
-  const list = libCacheList.filter(a => !kind || a.kind === kind);
+  const list = libCacheList.filter(a => (!kind || a.kind === kind) && !(_delHidden && _delHidden.has(a.id)));
   const mode = sort || (G('lib-sort') ? G('lib-sort').value : 'recent');
   if (mode === 'name') return list.sort((x, y) => (x.name || '').localeCompare(y.name || '', 'zh'));
   if (mode === 'used') {   /* ⑨ 最近用过的排前面 */
@@ -6201,18 +6492,65 @@ async function sideBatchSelAll() {
   refreshAll(); updSideBatchBar();
 }
 /* 从云端永久删除一组素材,并清除所有项目中的引用(底图/素材/细节图/Logo) */
-async function cloudDeleteAssets(ids, kn) {
+/* ═══ 云端删除 ═══
+   · 确认提示:每次打开(本次会话)只问一次
+   · 之后的删除不再弹窗 → 为防误删,先从界面移除并给 7 秒「撤销」,到时才真正删除 */
+let _delAsked = false;
+function needDelConfirm() {
+  if (_delAsked) return false;
+  try { if (sessionStorage.getItem('tm_del_ok') === '1') { _delAsked = true; return false; } } catch (e) {}
+  return true;
+}
+function markDelConfirmed() { _delAsked = true; try { sessionStorage.setItem('tm_del_ok', '1'); } catch (e) {} }
+var _delHidden = _delHidden || new Set();   // 待删除(已从界面隐藏)
+let _pendingDel = null;
+async function cloudDeleteAssets(ids, kn, skipConfirm) {
+  ids = [...new Set(ids)].filter(Boolean);
   if (!ids.length) { notify('请先勾选', 'err'); return 0; }
-  let bytes = 0;
-  try { const all = await assetAll(); ids.forEach(i => { const a = all.find(x => x.id === i); if (a) bytes += assetBytes(a); }); } catch (e) {}
-  if (!confirm(`从云端素材库永久删除 ${ids.length} 个${kn || ''}？（约 ${fmtSize(bytes)}）\n\n⚠ 不可撤销，会从所有项目中一并清除。`)) return 0;
-  setProg(true, '删除中…', 10);
-  const dead = new Set(ids);
-  let n = 0;
-  for (const aid of ids) {
-    try { await assetDel(aid); assetCache.delete(aid); n++; setProg(true, `删除 ${n}/${ids.length}`, 10 + n / ids.length * 60); } catch (e) {}
+  if (!skipConfirm && needDelConfirm()) {
+    let bytes = 0;
+    try { const all = await assetAll(); ids.forEach(i => { const a = all.find(x => x.id === i); if (a) bytes += assetBytes(a); }); } catch (e) {}
+    if (!confirm(`从云端素材库删除 ${ids.length} 个${kn || ''}？（约 ${fmtSize(bytes)}）\n\n会从所有项目中一并清除。删除后 7 秒内可撤销。\n\n确认后，本次使用期间不再询问。`)) return 0;
+    markDelConfirmed();
   }
-  // 各项目引用一次性清理(原先逐个素材遍历全部项目,且漏掉了细节图)
+  if (_pendingDel) await flushPendingDel();          // 上一批先落地
+  const dead = new Set(ids);
+  const bak = { bases: S.bases.slice(), stks: S.stks.slice(), extras: (S.extras || []).slice(),
+    brand: { ...S.logos.brand }, ip: { ...S.logos.ip }, ab: S.activeBase, as: S.activeStk };
+  ids.forEach(i => _delHidden.add(i));
+  const keep = o => !(o.aid && dead.has(o.aid));
+  S.bases = S.bases.filter(keep); S.stks = S.stks.filter(keep); S.extras = (S.extras || []).filter(keep);
+  ['brand', 'ip'].forEach(k2 => { if (S.logos[k2].aid && dead.has(S.logos[k2].aid)) Object.assign(S.logos[k2], { img: null, blob: null, aid: null, name: '', en: false }); });
+  if (S.activeBase >= S.bases.length) S.activeBase = S.bases.length - 1;
+  if (!S.stks.some(t => t.id === S.activeStk)) S.activeStk = null;
+  invalidateLibCache();
+  if (G('lib-ov').classList.contains('on')) renderLibrary();
+  refreshAll();
+  const timer = setTimeout(() => flushPendingDel(), 7000);
+  _pendingDel = { ids, kn, timer, bak };
+  setTimeout(() => notifyUndo(`已删除 ${ids.length} 个${kn || ''}`, () => undoPendingDel()), 0);
+  return ids.length;
+}
+function undoPendingDel() {
+  const p = _pendingDel; if (!p) return;
+  clearTimeout(p.timer); _pendingDel = null;
+  p.ids.forEach(i => _delHidden.delete(i));
+  const b = p.bak;
+  S.bases = b.bases; S.stks = b.stks; S.extras = b.extras;
+  Object.assign(S.logos.brand, b.brand); Object.assign(S.logos.ip, b.ip);
+  S.activeBase = b.ab; S.activeStk = b.as;
+  invalidateLibCache();
+  if (G('lib-ov').classList.contains('on')) renderLibrary();
+  refreshAll();
+  if (typeof isMob === 'function' && isMob()) { mobRenderCanvas(); mobPanel(); }
+  notify('已撤销删除', 'ok');
+}
+async function flushPendingDel() {
+  const p = _pendingDel; if (!p) return 0;
+  clearTimeout(p.timer); _pendingDel = null;
+  const dead = new Set(p.ids);
+  let n = 0;
+  for (const aid of p.ids) { try { await assetDel(aid); assetCache.delete(aid); n++; } catch (e) {} }
   for (const pn of projects) {
     try {
       const d = await idbGet(projKey(pn));
@@ -6224,18 +6562,14 @@ async function cloudDeleteAssets(ids, kn) {
       if (ch) { d.thumb = ''; await idbPut(d, projKey(pn)); }
     } catch (e) {}
   }
-  const keep = o => !(o.aid && dead.has(o.aid));
-  S.bases = S.bases.filter(keep); S.stks = S.stks.filter(keep); S.extras = (S.extras || []).filter(keep);
-  ['brand', 'ip'].forEach(k2 => { if (S.logos[k2].aid && dead.has(S.logos[k2].aid)) Object.assign(S.logos[k2], { img: null, blob: null, aid: null, name: '', en: false }); });
-  if (S.activeBase >= S.bases.length) S.activeBase = S.bases.length - 1;
-  if (!S.stks.some(t => t.id === S.activeStk)) S.activeStk = null;
+  p.ids.forEach(i => _delHidden.delete(i));
   invalidateLibCache(); invalidateProjPreview();
-  if (G('lib-ov').classList.contains('on')) renderLibrary();
-  setProg(false);
-  notify(`已从云端删除 ${n} 个${kn || ''}，释放 ${fmtSize(bytes)}`, 'err');
-  refreshAll();
+  scheduleSave();
   return n;
 }
+// 页面关闭/切到后台时,立即落地待删除
+window.addEventListener('pagehide', () => { if (_pendingDel) flushPendingDel(); });
+document.addEventListener('visibilitychange', () => { if (document.hidden && _pendingDel) flushPendingDel(); });
 async function sideBatchDelete() {
   const kn = { base: '底图', logo: 'Logo', extra: '细节图', sticker: '素材' }[sideBatch.kind] || '素材';
   const n = await cloudDeleteAssets([...sideBatch.picked], kn);
@@ -7132,10 +7466,19 @@ let cutView = { zoom: 1, ox: 0, oy: 0, panning: false, p0: null, spc: false };
 let cutUndo = [], cutRedo = [];
 const CUT_UNDO_MAX = 40;
 
+/* 遮罩(有符号): 0 = 跟随算法结果 · -1 = 完全擦除 · +1 = 完全恢复原图
+   旧版只有「保留系数」,恢复笔无法找回算法删掉的像素,这里改成双向 */
+let cutDirty = null;
+function cutMarkDirty(x0, y0, x1, y1) {
+  if (cutDirty === 'all') return;
+  if (!cutDirty) cutDirty = { x0, y0, x1, y1 };
+  else { cutDirty.x0 = Math.min(cutDirty.x0, x0); cutDirty.y0 = Math.min(cutDirty.y0, y0);
+         cutDirty.x1 = Math.max(cutDirty.x1, x1); cutDirty.y1 = Math.max(cutDirty.y1, y1); }
+}
 function initCutMask(w, h) {
-  cutMask = new Float32Array(w * h).fill(1);
+  cutMask = new Float32Array(w * h);          // 全 0
   cutBrush.w = w; cutBrush.h = h;
-  cutUndo = []; cutRedo = [];
+  cutUndo = []; cutRedo = []; cutDirty = 'all';
   updCutUndoUI();
 }
 /* ---------- 撤销 / 重做 ---------- */
@@ -7150,14 +7493,14 @@ function cutDoUndo() {
   if (!cutUndo.length || !cutMask) return notify('没有可撤销的涂抹');
   cutRedo.push(cutMask.slice());
   cutMask = cutUndo.pop();
-  cutBrush.w = cutBrush.w; applyCutMask(); updCutUndoUI();
+  applyCutMask(true); updCutUndoUI();
   notify('已撤销');
 }
 function cutDoRedo() {
   if (!cutRedo.length || !cutMask) return notify('没有可重做的操作');
   cutUndo.push(cutMask.slice());
   cutMask = cutRedo.pop();
-  applyCutMask(); updCutUndoUI();
+  applyCutMask(true); updCutUndoUI();
   notify('已重做');
 }
 function updCutUndoUI() {
@@ -7168,91 +7511,166 @@ function updCutUndoUI() {
 /* ---------- 画笔 ---------- */
 function setBrushMode(m) {
   cutBrush.mode = m;
-  ['erase', 'restore'].forEach(k => { const b = G('cb-' + k); if (b) b.classList.toggle('act', k === m); });
+  ['erase', 'restore', 'wand', 'wandr'].forEach(k => { const b = G('cb-' + k); if (b) b.classList.toggle('act', k === m); });
   const pv = G('cut-stage');
-  if (pv) pv.classList.toggle('erasing', m === 'erase');
+  if (pv) { pv.classList.toggle('erasing', m === 'erase'); pv.classList.toggle('wanding', m === 'wand' || m === 'wandr'); }
+  if (typeof updBrushCursor === 'function' && _curXY) updBrushCursor();
 }
 function setBrushSize(v) {
   cutBrush.size = clamp(Math.round(+v || 28), 2, 400);
   const r = G('cb-size'), n = G('cb-size-n');
   if (r) r.value = cutBrush.size; if (n) n.value = cutBrush.size;
+  if (typeof previewBrushSize === 'function') previewBrushSize();
   updBrushCursor();
 }
 function setBrushSoft(v) {
   cutBrush.soft = clamp((+v || 0) / 100, 0, 1);
   const r = G('cb-soft'); if (r) r.value = Math.round(cutBrush.soft * 100);
 }
+let _curXY = null, _curFromMouse = false, _sizePrevT = null;
 function updBrushCursor(e) {
-  const el = G('cut-cursor');
-  if (!el || !cutState) return;
-  const d = Math.max(8, cutBrush.size * cutView.zoom);
+  const el = G('cut-cursor'), tag = G('cut-tag'), st = G('cut-stage');
+  if (!el || !cutState || !st) return;
+  const z = cutView.zoom || 1;
+  const d = Math.max(6, cutBrush.size * z);
   el.style.width = d + 'px'; el.style.height = d + 'px';
   if (e) {
-    const box = G('cut-stage').getBoundingClientRect();
-    el.style.left = (e.clientX - box.left) + 'px';
-    el.style.top = (e.clientY - box.top) + 'px';
+    _curXY = cutLocal(e);
+    _curFromMouse = true; clearTimeout(_sizePrevT);      // 真实鼠标到位后,取消「预览后隐藏」
   }
+  if (!_curXY) return;
+  const wand = cutBrush.mode === 'wand' || cutBrush.mode === 'wandr';
+  el.style.left = _curXY.x + 'px'; el.style.top = _curXY.y + 'px';
+  el.style.display = wand ? 'none' : 'block';      // 明确设为 block(空字符串会被 CSS 的 display:none 覆盖)
+  if (tag) {
+    const lbl = { erase: '擦除', restore: '恢复', wand: '✦ 魔棒擦除', wandr: '✧ 魔棒恢复' }[cutBrush.mode] || '';
+    tag.textContent = wand ? lbl : `${lbl} ${Math.round(cutBrush.size)}px`;
+    tag.className = 'm-' + cutBrush.mode;
+    const off = wand ? 14 : d / 2 + 8;
+    tag.style.left = (_curXY.x + off) + 'px';
+    tag.style.top = (_curXY.y + off) + 'px';
+    tag.style.display = 'block';
+  }
+}
+function hideBrushCursor() {
+  const el = G('cut-cursor'), tag = G('cut-tag');
+  if (el) el.style.display = 'none';
+  if (tag) tag.style.display = 'none';
+  _curXY = null; _curFromMouse = false;
+}
+/* 调笔刷大小时在画面中央预览一下圈的大小 */
+function previewBrushSize() {
+  const st = G('cut-stage'); if (!st || !cutState) return;
+  if (!_curXY) {
+    const r = st.getBoundingClientRect();
+    _curXY = { x: r.width / 2, y: r.height / 2 };
+    clearTimeout(_sizePrevT);
+    _sizePrevT = setTimeout(() => { if (!cutBrush.drawing && !_curFromMouse) hideBrushCursor(); }, 900);
+  }
+  updBrushCursor();
 }
 function paintMask(cx, cy, val) {
   if (!cutMask) return;
-  const w = cutBrush.w, h = cutBrush.h, R = cutBrush.size / 2;
+  const w = cutBrush.w, h = cutBrush.h, R = Math.max(0.5, cutBrush.size / 2);
   const soft = clamp(cutBrush.soft, 0, 1);
   const core = R * (1 - soft * 0.85);
   const x0 = Math.max(0, Math.floor(cx - R)), x1 = Math.min(w - 1, Math.ceil(cx + R));
   const y0 = Math.max(0, Math.floor(cy - R)), y1 = Math.min(h - 1, Math.ceil(cy + R));
+  if (x1 < x0 || y1 < y0) return;
   for (let y = y0; y <= y1; y++) {
     for (let x = x0; x <= x1; x++) {
       const dx = x - cx, dy = y - cy, d = Math.sqrt(dx * dx + dy * dy);
       if (d > R) continue;
       const t = d <= core ? 1 : 1 - (d - core) / Math.max(1e-6, R - core);
       const i = y * w + x;
-      cutMask[i] = val === 0 ? Math.min(cutMask[i], 1 - t) : Math.max(cutMask[i], t);
+      cutMask[i] = val === 0 ? Math.min(cutMask[i], -t) : Math.max(cutMask[i], t);
     }
   }
+  cutMarkDirty(x0, y0, x1, y1);
+}
+/* 魔棒:点一下,把与该点颜色相近且相连的整块区域擦除/恢复(字母孔洞一点即去) */
+function cutWand(px, py, restore) {
+  if (!cutState || !cutState.origData || !cutMask) return 0;
+  const w = cutBrush.w, h = cutBrush.h;
+  const x = Math.round(px), y = Math.round(py);
+  if (x < 0 || y < 0 || x >= w || y >= h) return 0;
+  const od = cutState.origData.data, s0 = (y * w + x) * 4;
+  const r0 = od[s0], g0 = od[s0 + 1], b0 = od[s0 + 2];
+  const T = clamp((cutState.tol || 24) * 1.6, 12, 140), T2 = T * T;
+  const seen = new Uint8Array(w * h), st = [y * w + x];
+  let n = 0, mx0 = x, my0 = y, mx1 = x, my1 = y;
+  while (st.length) {
+    const p = st.pop();
+    if (seen[p]) continue;
+    seen[p] = 1;
+    const i4 = p * 4, dr = od[i4] - r0, dg = od[i4 + 1] - g0, db = od[i4 + 2] - b0;
+    if (dr * dr + dg * dg + db * db > T2) continue;
+    cutMask[p] = restore ? 1 : -1; n++;
+    const cx = p % w, cy = (p / w) | 0;
+    if (cx < mx0) mx0 = cx; if (cx > mx1) mx1 = cx; if (cy < my0) my0 = cy; if (cy > my1) my1 = cy;
+    if (cx > 0) st.push(p - 1); if (cx < w - 1) st.push(p + 1);
+    if (cy > 0) st.push(p - w); if (cy < h - 1) st.push(p + w);
+  }
+  // 边缘补一圈半透明,避免锯齿
+  if (n) cutMarkDirty(Math.max(0, mx0 - 1), Math.max(0, my0 - 1), Math.min(w - 1, mx1 + 1), Math.min(h - 1, my1 + 1));
+  return n;
 }
 /* ---------- 视图:缩放 / 平移 ---------- */
+/* 画布定位与坐标换算共用同一个公式(之前两者不一致,缩放≠100% 时涂抹会落到别处)
+   画布左上角放在舞台左上角,再 translate(tx,ty) scale(z);
+   tx = 舞台宽/2 + ox − z·图宽/2  → 图片中心对准舞台中心 + 平移量 */
+function cutOrigin() {
+  const cv2 = G('cut-canvas'), st = G('cut-stage');
+  const W = st ? st.clientWidth : 0, H = st ? st.clientHeight : 0, z = cutView.zoom || 1;
+  return { tx: W / 2 + cutView.ox - z * (cv2 ? cv2.width : 0) / 2,
+           ty: H / 2 + cutView.oy - z * (cv2 ? cv2.height : 0) / 2, W, H, z };
+}
 function applyCutTransform() {
   const cv2 = G('cut-canvas');
   if (!cv2) return;
-  cv2.style.transform = `translate(-50%,-50%) translate(${cutView.ox}px,${cutView.oy}px) scale(${cutView.zoom})`;
+  const o = cutOrigin();
+  cv2.style.transform = `translate(${o.tx}px,${o.ty}px) scale(${o.z})`;
   const z = G('cut-zoom'); if (z) z.textContent = Math.round(cutView.zoom * 100) + '%';
   updBrushCursor();
 }
 function cutFitView() {
   const cv2 = G('cut-canvas'), st = G('cut-stage');
   if (!cv2 || !st || !cv2.width) return;
-  const r = st.getBoundingClientRect();
   const pad = 28;
-  let z = Math.min((r.width - pad) / cv2.width, (r.height - pad) / cv2.height);
-  // 舞台尚未布局(宽高为 0)时会算出负数/0,导致后续坐标全错 → 下一帧重试
+  let z = Math.min((st.clientWidth - pad) / cv2.width, (st.clientHeight - pad) / cv2.height);
   if (!(z > 0) || !isFinite(z)) { z = 1; requestAnimationFrame(() => { if (cutState) cutFitView(); }); }
-  cutView.zoom = clamp(z, 0.05, 40);
+  cutView.zoom = clamp(z, 0.05, 24);
   cutView.ox = 0; cutView.oy = 0;
   applyCutTransform();
 }
 function cutZoom(f, e) {
   if (!cutState) return;
-  const old = cutView.zoom;
-  cutView.zoom = clamp(old * f, 0.05, 24);
-  if (e) {   // 以光标为锚点缩放
-    const st = G('cut-stage').getBoundingClientRect();
-    const mx = e.clientX - st.left - st.width / 2 - cutView.ox;
-    const my = e.clientY - st.top - st.height / 2 - cutView.oy;
-    const k = cutView.zoom / old;
-    cutView.ox -= mx * (k - 1);
-    cutView.oy -= my * (k - 1);
-  }
+  const st = G('cut-stage');
+  if (e && st) { const l = cutLocal(e); cutZoomAt(cutView.zoom * f, l.x, l.y); }
+  else if (st) cutZoomAt(cutView.zoom * f, st.clientWidth / 2, st.clientHeight / 2);
   applyCutTransform();
 }
 function cutZoom100() { if (!cutState) return; cutView.zoom = 1; cutView.ox = 0; cutView.oy = 0; applyCutTransform(); }
 /* 屏幕坐标 → 图像像素坐标 */
+function cutLocal(e) {                 // 屏幕坐标 → 舞台内坐标(扣除边框)
+  const st = G('cut-stage'); const r = st.getBoundingClientRect();
+  return { x: e.clientX - r.left - st.clientLeft, y: e.clientY - r.top - st.clientTop };
+}
 function cutPointerPos(e) {
   const cv2 = G('cut-canvas'), st = G('cut-stage');
   if (!cv2 || !st || !cutState) return null;
-  const r = st.getBoundingClientRect();
-  const cx = e.clientX - r.left - r.width / 2 - cutView.ox;
-  const cy = e.clientY - r.top - r.height / 2 - cutView.oy;
-  return { x: cx / cutView.zoom + cv2.width / 2, y: cy / cutView.zoom + cv2.height / 2 };
+  const l = cutLocal(e), o = cutOrigin();
+  return { x: (l.x - o.tx) / o.z, y: (l.y - o.ty) / o.z };
+}
+/* 以舞台内某点为锚点缩放:该点下的图像像素保持不动 */
+function cutZoomAt(z, lx, ly) {
+  const cv2 = G('cut-canvas'); if (!cv2) return;
+  const o = cutOrigin();
+  const px = (lx - o.tx) / o.z, py = (ly - o.ty) / o.z;
+  cutView.zoom = clamp(z, 0.05, 24);
+  const tx = lx - cutView.zoom * px, ty = ly - cutView.zoom * py;
+  cutView.ox = tx - o.W / 2 + cutView.zoom * cv2.width / 2;
+  cutView.oy = ty - o.H / 2 + cutView.zoom * cv2.height / 2;
 }
 function cutBrushDown(e) {
   if (!cutState || !cutMask) return;
@@ -7264,17 +7682,23 @@ function cutBrushDown(e) {
   }
   if (e.button !== 0) return;
   e.preventDefault();
-  cutSnapshot();
-  cutBrush.drawing = true;
   const p = cutPointerPos(e);
   if (!p) return;
+  if (cutBrush.mode === 'wand' || cutBrush.mode === 'wandr') {
+    cutSnapshot();
+    const n = cutWand(p.x, p.y, cutBrush.mode === 'wandr');
+    if (n) { applyCutMask(); haptic && haptic(8); } else notify('点在图片范围内');
+    return;
+  }
+  cutSnapshot();
+  cutBrush.drawing = true;
   cutBrush.last = p;
   paintMask(p.x, p.y, cutBrush.mode === 'erase' ? 0 : 1);
   applyCutMask();
 }
 function cutBrushMove(e) {
   const cur = G('cut-cursor');
-  if (cur && cutState) { cur.style.display = ''; updBrushCursor(e); }
+  if (cur && cutState) updBrushCursor(e);
   if (cutView.panning && cutView.p0) {
     cutView.ox = e.clientX - cutView.p0.x;
     cutView.oy = e.clientY - cutView.p0.y;
@@ -7300,48 +7724,95 @@ function cutBrushUp() {
 function clearCutMask() {
   if (!cutMask) return;
   cutSnapshot();
-  cutMask.fill(1);
+  cutMask.fill(0); cutDirty = 'all';
   applyCutMask();
   notify('已清除全部涂抹');
 }
 /* ---------- 合成预览 ---------- */
 let _maskRaf = false;
-function applyCutMask() {
+function applyCutMask(full) {
+  if (full) cutDirty = 'all';
   if (_maskRaf) return;
   _maskRaf = true;
   requestAnimationFrame(() => {
     _maskRaf = false;
     if (!cutState || !cutState.baseCanvas) return;
     const src = cutState.baseCanvas, w = src.width, h = src.height;
-    const out = cutState.canvas || (cutState.canvas = document.createElement('canvas'));
-    out.width = w; out.height = h;
+    let out = cutState.canvas;
+    const fresh = !out || out.width !== w || out.height !== h;
+    if (fresh) { out = cutState.canvas = document.createElement('canvas'); out.width = w; out.height = h; cutDirty = 'all'; }
+    const d0 = cutDirty; cutDirty = null;
+    if (!d0) { drawCutPreview(out); return; }
+    const R = d0 === 'all' ? { x0: 0, y0: 0, x1: w - 1, y1: h - 1 } : d0;
+    const rw = R.x1 - R.x0 + 1, rh = R.y1 - R.y0 + 1;
+    if (rw <= 0 || rh <= 0) { drawCutPreview(out); return; }
+    const sx = src.getContext('2d', { willReadFrequently: true });
     const ox = out.getContext('2d', { willReadFrequently: true });
-    ox.clearRect(0, 0, w, h);
-    ox.drawImage(src, 0, 0);
+    const d = sx.getImageData(R.x0, R.y0, rw, rh), px = d.data;
+    const orig = cutState.origData ? cutState.origData.data : null;
     if (cutMask) {
-      const d = ox.getImageData(0, 0, w, h), px = d.data;
-      const orig = cutState.origData ? cutState.origData.data : null;
-      for (let i = 0; i < cutMask.length; i++) {
-        const m = cutMask[i], i4 = i * 4;
-        if (m < 1) { px[i4 + 3] = Math.round(px[i4 + 3] * m); continue; }
-        // 恢复笔:算法删掉的地方用原图补回
-        if (orig && px[i4 + 3] < 250 && cutMask[i] >= 1 && cutState.restoreMap && cutState.restoreMap[i]) {
-          px[i4] = orig[i4]; px[i4 + 1] = orig[i4 + 1]; px[i4 + 2] = orig[i4 + 2]; px[i4 + 3] = 255;
+      for (let yy = 0; yy < rh; yy++) {
+        const row = (R.y0 + yy) * w + R.x0;
+        for (let xx = 0; xx < rw; xx++) {
+          const m = cutMask[row + xx];
+          if (m === 0) continue;
+          const i4 = (yy * rw + xx) * 4;
+          if (m < 0) { px[i4 + 3] = Math.round(px[i4 + 3] * (1 + m)); continue; }
+          if (!orig) continue;
+          const o4 = (row + xx) * 4, oa = orig[o4 + 3];
+          const a = px[i4 + 3];
+          if (oa <= a) continue;
+          // 恢复:按程度把原图像素混回来(算法删掉的也能找回)
+          const k = a < 8 ? 1 : m;
+          px[i4] = Math.round(px[i4] + (orig[o4] - px[i4]) * k);
+          px[i4 + 1] = Math.round(px[i4 + 1] + (orig[o4 + 1] - px[i4 + 1]) * k);
+          px[i4 + 2] = Math.round(px[i4 + 2] + (orig[o4 + 2] - px[i4 + 2]) * k);
+          px[i4 + 3] = Math.round(a + (oa - a) * m);
         }
       }
-      ox.putImageData(d, 0, 0);
     }
+    ox.putImageData(d, R.x0, R.y0);
     drawCutPreview(out);
   });
+}
+/* 红色蒙版视图:原图 + 被去掉的区域盖半透明红,任何颜色的素材都看得清 */
+function buildMaskView(res) {
+  const w = res.width, h = res.height;
+  const v = cutState._mv || (cutState._mv = document.createElement('canvas'));
+  if (v.width !== w || v.height !== h) { v.width = w; v.height = h; }
+  const x = v.getContext('2d');
+  x.globalCompositeOperation = 'source-over'; x.globalAlpha = 1;
+  x.clearRect(0, 0, w, h);
+  x.drawImage(cutState.img, 0, 0, w, h);
+  const o = cutState._mo || (cutState._mo = document.createElement('canvas'));
+  if (o.width !== w || o.height !== h) { o.width = w; o.height = h; }
+  const ox = o.getContext('2d');
+  ox.globalCompositeOperation = 'source-over';
+  ox.clearRect(0, 0, w, h);
+  ox.fillStyle = '#ff2850'; ox.fillRect(0, 0, w, h);
+  ox.globalCompositeOperation = 'destination-out';     // 保留区域把红色挖掉
+  ox.drawImage(res, 0, 0);
+  ox.globalCompositeOperation = 'source-over';
+  x.globalAlpha = 0.55; x.drawImage(o, 0, 0); x.globalAlpha = 1;
+  return v;
+}
+function toggleMaskView(on) {
+  if (!cutState) return;
+  cutState.maskView = on === undefined ? !cutState.maskView : !!on;
+  const b = G('cb-mask'); if (b) b.classList.toggle('act', cutState.maskView);
+  if (cutState.canvas) drawCutPreview(cutState.canvas);
+  notify(cutState.maskView ? '蒙版视图：红色 = 被去掉的部分' : '已切回结果视图');
 }
 function drawCutPreview(c) {
   const cv2 = G('cut-canvas');
   if (!cv2) return;
-  const first = cv2.width !== c.width || cv2.height !== c.height;
-  if (first) { cv2.width = c.width; cv2.height = c.height; }
+  let src = c;
+  if (cutState && cutState.maskView && c !== cutState.origCanvas) src = buildMaskView(c);
+  const first = cv2.width !== src.width || cv2.height !== src.height;
+  if (first) { cv2.width = src.width; cv2.height = src.height; }
   const x = cv2.getContext('2d');
   x.clearRect(0, 0, cv2.width, cv2.height);
-  x.drawImage(c, 0, 0);
+  x.drawImage(src, 0, 0);
   if (first) cutFitView(); else applyCutTransform();
 }
 function openCutout(aid, name, onDone) {
@@ -7365,7 +7836,10 @@ function openCutout(aid, name, onDone) {
   });
 }
 function closeCutout() {
+  if (typeof hideBrushCursor === 'function') hideBrushCursor();
+  const _cb = cutState && cutState.onDone;
   G('cut-ov').classList.remove('on');
+  if (_cb) setTimeout(() => _cb(null), 0);
   cutState = null; cutMask = null; cutBrush.drawing = false;
   cutUndo = []; cutRedo = []; cutView.panning = false; cutView.spc = false;
 }
@@ -7410,13 +7884,61 @@ function renderCutPreview() {
   cutT = setTimeout(() => {
     if (!cutState) return;
     const c = cutoutCanvas(cutState.img, cutState.tol, cutState);
-    if (!c) { const b = G('cut-stage'); if (b) b.textContent = '无法预览（图片跨域受限）'; return; }
+    if (!c) { notify('无法预览（图片跨域受限）', 'err'); return; }
     cutState.baseCanvas = c;
     const st = G('cut-stat');
     if (st && c._cutStat) st.textContent = `去掉 ${Math.round(c._cutStat.removed / c._cutStat.total * 100)}% · ${c.width}×${c.height}`;
-    applyCutMask();
+    if (!cutState._bgDone) { cutState._bgDone = true; autoCutBg(c); }
+    applyCutMask(true);
   }, 130);
 }
+/* 对比原图 / 背景切换 */
+let cutBgIdx = 0, cutBgManual = null;
+const CUT_BGS = ['bg-light', 'bg-dark', 'bg-white', 'bg-black', 'bg-green'];
+const CUT_BG_LBL = ['▦ 浅棋盘', '▩ 深棋盘', '□ 白底', '■ 黑底', '▣ 绿底'];
+function setCutBg(i) {
+  const st = G('cut-stage'); if (!st) return;
+  CUT_BGS.concat(['bg-check']).forEach(c => st.classList.remove(c));
+  cutBgIdx = (i + CUT_BGS.length) % CUT_BGS.length;
+  st.classList.add(CUT_BGS[cutBgIdx]);
+  const b = G('cb-bg'); if (b) b.textContent = CUT_BG_LBL[cutBgIdx];
+}
+function cutCycleBg() { setCutBg(cutBgIdx + 1); cutBgManual = cutBgIdx; }
+/* 自动选背景:素材主体偏白 → 深棋盘;其余(含黑色素材)→ 浅棋盘 */
+function autoCutBg(c) {
+  if (cutBgManual !== null) return setCutBg(cutBgManual);
+  let lum = 0, n = 0;
+  try {
+    const w = c.width, h = c.height, d = c.getContext('2d', { willReadFrequently: true }).getImageData(0, 0, w, h).data;
+    const step = Math.max(1, Math.floor(Math.sqrt(w * h / 6000)));
+    for (let y = 0; y < h; y += step) for (let x = 0; x < w; x += step) {
+      const i = (y * w + x) * 4;
+      if (d[i + 3] < 160) continue;
+      lum += 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2]; n++;
+    }
+  } catch (e) {}
+  const avg = n ? lum / n : 0;
+  setCutBg(n && avg > 205 ? 1 : 0);
+  return avg;
+}
+function cutShowOrig(on) {
+  if (!cutState) return;
+  if (on) {
+    if (!cutState.origCanvas) {
+      const c = document.createElement('canvas');
+      c.width = cutState.img.naturalWidth; c.height = cutState.img.naturalHeight;
+      c.getContext('2d').drawImage(cutState.img, 0, 0);
+      cutState.origCanvas = c;
+    }
+    drawCutPreview(cutState.origCanvas);
+    const b = G('cb-cmp'); if (b) b.classList.add('act');
+  } else {
+    if (cutState.canvas) drawCutPreview(cutState.canvas);
+    const b = G('cb-cmp'); if (b) b.classList.remove('act');
+  }
+}
+function cutToggleParams() { G('cut-ov').classList.toggle('params-open'); }
+
 async function confirmCutout() {
   if (!cutState) return;
   if (!cutState.canvas) { renderCutPreview(); await new Promise(r => setTimeout(r, 220)); }
@@ -7429,7 +7951,7 @@ async function confirmCutout() {
     const nid = await libraryAdd(a ? a.kind : 'sticker', cutState.name.replace(/_去背$/, '') + '_去背', blob);
     invalidateLibCache(); renderLibrary(); renderLibStrips();
     setProg(false);
-    const cb = cutState.onDone;
+    const cb = cutState.onDone; cutState.onDone = null;
     closeCutout();
     notify('已生成去背版本', 'ok');
     if (cb) cb(nid);
@@ -8232,6 +8754,7 @@ function mobInit() {
 function mobRenderCanvas() {
   const mc = G('mob-canvas');
   if (!mc || !isMob()) return;
+  if (typeof mobRenderPages === 'function') mobRenderPages();
   const { W, H } = outSize();
   mc.width = W; mc.height = H;
   const wrap = G('mob-canvas-wrap');
@@ -8294,6 +8817,7 @@ function mobThumbGrid(box, list, isOn, onTap, opts) {
     const d = document.createElement('div');
     const key = opts.keyOf ? opts.keyOf(o) : o.id;
     const picked = batch && mobSel.picked.has(key);
+    d.dataset.k = String(key);
     d.className = 'm-item' + (isOn(o) ? ' on' : ' off') + (opts.isActive && opts.isActive(o) ? ' act' : '') + (picked ? ' picked' : '');
     if (o.blob) {
       const im = document.createElement('img'); const u = URL.createObjectURL(o.blob);
@@ -8362,13 +8886,13 @@ async function mobPanelBase(box, add) {
     else { b.checked = false; const nx = S.bases.findIndex(x => x.checked !== false); if (nx >= 0) S.activeBase = nx; }
     haptic(); mobRenderCanvas(); mobPanel(); scheduleSave();
   }, { kind: 'base', isActive: b => S.bases.indexOf(b) === S.activeBase, onLong: b => mobItemMenu('base', b) });
-  if (mobSel.on && mobSel.kind === 'base') return;
+  const bm = mobSel.on && mobSel.kind === 'base';
   const lib = await libraryList('base');
   const unused = lib.filter(a => !S.bases.some(b => b.aid === a.id));
   if (unused.length) {
-    add('<div class="m-ttl">素材库 · 点击加入</div>');
-    mobThumbGrid(box, unused.slice(0, 30), () => false, async a => { await addFromLibrary(a.id); haptic(); mobRenderCanvas(); mobPanel(); },
-      { onLong: a => mobLibMenu(a) });
+    add(`<div class="m-ttl">素材库 · ${bm ? '可勾选后删除' : '点击加入'}</div>`);
+    mobThumbGrid(box, bm ? unused : unused.slice(0, 30), () => false, async a => { await addFromLibrary(a.id); haptic(); mobRenderCanvas(); mobPanel(); },
+      { kind: 'base', keyOf: a => 'L:' + a.id, onLong: a => mobLibMenu(a) });
   }
 }
 async function mobPanelStk(box, add) {
@@ -8403,16 +8927,16 @@ async function mobPanelStk(box, add) {
       haptic(); mobRenderCanvas(); mobPanel(); scheduleSave();
     }, { kind: 'sticker', isActive: t => t.id === S.activeStk, onLong: t => mobItemMenu('sticker', t) });
   }
-  if (mobSel.on && mobSel.kind === 'sticker') return;
+  const sm = mobSel.on && mobSel.kind === 'sticker';
   const lib = await libraryList('sticker');
   const unused = lib.filter(x => !S.stks.some(t => t.aid === x.id));
   if (unused.length) {
-    add('<div class="m-ttl">素材库 · 点击加入</div>');
-    mobThumbGrid(box, unused.slice(0, 30), () => false, async x => {
+    add(`<div class="m-ttl">素材库 · ${sm ? '可勾选后删除' : '点击加入'}</div>`);
+    mobThumbGrid(box, sm ? unused : unused.slice(0, 30), () => false, async x => {
       await addFromLibrary(x.id);
       if (S.stks.length) { S.activeStk = S.stks[S.stks.length - 1].id; autoFitSticker(); }
       haptic(); mobRenderCanvas(); mobPanel();
-    }, { onLong: x => mobLibMenu(x) });
+    }, { kind: 'sticker', keyOf: x => 'L:' + x.id, onLong: x => mobLibMenu(x) });
   }
 }
 async function mobPanelLogo(box, add) {
@@ -8461,14 +8985,20 @@ function mobPanelText(box, add) {
   <div class="m-btns"><button class="m-btn full" onclick="mobDelText()">删除文字</button></div>`);
 }
 function mobPanelExport(box, add) {
-  const n = S.bases.filter(b => b.checked !== false).length;
+  const nb = S.bases.filter(b => b.checked !== false).length;
+  const nx = S.extras.filter(x => x.checked).length;
+  const nr = S.stks.filter(t => t.checked).length;
+  const tot = (mobExpOpt.product ? nb : 0) + (mobExpOpt.extra ? nx : 0) + (mobExpOpt.print ? nr : 0);
   mobHint('保存到相册');
-  add(`<div class="m-ttl">保存</div>
+  const chip = (k, lbl, n) => `<button class="m-chip ${mobExpOpt[k] ? 'on' : ''}" onclick="mobSetExp('${k}',${!mobExpOpt[k]})">${mobExpOpt[k] ? '✓ ' : ''}${lbl} ${n}</button>`;
+  add(`<div class="m-ttl">当前这张</div>
   <button class="m-btn pri full" onclick="mobSave()">保存当前图到相册</button>
-  <div class="m-btns" style="margin-top:8px">
-    <button class="m-btn" onclick="mobSaveAll()">保存全部底图 (${n})</button>
-    <button class="m-btn" onclick="mobSharePng()">分享 / 发送</button>
-  </div>
+  <div class="m-ttl">批量保存</div>
+  <div class="m-chips">${chip('product', '产品图', nb)}${chip('extra', '细节图', nx)}${chip('print', '印花', nr)}</div>
+  <div class="m-ttl">格式</div>
+  <div class="m-seg"><button class="${mobExpOpt.fmt === 'jpg' ? 'on' : ''}" onclick="mobSetExp('fmt','jpg')">JPG（体积小，适合相册）</button>
+    <button class="${mobExpOpt.fmt === 'png' ? 'on' : ''}" onclick="mobSetExp('fmt','png')">PNG（无损）</button></div>
+  <button class="m-btn pri full" style="margin-top:6px" ${tot ? '' : 'disabled'} onclick="mobSaveAll()">生成并保存 ${tot} 张</button>
   <div class="m-ttl">尺寸</div>
   <div class="m-chips">
     <button class="m-chip" onclick="mobSize('auto')">跟随底图</button>
@@ -8476,7 +9006,7 @@ function mobPanelExport(box, add) {
     <button class="m-chip" onclick="mobSize('1200')">1200×1200</button>
   </div>
   <div style="font-size:11px;color:var(--mut);margin-top:12px;line-height:1.7">
-    手机上保存后可在相册找到<br>需要批量导出与精细设置，请用电脑打开
+    先生成，再点一次保存（手机系统要求）。每次最多 10 张，超过会分组。<br>文件名沿用项目命名规则。
   </div>`);
 }
 /* ── 手机版操作 ── */
@@ -8591,6 +9121,145 @@ async function mobSharePng() {
   } catch (e) {}
 }
 
+/* ═══════════ 手机版:批量保存到相册 ═══════════
+   关键:iOS/安卓要求 navigator.share 必须在「用户刚点完」时调用。
+   生成多张图要好几秒,等生成完用户手势早已过期 → 分享会被静默拒绝。
+   所以分两步:① 先生成全部图片 ② 弹出面板,用户再点一下才调用分享(新手势)。 */
+let mobExpOpt = { product: true, extra: true, print: false, fmt: 'jpg' };
+let _mobFiles = [], _mobChunks = [];
+const MOB_CHUNK = 10;
+function mobRenameExt(name, ext) { return name.replace(/\.(png|jpe?g|webp)$/i, '') + '.' + ext; }
+async function mobBuildFiles(scope) {
+  scope = scope || {};
+  const jpg = mobExpOpt.fmt === 'jpg';
+  const mime = jpg ? 'image/jpeg' : 'image/png', ext = jpg ? 'jpg' : 'png';
+  const { W, H } = outSize();
+  const jobs = [];
+  const baseIdx = scope.bases || (mobExpOpt.product ? S.bases.map((b, i) => i).filter(i => S.bases[i].checked !== false) : []);
+  baseIdx.forEach((bi, k) => jobs.push({ t: 'p', bi, k }));
+  const extras = scope.extras || (mobExpOpt.extra && !scope.bases ? S.extras.filter(x => x.checked) : []);
+  extras.forEach((x, k) => jobs.push({ t: 'x', x, k }));
+  const prints = scope.prints || (mobExpOpt.print && !scope.bases ? S.stks.filter(t => t.checked) : []);
+  prints.forEach(st => jobs.push({ t: 'r', st }));
+  if (!jobs.length) return [];
+  const files = [];
+  for (let n = 0; n < jobs.length; n++) {
+    const j = jobs[n];
+    setProg(true, `生成 ${n + 1}/${jobs.length}`, (n + 0.5) / jobs.length * 100);
+    await new Promise(r => setTimeout(r, 10));
+    try {
+      let blob, name;
+      if (j.t === 'p') {
+        const c = document.createElement('canvas'); c.width = W; c.height = H;
+        drawScene(c, W, H, j.bi, true, !!(G('wb-toggle') && G('wb-toggle').checked));
+        blob = await canvasBlob(c, mime, 0.92);
+        name = mobRenameExt(exportName(S.bases[j.bi], j.k), ext);
+      } else if (j.t === 'x') {
+        const c = renderExtraCanvas(j.x);
+        blob = await canvasBlob(c, mime, 0.92);
+        name = mobRenameExt(extraFileName(j.x, j.k), ext);
+      } else {
+        blob = await renderPrintBlob(j.st);                 // 印花保持 PNG(透明)
+        name = printFileName(j.st);
+      }
+      if (blob) files.push(new File([blob], name, { type: blob.type || mime }));
+    } catch (e) {}
+  }
+  setProg(false);
+  return files;
+}
+function mobFmtSize(b) { return b > 1048576 ? (b / 1048576).toFixed(1) + ' MB' : Math.round(b / 1024) + ' KB'; }
+function mobCanShareFiles(files) {
+  try { return !!(navigator.canShare && navigator.share && navigator.canShare({ files })); } catch (e) { return false; }
+}
+function mobShowSaveSheet(files, title) {
+  _mobFiles = files;
+  _mobChunks = [];
+  // 每组最多 10 张且不超过约 60MB(部分浏览器对单次分享有限制)
+  let cur = [], sz = 0;
+  files.forEach(f => {
+    if (cur.length && (cur.length >= MOB_CHUNK || sz + f.size > 60 * 1048576)) { _mobChunks.push(cur); cur = []; sz = 0; }
+    cur.push(f); sz += f.size;
+  });
+  if (cur.length) _mobChunks.push(cur);
+  const total = files.reduce((a, f) => a + f.size, 0);
+  const canShare = mobCanShareFiles(files.slice(0, 1));
+  let h = `<div class="ms-ttl">${title || '已生成'} ${files.length} 张 · ${mobFmtSize(total)}</div>`;
+  h += '<div class="m-thumbs">' + files.slice(0, 12).map((f, i) => `<div class="m-th" data-i="${i}"></div>`).join('') +
+    (files.length > 12 ? `<div class="m-th more">+${files.length - 12}</div>` : '') + '</div>';
+  if (canShare) {
+    h += '<div class="m-ttl">保存到相册（点一下 → 选「存储图像」）</div><div class="m-btns">';
+    _mobChunks.forEach((c, k) => {
+      const a = files.indexOf(c[0]) + 1, b = a + c.length - 1;
+      h += `<button class="m-btn pri ${_mobChunks.length === 1 ? 'full' : ''}" id="mob-sh-${k}" onclick="mobShareChunk(${k})">${_mobChunks.length === 1 ? '保存全部 ' + c.length + ' 张' : `第 ${a}–${b} 张`}</button>`;
+    });
+    h += '</div>';
+  } else {
+    h += '<div class="m-empty" style="padding:10px">当前浏览器不支持直接存相册，请用下面的方式下载</div>';
+  }
+  h += `<div class="m-btns"><button class="m-btn" onclick="mobZipAll()">打包 ZIP</button><button class="m-btn" onclick="mobDlEach()">逐张下载</button></div>`;
+  mobOpenSheet(h);
+  // 缩略图
+  document.querySelectorAll('#mob-sheet .m-th[data-i]').forEach(el => {
+    const f = files[+el.dataset.i]; if (!f) return;
+    const u = URL.createObjectURL(f); el.style.backgroundImage = `url(${u})`;
+    setTimeout(() => URL.revokeObjectURL(u), 60000);
+  });
+}
+async function mobShareChunk(k) {
+  const c = _mobChunks[k]; if (!c) return;
+  const btn = G('mob-sh-' + k);
+  try {
+    await navigator.share({ files: c });
+    if (btn) { btn.textContent = '✓ 已保存 ' + c.length + ' 张'; btn.classList.remove('pri'); btn.classList.add('done'); }
+    haptic(15);
+  } catch (e) {
+    if (e && e.name === 'AbortError') return;
+    notify('分享失败，改用 ZIP 下载', 'err');
+    mobZipAll();
+  }
+}
+async function mobZipAll() {
+  if (!_mobFiles.length) return;
+  if (typeof JSZip !== 'function') return mobDlEach();
+  setProg(true, '打包 ZIP…', 50);
+  try {
+    const z = new JSZip();
+    _mobFiles.forEach(f => z.file(f.name, f));
+    const zb = await z.generateAsync({ type: 'blob' });
+    setProg(false);
+    mobPlainDownload(zb, `${projBase()}.zip`);
+  } catch (e) { setProg(false); notify('打包失败', 'err'); }
+}
+async function mobDlEach() {
+  for (const f of _mobFiles) { mobPlainDownload(f, f.name); await new Promise(r => setTimeout(r, 400)); }
+}
+function mobPlainDownload(blob, name) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 8000);
+}
+/* 对外入口 */
+
+async function mobSaveAll() {
+  const files = await mobBuildFiles();
+  if (!files.length) return notify('没有可保存的图片（检查勾选）', 'err');
+  mobShowSaveSheet(files);
+}
+async function mobBatchSave() {                  // 多选模式下保存勾选的
+  const k = mobSel.kind, it = mobPickedItems();
+  if (!it.length) return notify('请先勾选', 'err');
+  let scope;
+  if (k === 'base') scope = { bases: it.map(o => S.bases.indexOf(o)).filter(i => i >= 0), extras: [], prints: [] };
+  else if (k === 'extra') scope = { bases: [], extras: it, prints: [] };
+  else scope = { bases: [], extras: [], prints: it };
+  const files = await mobBuildFiles(scope);
+  if (!files.length) return notify('生成失败', 'err');
+  mobShowSaveSheet(files, k === 'sticker' ? '印花' : '已生成');
+}
+function mobSetExp(k, v) { mobExpOpt[k] = v; haptic(4); mobPanel(); }
+
 /* ═══════════ 手机版:多选 / 长按菜单 / 防误触 ═══════════ */
 function mobArr(kind) { return kind === 'base' ? S.bases : kind === 'sticker' ? S.stks : S.extras; }
 function mobToggleBatch(kind) {
@@ -8606,8 +9275,11 @@ function mobExitBatch() {
 function mobSelectAll(kind) {
   const arr = mobArr(kind);
   if (mobSel.on && mobSel.kind === kind) {
-    const all = arr.every(o => mobSel.picked.has(o.id));
-    arr.forEach(o => all ? mobSel.picked.delete(o.id) : mobSel.picked.add(o.id));
+    const keys = arr.map(o => o.id);
+    document.querySelectorAll('#mob-panel .m-item[data-k]').forEach(el => keys.push(el.dataset.k));
+    const uniq = [...new Set(keys.map(String))];
+    const all = uniq.every(k => mobSel.picked.has(isNaN(+k) ? k : +k));
+    uniq.forEach(k => { const kk = isNaN(+k) ? k : +k; all ? mobSel.picked.delete(kk) : mobSel.picked.add(kk); });
   } else {
     snapshot();
     const all = arr.every(o => kind === 'base' ? o.checked !== false : o.checked);
@@ -8622,7 +9294,43 @@ function mobUpdBBar() {
   if (!b) return;
   b.classList.toggle('on', mobSel.on);
   const n = G('mob-bbar-n'); if (n) n.textContent = mobSel.picked.size;
+  const proj = mobSel.on ? mobPickedItems().length : 0, lib = mobSel.on ? mobPickedLibAids().length : 0;
+  const dis = (id, v) => { const e = G(id); if (e) e.disabled = v; };
+  dis('mbb-save', !proj); dis('mbb-on', !proj); dis('mbb-off', !proj); dis('mbb-rm', !proj); dis('mbb-del', !(proj + lib));
+  const sv = G('mbb-save'); if (sv) sv.textContent = mobSel.kind === 'sticker' ? '\u2913 \u5370\u82b1' : '\u2913 \u4fdd\u5b58';
 }
+/* 手机内置确认面板(替代系统 confirm,可看到将删除的缩略图) */
+function mobConfirm(title, msg, okText, blobs) {
+  return new Promise(res => {
+    window._mobCfRes = v => { mobCloseSheet(); setTimeout(() => res(v), 60); };
+    let h = `<div class="ms-ttl">${title}</div>`;
+    if (blobs && blobs.length) h += '<div class="m-thumbs">' + blobs.slice(0, 12).map((b, i) => `<div class="m-th" data-cf="${i}"></div>`).join('') +
+      (blobs.length > 12 ? `<div class="m-th more">+${blobs.length - 12}</div>` : '') + '</div>';
+    h += `<div style="font-size:13px;color:var(--dim);line-height:1.7;margin:6px 4px 14px">${msg}</div>
+      <div class="m-btns"><button class="m-btn" onclick="_mobCfRes(false)">取消</button>
+      <button class="m-btn danger" onclick="_mobCfRes(true)">${okText || '确定'}</button></div>`;
+    mobOpenSheet(h);
+    document.querySelectorAll('#mob-sheet .m-th[data-cf]').forEach(el => {
+      const b = blobs[+el.dataset.cf]; if (!b) return;
+      const u = URL.createObjectURL(b); el.style.backgroundImage = `url(${u})`; setTimeout(() => URL.revokeObjectURL(u), 30000);
+    });
+    // 点遮罩 = 取消
+    const bg = G('mob-sheet-bg'); if (bg) bg.onclick = () => { bg.onclick = mobCloseSheet; window._mobCfRes(false); };
+  });
+}
+async function mobCloudDelOne(aid, kn) {
+  if (needDelConfirm()) {
+    const r = await assetLoad(aid);
+    const ok = await mobConfirm(`从云端删除这个${kn || '素材'}？`, '会从所有项目中清除，删除后 7 秒内可撤销。<br><span style="color:var(--mut)">确认后，本次使用期间不再询问。</span>', '删除', r && r.blob ? [r.blob] : []);
+    if (!ok) return 0;
+    markDelConfirmed();
+  }
+  const n = await cloudDeleteAssets([aid], kn, true);
+  mobRenderCanvas(); mobPanel();
+  return n;
+}
+function mobPickedLibAids() { return [...mobSel.picked].filter(k => typeof k === 'string' && k.startsWith('L:')).map(k => k.slice(2)); }
+
 function mobPickedItems() { return mobArr(mobSel.kind).filter(o => mobSel.picked.has(o.id)); }
 function mobBatchCheck(on) {
   const it = mobPickedItems(); if (!it.length) return notify('请先勾选', 'err');
@@ -8631,7 +9339,8 @@ function mobBatchCheck(on) {
   notify(`已${on ? '选中' : '取消选中'} ${it.length} 个`, 'ok');
 }
 function mobBatchRemove() {
-  const it = mobPickedItems(); if (!it.length) return notify('请先勾选', 'err');
+  const it = mobPickedItems();
+  if (!it.length) return notify(mobPickedLibAids().length ? '素材库里的图不在项目中，无需移出；要删除请用「云端删除」' : '请先勾选', 'err');
   snapshot();
   const k = mobSel.kind, ids = new Set(it.map(o => o.id));
   const arr0 = mobArr(k), bak = arr0.map((o, i) => ({ o, i })).filter(x => ids.has(x.o.id));
@@ -8649,11 +9358,20 @@ function mobBatchRemove() {
   }), 0);
 }
 async function mobBatchCloudDel() {
-  const it = mobPickedItems(); if (!it.length) return notify('请先勾选', 'err');
-  const aids = [...new Set(it.map(o => o.aid).filter(Boolean))];
-  const kn = { base: '底图', sticker: '素材', extra: '细节图' }[mobSel.kind];
-  const n = await cloudDeleteAssets(aids, kn);
-  if (n) { mobSel.picked.clear(); mobExitBatch(); mobRenderCanvas(); }
+  const it = mobPickedItems(), libA = mobPickedLibAids();
+  const aids = [...new Set([...it.map(o => o.aid).filter(Boolean), ...libA])];
+  if (!aids.length) return notify('请先勾选', 'err');
+  const kn = { base: '底图', sticker: '素材', extra: '细节图' }[mobSel.kind] || '';
+  if (needDelConfirm()) {
+    const blobs = [];
+    for (const a of aids.slice(0, 12)) { const r = await assetLoad(a); if (r && r.blob) blobs.push(r.blob); }
+    const ok = await mobConfirm(`从云端删除 ${aids.length} 个${kn}？`,
+      '会从<b>云端素材库</b>和<b>所有项目</b>中删除，删除后 7 秒内可撤销。<br>只想从当前项目拿掉，请用「移出」。<br><span style="color:var(--mut)">确认后，本次使用期间不再询问。</span>', '删除', blobs);
+    if (!ok) return;
+    markDelConfirmed();
+  }
+  const n = await cloudDeleteAssets(aids, kn, true);
+  if (n) { haptic(20); mobSel.picked.clear(); mobExitBatch(); mobRenderCanvas(); }
 }
 /* 长按菜单 */
 function mobItemMenu(kind, o) {
@@ -8702,7 +9420,7 @@ async function mobMenuAct(kind, id, act) {
     }), 0);
     return;
   } else if (act === 'cloud') {
-    await cloudDeleteAssets([o.aid], { base: '底图', sticker: '素材', extra: '细节图' }[kind]);
+    await mobCloudDelOne(o.aid, { base: '底图', sticker: '素材', extra: '细节图' }[kind]);
   }
   haptic(); mobRenderCanvas(); mobPanel(); scheduleSave();
 }
@@ -8710,7 +9428,7 @@ function mobLibMenu(a) {
   const esc = String(a.name || '').replace(/</g, '&lt;');
   mobOpenSheet(`<div class="ms-ttl">${esc}</div>
     <div class="ms-item" onclick="mobCloseSheet();mobLibAdd('${a.id}')"><div class="ms-ic">＋</div><div class="ms-nm">加入项目</div></div>
-    <div class="ms-item dg" onclick="mobCloseSheet();cloudDeleteAssets(['${a.id}'],'').then(()=>mobPanel())"><div class="ms-ic">🗑</div><div class="ms-nm">从云端永久删除</div></div>`);
+    <div class="ms-item dg" onclick="mobCloseSheet();mobCloudDelOne('${a.id}','').then(()=>mobPanel())"><div class="ms-ic">🗑</div><div class="ms-nm">从云端永久删除</div></div>`);
 }
 async function mobLibAdd(aid) {
   const a = await assetLoad(aid); if (!a) return;
@@ -8899,6 +9617,22 @@ function mobTouchEnd() {
   }
   if (d.mode === 'move' || d.mode === 'text' || d.mode === 'pinch') { scheduleSave(); mobUpdUndo(); }
 }
+function mobRenderPages() {
+  const box = G('mob-pages'); if (!box) return;
+  const list = pageList();
+  box.innerHTML = '';
+  box.classList.toggle('empty', list.length < 2);
+  if (list.length < 2) return;
+  list.forEach((bi, k) => {
+    const b = S.bases[bi], d = document.createElement('button');
+    d.className = 'mp-i' + (bi === S.activeBase ? ' act' : '');
+    if (b.blob) { let u = _psUrls.get(b.id); if (!u) { u = URL.createObjectURL(b.blob); _psUrls.set(b.id, u); } d.style.backgroundImage = `url(${u})`; }
+    d.textContent = k + 1;
+    d.onclick = () => { haptic(6); gotoPage(bi); mobRenderPages(); if (mobCur === 'base') mobPanel(); };
+    box.appendChild(d);
+  });
+  const act = box.querySelector('.act'); if (act && act.scrollIntoView) act.scrollIntoView({ block: 'nearest', inline: 'center' });
+}
 function mobSwitchBase(dir) {
   const on = S.bases.map((b, i) => i).filter(i => S.bases[i].checked !== false);
   const list = on.length ? on : S.bases.map((b, i) => i);
@@ -8951,34 +9685,7 @@ async function mobInvert() {
   mobRenderCanvas(); mobPanel(); notify('已反色', 'ok');
 }
 /* 批量保存:一次分享多个文件(浏览器不允许循环弹分享) */
-async function mobSaveAll() {
-  const list = S.bases.map((b, i) => i).filter(i => S.bases[i].checked !== false);
-  if (!list.length) return notify('没有可保存的底图', 'err');
-  setProg(true, '生成中…', 5);
-  const files = [];
-  for (let k = 0; k < list.length; k++) {
-    try {
-      const blob = await mobCanvasBlob(list[k]);
-      files.push(new File([blob], `${curProj}_${String(k + 1).padStart(2, '0')}.png`, { type: 'image/png' }));
-      setProg(true, `生成 ${k + 1}/${list.length}`, (k + 1) / list.length * 90);
-    } catch (e) {}
-  }
-  setProg(false);
-  if (!files.length) return;
-  if (navigator.canShare && navigator.canShare({ files })) {
-    try { await navigator.share({ files }); return; } catch (e) { if (e && e.name === 'AbortError') return; }
-  }
-  if (files.length > 1 && typeof JSZip === 'function') {      // 兜底:打成 zip
-    try {
-      const z = new JSZip();
-      files.forEach(f => z.file(f.name, f));
-      const zb = await z.generateAsync({ type: 'blob' });
-      return mobDownload(zb, `${curProj}.zip`);
-    } catch (e) {}
-  }
-  for (const f of files) { await mobDownload(f, f.name, true); await new Promise(r => setTimeout(r, 350)); }
-  notify(`已保存 ${files.length} 张`, 'ok');
-}
+
 
 window.addEventListener('resize', () => { if (isMob()) mobRenderCanvas(); });
 
@@ -9178,7 +9885,7 @@ G('cut-ov').addEventListener('click', e => { if (e.target === G('cut-ov')) close
   if (!stage) return;
   stage.addEventListener('mousedown', cutBrushDown);
   stage.addEventListener('mousemove', cutBrushMove);
-  stage.addEventListener('mouseleave', () => { const c = G('cut-cursor'); if (c) c.style.display = 'none'; });
+  stage.addEventListener('mouseleave', () => { if (!cutBrush.drawing) hideBrushCursor(); });
   window.addEventListener('mouseup', cutBrushUp);
   stage.addEventListener('contextmenu', e => e.preventDefault());
   /* 触摸:单指涂抹,双指捏合缩放+平移 */
@@ -9190,8 +9897,10 @@ G('cut-ov').addEventListener('click', e => { if (e.target === G('cut-ov')) close
     if (e.touches.length === 2) {
       cutBrushUp();
       const [a, b] = e.touches;
+      const l0 = cutLocal({ clientX: (a.clientX + b.clientX) / 2, clientY: (a.clientY + b.clientY) / 2 });
+      const o0 = cutOrigin();
       tp = { d0: Math.hypot(b.clientX - a.clientX, b.clientY - a.clientY), z0: cutView.zoom,
-        cx: (a.clientX + b.clientX) / 2, cy: (a.clientY + b.clientY) / 2, ox0: cutView.ox, oy0: cutView.oy };
+        px: (l0.x - o0.tx) / o0.z, py: (l0.y - o0.ty) / o0.z };
       return;
     }
     tp = null;
@@ -9204,16 +9913,19 @@ G('cut-ov').addEventListener('click', e => { if (e.target === G('cut-ov')) close
     if (e.touches.length === 2 && tp) {
       const [a, b] = e.touches;
       const d = Math.hypot(b.clientX - a.clientX, b.clientY - a.clientY);
-      const cx = (a.clientX + b.clientX) / 2, cy = (a.clientY + b.clientY) / 2;
+      const l = cutLocal({ clientX: (a.clientX + b.clientX) / 2, clientY: (a.clientY + b.clientY) / 2 });
+      const cv2 = G('cut-canvas'), st2 = G('cut-stage');
       cutView.zoom = clamp(tp.z0 * d / tp.d0, 0.05, 24);
-      cutView.ox = tp.ox0 + (cx - tp.cx);
-      cutView.oy = tp.oy0 + (cy - tp.cy);
+      // 两指中点下的像素始终跟着手指
+      const tx = l.x - cutView.zoom * tp.px, ty = l.y - cutView.zoom * tp.py;
+      cutView.ox = tx - st2.clientWidth / 2 + cutView.zoom * cv2.width / 2;
+      cutView.oy = ty - st2.clientHeight / 2 + cutView.zoom * cv2.height / 2;
       applyCutTransform();
       return;
     }
     cutBrushMove(toMouse(e.touches[0]));
   }, { passive: false });
-  stage.addEventListener('touchend', e => { if (!e.touches.length) { cutBrushUp(); tp = null; } });
+  stage.addEventListener('touchend', e => { if (!e.touches.length) { cutBrushUp(); tp = null; setTimeout(() => { if (!cutBrush.drawing) hideBrushCursor(); }, 450); } });
   // 滚轮:缩放;Alt+滚轮:笔刷大小
   stage.addEventListener('wheel', e => {
     if (!cutState) return;
@@ -9230,8 +9942,14 @@ G('cut-ov').addEventListener('click', e => { if (e.target === G('cut-ov')) close
     if (e.code === 'Space') { cutView.spc = true; e.preventDefault(); return; }
     if ((e.ctrlKey || e.metaKey) && k === 'z') { e.preventDefault(); return e.shiftKey ? cutDoRedo() : cutDoUndo(); }
     if ((e.ctrlKey || e.metaKey) && k === 'y') { e.preventDefault(); return cutDoRedo(); }
+    if (e.key === '[') { e.preventDefault(); return setBrushSize(cutBrush.size * 0.85); }
+    if (e.key === ']') { e.preventDefault(); return setBrushSize(cutBrush.size * 1.18); }
     if (k === 'e') { e.preventDefault(); return setBrushMode('erase'); }
     if (k === 'r') { e.preventDefault(); return setBrushMode('restore'); }
+    if (k === 'w') { e.preventDefault(); return setBrushMode(e.shiftKey ? 'wandr' : 'wand'); }
+    if (k === 'b') { e.preventDefault(); return cutCycleBg(); }
+    if (k === 'm') { e.preventDefault(); return toggleMaskView(); }
+    if (k === 'c' && !e.repeat) { e.preventDefault(); return cutShowOrig(true); }
     if (k === '0') { e.preventDefault(); return cutFitView(); }
     if (k === '1') { e.preventDefault(); return cutZoom100(); }
     if (k === '[') { e.preventDefault(); return setBrushSize(cutBrush.size * 0.8); }
@@ -9239,7 +9957,7 @@ G('cut-ov').addEventListener('click', e => { if (e.target === G('cut-ov')) close
     if (k === '+' || k === '=') { e.preventDefault(); return cutZoom(1.25); }
     if (k === '-') { e.preventDefault(); return cutZoom(1 / 1.25); }
   });
-  window.addEventListener('keyup', e => { if (e.code === 'Space') cutView.spc = false; });
+  window.addEventListener('keyup', e => { if (e.code === 'Space') cutView.spc = false; if (e.key && e.key.toLowerCase() === 'c' && cutState) cutShowOrig(false); });
 })();
 G('pm-ov').addEventListener('click', e => { if (e.target === G('pm-ov')) closeProjMgr(); });
 G('tag-input').addEventListener('keydown', e => {
@@ -9307,6 +10025,7 @@ function maybeFirstRun() {   /* ⑩ 首次使用引导 */
   });
   renderTabs();
   updXClipUI();
+  restructureExport();
   if (isMob()) setTimeout(mobInit, 120);
   maybeFirstRun();
   if (G('status').textContent === '就绪' || !S.bases.length && !S.stks.length) setStatus('就绪');
