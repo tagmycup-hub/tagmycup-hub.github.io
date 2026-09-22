@@ -217,7 +217,11 @@ main{padding:14px;max-width:1400px;margin:0 auto}
 .sg-row input{border:1px solid var(--line);border-radius:8px;padding:7px 9px;width:100%;outline:none;
   background:var(--card);color:var(--ink);transition:border-color .15s,box-shadow .15s}
 .sg-row input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-ring)}
-.sg-row .live{font-size:12px;text-align:right}
+.sg-row .live{font-size:12px;text-align:right;display:flex;flex-direction:column;align-items:flex-end;line-height:1.3}
+.sg-row .live b{font-weight:700}
+.sg-row .live.low{color:var(--warn)}
+.sg-row .live .live-tag{font-size:10px;opacity:.7}
+.sg-row .live .live-alt{font-size:10.5px;color:var(--ink3);font-weight:400}
 .sg-row .fillbtn{border:1px solid var(--accent-line);background:var(--accent-soft);border-radius:8px;
   font-size:11px;padding:4px 9px;color:var(--accent-dark);white-space:nowrap;margin-top:3px;justify-self:start;font-weight:600}
 .sg-row .fillbtn:hover{filter:brightness(.97)}
@@ -392,6 +396,101 @@ main{padding:14px;max-width:1400px;margin:0 auto}
 .rv-gb .rv-row:first-child{border-top:none}
 .rv-gb .rv-row.miss{background:color-mix(in srgb,var(--warn) 8%,transparent)}
 .rv-num .s2{font-size:11px;color:var(--ink2);text-align:right}
+
+
+/* ===== 列表视图：为纵向比价优化 =====
+   参考密集型后台（Airtable / Shopify 商品列表）：行不用卡片壳，
+   靠一条发丝线分隔；金额等宽右对齐，方便一列扫下去比大小。 */
+.viewtog{display:flex;background:var(--bg-2);border-radius:9px;padding:2px;gap:1px;flex:0 0 auto}
+.viewtog button{border:none;background:none;border-radius:7px;width:32px;height:30px;
+  font-size:15px;color:var(--ink3);line-height:1}
+.viewtog button.on{background:var(--card);color:var(--accent-dark);box-shadow:var(--sh-1)}
+
+.listview{display:block;background:var(--card);border:1px solid var(--line);
+  border-radius:var(--r);overflow:hidden;max-width:1000px;margin:0 auto}
+.lhead{display:grid;grid-template-columns:var(--lcols);gap:10px;align-items:center;
+  padding:8px 12px;border-bottom:1px solid var(--line);
+  background:linear-gradient(180deg,var(--panel-a),var(--panel-b));
+  font-size:11.5px;color:var(--ink2);position:sticky;top:var(--hdH,0);z-index:3}
+.lhead i{font-style:normal;opacity:.65;margin-left:3px}
+.lhead span:nth-child(n+4){text-align:right}
+.lhead span:nth-child(3){text-align:left}
+:root{--lcols:40px minmax(150px,1fr) 44px 88px 72px 96px 96px}
+body.selmode{--lcols:22px 40px minmax(150px,1fr) 44px 88px 72px 96px 96px}
+.lhead span:first-child{display:none}
+body.selmode .lhead span:first-child{display:block}
+
+.lrow{display:grid;grid-template-columns:var(--lcols);gap:10px;align-items:center;
+  padding:7px 12px;border-bottom:1px solid var(--line);cursor:pointer;
+  transition:background .12s}
+.lrow:last-child{border-bottom:none}
+.lrow:hover{background:var(--bg-2)}
+.lrow.sel{background:var(--accent-soft)}
+.lrow .tick{display:none !important;width:20px;height:20px;border-radius:50%;border:2px solid var(--line-2);
+  display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;
+  font-weight:800;background:var(--card)}
+body.selmode .lrow .tick{display:flex !important}
+body.selmode .lrow.sel .tick{background:var(--accent);border-color:var(--accent)}
+.lrow img,.lrow .lph{width:40px;height:40px;border-radius:7px;object-fit:contain;
+  background:var(--bg-2);border:1px solid var(--line);display:flex;align-items:center;
+  justify-content:center;font-size:17px;color:var(--ink3)}
+.lmain{min-width:0;display:flex;flex-direction:column;gap:1px}
+.lmain b{font-size:14px;font-weight:700;letter-spacing:-.01em;white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis}
+.lmain span{font-size:11px;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lmain em{font-style:normal;color:var(--warn);font-weight:650}
+.lcost{text-align:right;display:flex;flex-direction:column;gap:1px;font-variant-numeric:tabular-nums}
+.lcost b{font-size:13.5px;font-weight:700}
+.lcost i{font-style:normal;font-size:11.5px;color:var(--ink3)}
+.lcost b[data-qe],.lcost i[data-qe]{cursor:text;border-radius:4px;padding:0 3px;margin:0 -3px}
+.lcost b[data-qe]:hover,.lcost i[data-qe]:hover{background:var(--accent-soft);color:var(--accent-dark)}
+.lsell{text-align:right;font-size:13.5px;font-weight:650;font-variant-numeric:tabular-nums}
+.lnet{text-align:right;display:flex;flex-direction:column;gap:0;font-variant-numeric:tabular-nums}
+.lnet b{font-size:13.5px;font-weight:700}
+.lnet i{font-style:normal;font-size:10.5px;color:var(--ink3)}
+.lnet b.win{color:var(--green)} .lnet b.low{color:var(--warn)}
+.lnet b.lose{color:var(--loss)} .lnet b.nul{color:var(--ink3);font-weight:400}
+.lnet.dimcol b{font-weight:600;opacity:.72}
+
+@media(max-width:640px){
+  /* 手机：砍掉大量净利列，型号与进价优先 */
+  :root{--lcols:34px minmax(0,1fr) 30px 66px 76px}
+  body.selmode{--lcols:20px 34px minmax(0,1fr) 30px 66px 76px}
+  .lhead span:nth-child(6),.lhead span:nth-child(8),
+  .lrow .lsell,.lrow .lnet.dimcol{display:none}
+  .lrow{padding:6px 9px;gap:8px}
+  .lhead{padding:7px 9px;gap:8px;font-size:11px}
+  .lrow img,.lrow .lph{width:34px;height:34px}
+  .lmain b{font-size:13.5px}
+  .listview{border-radius:10px}
+}
+
+
+/* 快捷补货按钮：小、淡，不抢型号和价格的视线 */
+.qrs{border:1px solid var(--line-2);background:var(--card);color:var(--ink3);
+  border-radius:999px;font-size:14px;font-weight:600;line-height:1;
+  min-width:24px;height:24px;padding:0 6px;display:inline-flex;align-items:center;justify-content:center;
+  white-space:nowrap;cursor:pointer;position:relative;
+  transition:background .12s,color .12s,border-color .12s}
+.qrs::after{content:"";position:absolute;inset:-8px}          /* 点击区外扩，视觉小但好点 */
+.qrs.on{font-size:11.5px;font-weight:700}
+.qrs:hover{border-color:var(--accent);color:var(--accent-dark)}
+.qrs.on{background:var(--accent);border-color:var(--accent);color:#fff;font-variant-numeric:tabular-nums}
+.qrs:active{transform:scale(.94)}
+.card .qrs{position:absolute;left:6px;bottom:6px;z-index:2;
+  background:color-mix(in srgb,var(--card) 88%,transparent);backdrop-filter:blur(4px)}
+.card .qrs.on{background:var(--accent)}
+.lrow .qrs{justify-self:center}
+body.selmode .qrs{visibility:hidden}
+@media(max-width:640px){ .qrs{min-width:22px;height:22px} }
+
+
+.pbadge{position:absolute;top:2px;right:calc(50% - 22px);min-width:16px;height:16px;padding:0 4px;
+  border-radius:999px;background:var(--accent);color:#fff;font-size:10px;font-style:normal;font-weight:700;
+  line-height:16px;text-align:center;font-variant-numeric:tabular-nums;pointer-events:none}
+#btnPickList{position:relative}
+#btnPickList .pbadge{top:-6px;right:-6px}
+#mobileBar button{position:relative}
 
 /* 拿货地点 */
 .pk-loc{border:1px solid var(--accent-line);background:var(--accent-soft);border-radius:10px;
@@ -764,6 +863,9 @@ kbd{background:var(--bg-2);border:1px solid var(--line-2);border-bottom-width:2p
     <button class="icon-btn primary" id="btnAdd">＋ 新增</button>
     <button class="icon-btn" id="btnInstall" style="display:none" title="安装到主屏幕">⤓ 安装</button>
     <span id="syncDot" class="deskonly" title="云同步状态"><i></i><b id="syncTxt">—</b></span>
+    <div class="viewtog" id="viewTog" title="卡片 / 列表">
+      <button data-view="grid">⊞</button><button data-view="list">≡</button>
+    </div>
     <button class="icon-btn" id="btnTheme" title="切换亮色 / 暗色">🌙</button>
     <button class="icon-btn deskonly" id="lnkEditor" title="贴图合成">🖼 贴图合成</button>
     <button class="icon-btn deskonly" id="lnkDiag" title="销量分析">📈 销量分析</button>
@@ -892,7 +994,9 @@ kbd{background:var(--bg-2);border:1px solid var(--line-2);border-bottom-width:2p
       <div class="diff-live"><span>差额（少量 − 大量）</span><b class="num" id="fDiff">—</b></div>
       <div class="f-row">
         <div class="field"><label>贴纸成本 R$（电器类留空）</label><input id="fSticker" type="number" step="0.01" min="0" placeholder="0"></div>
-        <div class="field"><label>🛒 补货数量（填了进拿货单）</label><input id="fRestock" type="number" inputmode="numeric" min="0" placeholder="不补货留空"></div>
+        <div class="field"><label>🛒 补货数量（填了进拿货单）</label>
+          <div style="display:flex;gap:6px"><input id="fRestock" type="number" inputmode="numeric" min="0" placeholder="不补货留空" style="flex:1">
+          <button type="button" class="btn" id="btnRsMoq" style="flex:0 0 auto;padding:0 10px;font-size:12px" title="填入起订量">= 起订量</button></div></div>
       </div>
       <div class="field">
         <label>📍 进货地点（拿货单按此分组）</label>
@@ -1437,6 +1541,36 @@ function visibleProducts(){
 }
 const CHUNK=80;
 let _list=[], _rendered=0;
+/* 快捷补货按钮：未加入时是淡色「＋」，加入后显示数量 */
+function qrsBtn(p){
+  const on=p.restock&&p.restock>0;
+  return `<button type="button" class="qrs${on?' on':''}" data-qrs="${p.id}" aria-label="${on?'调整补货数量':'加入补货'}" title="${on?'调整补货数量':'加入补货（按起订量）'}">${on?p.restock:'+'}</button>`;
+}
+/* 行视图：为「扫一眼 658 个型号」优化。数字右对齐、等宽，便于纵向比价。 */
+function rowHTML(p){
+  const _pf=settings.activePlatform;
+  const sell=n(p.sellPrices&&p.sellPrices[_pf]);
+  const ps=profitOf(p,_pf,'small'), pb=profitOf(p,_pf,'bulk');
+  const u=imgURL(p);
+  const cls=r=>r.net<0?'lose':(r.margin*100<settings.targetMargin?'low':'win');
+  const pf=(r)=>r?`<b class="${cls(r)}">${fmt(r.net)}</b><i>${(r.margin*100).toFixed(0)}%</i>`:'<b class="nul">—</b>';
+  return `<div class="lrow${selected.has(p.id)?' sel':''}" data-id="${p.id}">
+    <span class="tick">✓</span>
+    ${u?`<img src="${u}" loading="lazy">`:`<span class="lph">📦</span>`}
+    <div class="lmain">
+      <b>${esc(p.model)}</b>
+      <span>${esc(p.brand||'')}${p.brand&&p.category?' · ':''}${esc(p.category||'')}${p.moq?` · 起订 ${p.moq}`:''}</span>
+    </div>
+    ${qrsBtn(p)}
+    <div class="lcost">
+      <b class="num" data-qe="fSmall">${fmt(n(p.small))}</b>
+      <i class="num" data-qe="fBulk">${fmt(n(p.bulk))}</i>
+    </div>
+    <div class="lsell num">${fmt(sell)}</div>
+    <div class="lnet">${pf(ps)}</div>
+    <div class="lnet dimcol">${pf(pb)}</div>
+  </div>`;
+}
 function cardHTML(p){
     const d=diffOf(p),pr=profitOf(p,settings.activePlatform);
     const sell=n(p.sellPrices&&p.sellPrices[settings.activePlatform]);
@@ -1447,7 +1581,7 @@ function cardHTML(p){
         ${u?`<img src="${u}" loading="lazy">`:`<span class="noimg">📦</span>`}
         <span class="cat-tag">${p.category||'未分类'}</span>
         ${p.moq?`<span class="moq-tag num">起订 ${p.moq}</span>`:''}
-        ${p.restock?`<span class="restock-tag num">🛒 ${p.restock}</span>`:''}
+        ${qrsBtn(p)}
         ${p.history&&p.history.length&&p.history[p.history.length-1].f!=='创建'&&Date.now()-p.history[p.history.length-1].t<172800000?`<span class="chg-tag">改</span>`:''}
       </div>
       <div class="band"><span>${esc(p.model)}</span>${p.brand?`<span class="brand-tag">${esc(p.brand)}</span>`:''}</div>
@@ -1476,7 +1610,10 @@ function render(){
   document.getElementById('count').textContent=`${_list.length} / ${products.length} 件`;
   const grid=document.getElementById('grid');
   if(!_list.length){grid.innerHTML=`<div class="empty">没有匹配的商品<br>点右上角「＋ 新增」录入</div>`;return;}
-  grid.innerHTML='';
+  grid.className = viewMode==='list' ? 'listview' : 'grid';
+  grid.innerHTML = viewMode==='list'
+    ? `<div class="lhead"><span></span><span></span><span>型号</span><span style="text-align:center">🛒</span><span>进价<i>少/大</i></span><span>售价</span><span>少量净利</span><span>大量净利</span></div>`
+    : '';
   appendChunk();
   renderStats();
   syncState();
@@ -1486,7 +1623,7 @@ function appendChunk(){
   if(_rendered>=_list.length)return;
   const grid=document.getElementById('grid');
   const next=_list.slice(_rendered,_rendered+CHUNK);
-  grid.insertAdjacentHTML('beforeend', next.map(cardHTML).join(''));
+  grid.insertAdjacentHTML('beforeend', next.map(viewMode==='list'?rowHTML:cardHTML).join(''));
   _rendered+=next.length;
   if(_rendered<_list.length){
     let s=document.getElementById('moreSentinel');
@@ -1590,14 +1727,21 @@ function updateLive(){
   const b=n($('fBulk').value),s=n($('fSmall').value);
   $('fDiff').textContent=(b!=null&&s!=null)?((s-b>0?'+':'')+fmt(s-b)):'—';
   const sticker=n($('fSticker').value)||0;
-  const cost=b!=null?b:s;   // 大量价为空 → 用少量价
+  const cost=s!=null?s:b;   // 编辑时按少量价算（实际拿货价），没填才用大量价
+  const aff=n($('fAff').value);
   settings.platforms.forEach(pf=>{
     const el=document.querySelector(`[data-live="${pf.id}"]`);
     const sell=n(document.querySelector(`[data-sell="${pf.id}"]`).value);
     if(sell==null||cost==null){el.textContent='—';el.className='live num none';return;}
-    const net=netOf(sell,cost,sticker,pf,n($('fAff').value));
-    el.textContent=`${fmt(net)} · ${(net/sell*100).toFixed(1)}%`+(b==null?' (按少量价)':'');
-    el.className='live num '+(net>=0?'win':'lose');
+    const net=netOf(sell,cost,sticker,pf,aff);
+    const tag=s!=null?'少量':'大量';
+    let extra='';
+    if(s!=null&&b!=null){                       // 两价都有：小字附上大量价对照
+      const nb=netOf(sell,b,sticker,pf,aff);
+      extra=`<small class="live-alt">大量 ${fmt(nb)}</small>`;
+    }
+    el.innerHTML=`<b>${fmt(net)} · ${(net/sell*100).toFixed(1)}%</b><small class="live-tag">${tag}</small>${extra}`;
+    el.className='live num '+(net<0?'lose':(net/sell*100<settings.targetMargin?'low':'win'));
   });
 }
 const HIST_FIELDS=[['bulk','大量价'],['small','少量价'],['moq','起订量'],['sticker','贴纸'],['restock','补货'],['aff','达人%'],['category','类目'],['brand','品牌'],['loc','进货地点']];
@@ -2132,7 +2276,18 @@ $('mobileBar').addEventListener('click',e=>{
   if(k==='pick'){renderPickList();$('pickMask').classList.add('show');return;}
   openSheet(k==='filter'?'filter':'more');
 });
+function syncPickBadge(){
+  const n0=products.filter(p=>p.restock>0).length;
+  for(const el of [document.querySelector('#mobileBar [data-mb=pick]'),$('btnPickList')]){
+    if(!el)continue;
+    let b=el.querySelector('.pbadge');
+    if(!n0){ if(b)b.remove(); continue; }
+    if(!b){ b=document.createElement('i'); b.className='pbadge'; el.appendChild(b); }
+    b.textContent=n0>99?'99+':n0;
+  }
+}
 function syncMobileBar(){
+  syncPickBadge();
   const r=document.querySelector('#mobileBar [data-mb=restock]');
   if(!r){const f0=document.querySelector('#mobileBar [data-mb=filter]');
     if(f0)f0.classList.toggle('on',filterCat!=='全部'||filterBrand!=='全部'); return;}
@@ -3230,6 +3385,75 @@ document.addEventListener('click',async e=>{
   }
 });
 
+
+/* ---- 视图切换：卡片 / 列表 ---- */
+function syncViewTog(){
+  const t=$('viewTog'); if(!t)return;
+  t.querySelectorAll('[data-view]').forEach(b=>b.classList.toggle('on',b.dataset.view===viewMode));
+}
+$('viewTog')&&$('viewTog').addEventListener('click',e=>{
+  const v=e.target.closest('[data-view]')?.dataset.view; if(!v||v===viewMode)return;
+  viewMode=v;
+  try{localStorage.setItem('pb_view',v);}catch(e){}
+  syncViewTog(); render(); haptic(6);
+});
+
+
+$('btnRsMoq')&&$('btnRsMoq').addEventListener('click',()=>{
+  const m=n($('fMoq').value);
+  if(!m){toast('这个商品没填起订量','warn');return;}
+  const cur=n($('fRestock').value)||0;
+  $('fRestock').value = cur>=m ? cur+m : m;   // 再点一次 = 再加一份起订量
+});
+/* ============ 快捷补货 ============ */
+function refreshOne(p){
+  const el=document.querySelector(`#grid [data-id="${p.id}"]`);
+  if(el){
+    const tmp=document.createElement('div');
+    tmp.innerHTML=(viewMode==='list'?rowHTML:cardHTML)(p).trim();
+    el.replaceWith(tmp.firstElementChild);
+  }
+  syncPickBadge();
+}
+async function setRestock(p,val){
+  const before={...p,sellPrices:{...(p.sellPrices||{})}};
+  p.restock=(val&&val>0)?Math.round(val):null;
+  if(!p.restock)p.picked=false;
+  p.updatedAt=Date.now();
+  p.history=logChanges(before,p);
+  await idbPut('products',p); cloudPushOne(p);
+  refreshOne(p);
+}
+async function quickRestock(id){
+  const p=products.find(x=>x.id===id); if(!p)return;
+  const step=p.moq&&p.moq>0?p.moq:1;
+  haptic(8);
+  if(!(p.restock>0)){
+    await setRestock(p,step);
+    toast(`${p.model} 已加入补货 ×${step}`,'ok','撤销',()=>setRestock(p,null),4000);
+    return;
+  }
+  const opts=[`＋${step}`];
+  if(p.restock>step)opts.push(`－${step}`);
+  opts.push('✎ 改数量','移出补货');
+  const v=await openDlg({title:p.model,icon:'🛒',
+    msg:`现在补 ${p.restock} 件${p.moq?`，起订量 ${p.moq}`:''}`,
+    options:opts,yes:'关闭',no:null});
+  if(v===true||v==null)return;
+  const s=String(v);
+  if(s.startsWith('＋'))await setRestock(p,p.restock+step);
+  else if(s.startsWith('－'))await setRestock(p,p.restock-step);
+  else if(s==='移出补货'){ const old=p.restock; await setRestock(p,null);
+    toast(`${p.model} 已移出补货`,'ok','撤销',()=>setRestock(p,old),4000); return; }
+  else{
+    const q=await uiPrompt(`补多少件？${p.moq?`（起订 ${p.moq}）`:''}`,{title:p.model,value:p.restock,placeholder:'number'});
+    if(q==null||q==='')return;
+    const nq=parseInt(q,10); if(isNaN(nq)){toast('请输入数字','warn');return;}
+    await setRestock(p,nq);
+  }
+  toast(p.restock?`${p.model} 补货 ${p.restock} 件`:`${p.model} 已移出补货`,'ok');
+}
+
 /* ============ 拿货地点 ============ */
 function locsText(){
   const sel=(settings.pickLocs||[]).slice();
@@ -3394,6 +3618,7 @@ $('imgPrev').addEventListener('click',e=>{
 
 /* ============ 批量选择 ============ */
 let onlyNoSmall=false;
+let viewMode=(()=>{try{return localStorage.getItem('pb_view')||'grid'}catch(e){return 'grid'}})();
 let selMode=false; const selected=new Set();
 function setSelMode(on){
   selMode=on; document.body.classList.toggle('selmode',on);
@@ -3405,7 +3630,7 @@ function updateSelBar(){ const c=$('selCount'); if(c)c.textContent='已选 '+sel
 function toggleSel(id){
   haptic(6);
   selected.has(id)?selected.delete(id):selected.add(id);
-  const card=document.querySelector('.card[data-id="'+id+'"]');
+  const card=document.querySelector('.card[data-id="'+id+'"],.lrow[data-id="'+id+'"]');
   if(card)card.classList.toggle('sel',selected.has(id));
   updateSelBar();
 }
@@ -3413,7 +3638,7 @@ $('selBar').addEventListener('click',async e=>{
   const a=e.target.closest('[data-sel]')?.dataset.sel; if(!a)return;
   if(a==='exit')return setSelMode(false);
   if(a==='all'){ _list.slice(0,_rendered).forEach(p=>selected.add(p.id));
-    document.querySelectorAll('.card').forEach(c=>c.classList.toggle('sel',selected.has(c.dataset.id)));
+    document.querySelectorAll('.card,.lrow').forEach(c=>c.classList.toggle('sel',selected.has(c.dataset.id)));
     updateSelBar(); return; }
   if(!selected.size){toast('先选中商品','warn');return;}
   const items=products.filter(p=>selected.has(p.id));
@@ -3479,7 +3704,8 @@ $('selBar').addEventListener('click',async e=>{
 // 手机长按进入批量选择
 let _lp=null;
 $('grid').addEventListener('touchstart',e=>{
-  const c=e.target.closest('.card'); if(!c||selMode)return;
+  if(e.target.closest('[data-qrs]'))return;
+  const c=e.target.closest('.card,.lrow'); if(!c||selMode)return;
   _lp=setTimeout(()=>{setSelMode(true);toggleSel(c.dataset.id);
     if(navigator.vibrate)navigator.vibrate(12);},500);
 },{passive:true});
@@ -3697,9 +3923,11 @@ document.getElementById('ptabs').addEventListener('click',e=>{
   settings.activePlatform=t.dataset.pf;idbPut('settings',settings);render();
 });
 $('grid').addEventListener('click',e=>{
-  const c=e.target.closest('.card');if(!c)return;
+  const qb=e.target.closest('[data-qrs]');
+  if(qb){ e.stopPropagation(); quickRestock(qb.dataset.qrs); return; }
+  const c=e.target.closest('.card,.lrow');if(!c)return;
   if(selMode){toggleSel(c.dataset.id);return;}
-  if(e.target.tagName==='IMG'&&e.target.closest('.thumb')){
+  if(e.target.tagName==='IMG'){
     const p=products.find(x=>x.id===c.dataset.id);
     if(p){openLightbox(p.img||p.imgUrl||e.target.src, p.model);return;}
   }
@@ -4124,9 +4352,9 @@ $('sellRows').addEventListener('input',updateLive);
 $('sellRows').addEventListener('click',e=>{
   const pfId=e.target.dataset.fill;if(!pfId)return;
   const pf=settings.platforms.find(x=>x.id===pfId);
-  let b=n($('fBulk').value);
-  if(b==null)b=n($('fSmall').value);   // 回退少量价
-  if(b==null){toast('先填大量价或少量价，才能反算售价','warn');return;}
+  let b=n($('fSmall').value);
+  if(b==null)b=n($('fBulk').value);    // 没少量价才用大量价
+  if(b==null){toast('先填少量价或大量价，才能反算售价','warn');return;}
   const sticker=n($('fSticker').value)||0;
   const m=settings.targetMargin/100;
   const base=b+sticker+settings.packaging+settings.thermal;
@@ -4407,6 +4635,7 @@ function bootLog(msg,isErr){
   await idbPut('settings',settings);
   bootLog('4/4 渲染…');
   applyTheme();
+  syncViewTog();
   render();
   hideSplash();
   if(cloudReady()&&settings.cloud.auto){
