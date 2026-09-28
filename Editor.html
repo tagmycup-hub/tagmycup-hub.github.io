@@ -342,6 +342,7 @@ input::placeholder{color:var(--mut)!important;}
   <div id="mob-tabs"><button class="mtab act" data-t="base" onclick="mobTab('base')"><i>▢</i><span>底图</span></button><button class="mtab" data-t="sticker" onclick="mobTab('sticker')"><i>◈</i><span>素材</span></button><button class="mtab" data-t="logo" onclick="mobTab('logo')"><i>®</i><span>Logo</span></button><button class="mtab" data-t="text" onclick="mobTab('text')"><i>T</i><span>文字</span></button><button class="mtab" data-t="adjust" onclick="mobTab('adjust')"><i>◑</i><span>调色</span></button><button class="mtab" data-t="export" onclick="mobTab('export')"><i>⤓</i><span>导出</span></button></div>
 </div>
 
+<div id="backup-warn" style="display:none"><span>⚠ 数据只存在这台设备 · <b></b></span><button onclick="exportAll()">立即备份</button><button class="x" onclick="G('backup-warn').style.display='none'">稍后</button></div>
 <div id="proj-tabs"></div>
 <div id="topbar">
   <div class="logo-dot"></div><span class="logo-text">贴图合成器</span>
@@ -357,7 +358,8 @@ input::placeholder{color:var(--mut)!important;}
   <button id="proj-ren" title="重命名当前项目" onclick="renameProject()">改名</button>
   <button id="proj-dup" title="复制当前项目（含全部素材与底图）" onclick="duplicateProject()">⧉ 副本</button>
   <button id="proj-mgr" title="项目管理页（P）" onclick="openProjMgr()">▦ 管理</button>
-  <button id="proj-exp" title="导出当前项目为文件（备份/换电脑）" onclick="exportProject()">导出</button>
+  <button class="bd2" id="err-btn" style="display:none" onclick="openErrLog()"></button>
+    <button class="bd2" id="sync-btn" onclick="openSync()" title="跨设备同步（Supabase）">☁ 同步</button><span id="store-info" onclick="openLibrary('sticker')" title="素材与项目保存在这台设备的浏览器里"></span><button id="proj-exp" title="导出当前项目为文件（备份/换电脑）" onclick="exportProject()">导出</button>
   <button id="proj-imp" title="从文件导入项目" onclick="G('proj-file').click()">导入</button>
   <input type="file" id="proj-file" accept=".json,application/json" style="display:none" onchange="importProject(this)">
   <button id="lang-btn" title="切换导出命名语言 中文/PT" onclick="toggleLang()">中/PT</button>
@@ -374,12 +376,12 @@ input::placeholder{color:var(--mut)!important;}
   </div>
   <div class="ps">
     <div class="usec" id="drop-base">
-      <div class="uh"><span class="ut sec-t" onclick="toggleUsec('drop-base')" title="点击折叠/展开">底图</span><button class="hlp" onclick="showHelp(event,'body')">?</button><span class="tag cnt" id="base-cnt">0</span><button class="bd2 ok" onclick="selectAllBases()">全选</button><button class="bd2 sb-btn" id="sbtn-base" onclick="toggleSideBatch('base')" title="批量管理云端底图">☑ 批量</button><div class="umore"><button class="bd2 umore-b" onclick="toggleUMore(event)" title="更多操作">⋯</button><div class="umore-m"><button onclick="startBodyPick()">手动框选杯身</button><button onclick="clearManualBody()">恢复自动识别</button><button onclick="openLibrary('base')">打开素材库</button><button class="dg" onclick="clearBases()">清空本项目底图</button></div></div><button class="usec-tg" onclick="toggleUsec('drop-base')">▾</button></div>
+      <div class="uh"><span class="ut sec-t" onclick="toggleUsec('drop-base')" title="点击折叠/展开">底图</span><button class="hlp" onclick="showHelp(event,'body')">?</button><span class="tag cnt" id="base-cnt">0</span><button class="bd2 ok" onclick="selectAllBases()">全选</button><button class="bd2 sb-btn" id="sbtn-base" onclick="toggleSideBatch('base')" title="批量管理底图">☑ 批量</button><div class="umore"><button class="bd2 umore-b" onclick="toggleUMore(event)" title="更多操作">⋯</button><div class="umore-m"><button onclick="switchTab('cup')">印位模板</button><button onclick="startBodyPick()">手动框选杯身</button><button onclick="clearManualBody()">恢复自动识别</button><button onclick="openLibrary('base')">打开素材库</button><button class="dg" onclick="clearBases()">清空本项目底图</button></div></div><button class="usec-tg" onclick="toggleUsec('drop-base')">▾</button></div>
       <div class="ub"><div class="br"><button class="bp" onclick="G('inp-base').click()">＋ 上传底图</button><input type="file" id="inp-base" accept="image/*" multiple hidden onchange="loadFiles('base',this)"></div><div class="tg" id="base-grid"><div class="emp" id="base-empty">上传底图 · 自动进库 · 全项目共享</div></div>
 </div>
     </div>
     <div class="usec" id="drop-stk">
-      <div class="uh"><span class="ut sec-t" onclick="toggleUsec('drop-stk')" title="点击折叠/展开">素材</span><button class="hlp" onclick="showHelp(event,'lib')">?</button><span class="tag cnt" id="stk-cnt">0</span><button class="bd2 ok" onclick="selectAllStickers()">全选</button><button class="bd2 sb-btn" id="sbtn-sticker" onclick="toggleSideBatch('sticker')" title="批量管理云端素材">☑ 批量</button><div class="umore"><button class="bd2 umore-b" onclick="toggleUMore(event)" title="更多操作">⋯</button><div class="umore-m"><button id="grp-btn" onclick="toggleGroupMode()">编组同步操作</button><button onclick="openLibrary('sticker')">打开素材库</button><button onclick="autoFitSticker()">智能定位</button><button class="dg" onclick="clearStickers()">清空本项目素材</button></div></div><button class="usec-tg" onclick="toggleUsec('drop-stk')">▾</button></div>
+      <div class="uh"><span class="ut sec-t" onclick="toggleUsec('drop-stk')" title="点击折叠/展开">素材</span><button class="hlp" onclick="showHelp(event,'lib')">?</button><span class="tag cnt" id="stk-cnt">0</span><button class="bd2 ok" onclick="selectAllStickers()">全选</button><button class="bd2 sb-btn" id="sbtn-sticker" onclick="toggleSideBatch('sticker')" title="批量管理素材">☑ 批量</button><div class="umore"><button class="bd2 umore-b" onclick="toggleUMore(event)" title="更多操作">⋯</button><div class="umore-m"><button id="grp-btn" onclick="toggleGroupMode()">编组同步操作</button><button onclick="openLibrary('sticker')">打开素材库</button><button onclick="switchTab('cup')">印位模板</button><button onclick="autoFitSticker()">自动识别杯身定位（备用）</button><button onclick="variantsActiveStk()">配色变体</button><button class="dg" onclick="clearStickers()">清空本项目素材</button></div></div><button class="usec-tg" onclick="toggleUsec('drop-stk')">▾</button></div>
       <div class="ub">
         <div class="br"><button class="bp" onclick="G('inp-stk').click()">＋ 上传素材</button><input type="file" id="inp-stk" accept="image/*" multiple hidden onchange="loadFiles('sticker',this)"></div>
         <div id="grp-banner"><span>⬡ 编组</span><span id="grp-ct" style="color:var(--acc-l);margin:0 4px">0</span><span>个 · 同步操作</span></div>
@@ -388,11 +390,11 @@ input::placeholder{color:var(--mut)!important;}
 
       </div>
     </div>
-    <div class="usec" id="drop-extra"><div class="uh"><span class="ut sec-t" onclick="toggleUsec('drop-extra')" title="点击折叠/展开">细节图</span><button class="hlp" onclick="showHelp(event,'extra')">?</button><span class="tag cnt" id="extra-cnt">0</span><button class="bd2 ok" onclick="selectAllExtras()">全选</button><button class="bd2 sb-btn" id="sbtn-extra" onclick="toggleSideBatch('extra')" title="批量管理云端细节图">☑ 批量</button><div class="umore"><button class="bd2 umore-b" onclick="toggleUMore(event)">⋯</button><div class="umore-m"><button onclick="extraSetAll(false,false)">全部设为纯净图</button><button onclick="extraSetAll(true,false)">全部叠加素材</button><button onclick="extraSetAll(true,true)">全部叠加素材+Logo</button><button onclick="G('inp-extra').click()">上传细节图</button><button class="dg" onclick="clearExtras()">清空本项目细节图</button></div></div><button class="usec-tg" onclick="toggleUsec('drop-extra')">▾</button></div><div class="ub"><div class="upl" onclick="G('inp-extra').click()">＋ 上传细节图 / 场景图</div><input type="text" id="extra-name" placeholder="细节图命名（留空 = 项目名_细节_1）" oninput="updExpDesc()" style="width:100%;margin:6px 0 2px;background:var(--surf3);color:var(--txt);border:1px solid transparent;border-radius:var(--rs);padding:6px 9px;font-size:11px;outline:none;box-sizing:border-box"><input type="file" id="inp-extra" accept="image/*" multiple hidden onchange="loadFiles('extra',this)"><div class="tg" id="extra-grid"></div></div></div>
+    <div class="usec" id="drop-extra"><div class="uh"><span class="ut sec-t" onclick="toggleUsec('drop-extra')" title="点击折叠/展开">细节图</span><button class="hlp" onclick="showHelp(event,'extra')">?</button><span class="tag cnt" id="extra-cnt">0</span><button class="bd2 ok" onclick="selectAllExtras()">全选</button><button class="bd2 sb-btn" id="sbtn-extra" onclick="toggleSideBatch('extra')" title="批量管理细节图">☑ 批量</button><div class="umore"><button class="bd2 umore-b" onclick="toggleUMore(event)">⋯</button><div class="umore-m"><button onclick="extraSetAll(false,false)">全部设为纯净图</button><button onclick="extraSetAll(true,false)">全部叠加素材</button><button onclick="extraSetAll(true,true)">全部叠加素材+Logo</button><button onclick="G('inp-extra').click()">上传细节图</button><button class="dg" onclick="clearExtras()">清空本项目细节图</button></div></div><button class="usec-tg" onclick="toggleUsec('drop-extra')">▾</button></div><div class="ub"><div class="upl" onclick="G('inp-extra').click()">＋ 上传细节图 / 场景图</div><input type="text" id="extra-name" placeholder="细节图命名（留空 = 项目名_细节_1）" oninput="updExpDesc()" style="width:100%;margin:6px 0 2px;background:var(--surf3);color:var(--txt);border:1px solid transparent;border-radius:var(--rs);padding:6px 9px;font-size:11px;outline:none;box-sizing:border-box"><input type="file" id="inp-extra" accept="image/*" multiple hidden onchange="loadFiles('extra',this)"><div class="tg" id="extra-grid"></div></div></div>
     <div class="usec logosec" id="drop-brand">
       <div class="uh" onclick="toggleLogoSec(event)" style="cursor:pointer">
         <span class="ut">Logo</span><button class="hlp" onclick="showHelp(event,'lib')">?</button><span class="tag cnt" id="lib-n-logo">0</span>
-        <span id="logo-sum"></span><button class="bd2 sb-btn" id="sbtn-logo" onclick="event.stopPropagation();toggleSideBatch('logo')" title="批量管理云端 Logo（多选删除）">☑ 批量</button>
+        <span id="logo-sum"></span><button class="bd2 sb-btn" id="sbtn-logo" onclick="event.stopPropagation();toggleSideBatch('logo')" title="批量管理 Logo（多选删除）">☑ 批量</button>
         <button class="bd2" id="logo-hide-btn" onclick="toggleLogoHidden(event)" title="隐藏/显示整个 Logo 区">隐藏</button><button class="ls-tg" id="logo-sec-tg">▾</button>
       </div>
       <div class="ub" id="logo-body">
@@ -468,7 +470,7 @@ input::placeholder{color:var(--mut)!important;}
     <div class="sep"></div>
     
     
-    <button class="pb-act" id="xclip-btn" onclick="pasteFromCrossProject()" style="display:none"></button><button class="pb-act" id="fit-btn" title="智能定位：素材自动吸附杯身中心并按杯宽缩放（F）" onclick="autoFitSticker()">🎯 智能定位</button><button class="pb-act" onclick="suggestParams()" title="根据底图杯型推荐曲面与位置">✨ 智能建议</button><button class="pb-act" onclick="openTpls()" title="排版模板（T）">▤ 模板</button><button class="pb-act" onclick="openLibrary()" title="素材库：跨项目共享（L）">🗂 素材库</button><span class="tb-sep"></span><div class="tb-more"><button class="pb-act" onclick="toggleTbMore(event)" title="更多工具">⋯ 更多</button><div id="tb-more-menu"><button id="snap-btn" onclick="toggleSnap()">🧲 吸附</button><button id="grid-btn" onclick="toggleGrid()">⌗ 网格</button><button id="ruler-btn" onclick="toggleRuler()">📏 尺寸</button><button id="cmp-btn" onclick="toggleCompare()">◐ 对比</button><button onclick="openGallery()">▦ 画廊</button><button onclick="copyForCrossProject()">⧉ 跨项目复制</button><button onclick="openKb()">⌨ 快捷键</button></div></div>
+    <button class="pb-act" id="xclip-btn" onclick="pasteFromCrossProject()" style="display:none"></button><button class="pb-act" id="fit-btn" title="智能定位：素材自动吸附杯身中心并按杯宽缩放（F）" onclick="autoFitSticker()">🎯 智能定位</button><button class="pb-act" onclick="suggestParams()" title="根据底图印位推荐曲面与位置">✨ 智能建议</button><button class="pb-act" onclick="openTpls()" title="排版模板（T）">▤ 模板</button><button class="pb-act" onclick="openLibrary()" title="素材库：跨项目共享（L）">🗂 素材库</button><span class="tb-sep"></span><div class="tb-more"><button class="pb-act" onclick="toggleTbMore(event)" title="更多工具">⋯ 更多</button><div id="tb-more-menu"><button id="snap-btn" onclick="toggleSnap()">🧲 吸附</button><button id="grid-btn" onclick="toggleGrid()">⌗ 网格</button><button id="ruler-btn" onclick="toggleRuler()">📏 尺寸</button><button id="cmp-btn" onclick="toggleCompare()">◐ 对比</button><button onclick="openGallery()">▦ 画廊</button><button onclick="copyForCrossProject()">⧉ 跨项目复制</button><button onclick="openKb()">⌨ 快捷键</button></div></div>
     
     
     
@@ -491,6 +493,7 @@ input::placeholder{color:var(--mut)!important;}
     <button class="etab t-brand" onclick="switchTab('brand')">品牌</button>
     <button class="etab t-ip" onclick="switchTab('ip')">IP</button>
     <button class="etab t-text" onclick="switchTab('text')">文字</button>
+    <button class="etab t-cup" onclick="switchTab('cup')" title="印位模板 · V 复用 / Shift+V 存入 / Alt+V 更新 / , . 切换">印位</button>
     <button class="etab-fold" onclick="toggleAllAdv()" title="折叠/展开本面板所有分组">≡</button>
   </div>
   <div class="tab-pane show" id="tab-stk">
@@ -499,6 +502,7 @@ input::placeholder{color:var(--mut)!important;}
     <div id="stk-ind">无活跃素材</div>
     <div id="stk-sz-info" class="sz-info" style="display:none"></div>
     <div style="font-size:10px;color:var(--mut);font-family:var(--mono);line-height:1.8">拖拽移位 · 滚轮缩放 · 方向键微移<br>拖拽角/边手柄可自由缩放拉伸<br><span id="grp-hint" style="color:var(--acc-l);display:none">⬡ 编组：缩放/旋转同步勾选素材</span></div>
+    <button class="cup-quick" onclick="reuseCup()" title="把印花放到印位记住的位置（V）"></button>
     <div class="cr"><span class="cl">X</span><input type="range" id="sx-r" min="-2000" max="4000" oninput="stkCtrl('x',this.value)"><input type="number" id="sx-n" value="0" oninput="stkCtrl('x',this.value)"></div>
     <div class="cr"><span class="cl">Y</span><input type="range" id="sy-r" min="-2000" max="4000" oninput="stkCtrl('y',this.value)"><input type="number" id="sy-n" value="0" oninput="stkCtrl('y',this.value)"></div>
     <div class="cr"><span class="cl">缩放</span><input type="range" id="ss-r" min="5" max="300" oninput="stkCtrl('scale',this.value)"><input type="number" id="ss-n" value="100" min="5" max="300" oninput="stkCtrl('scale',this.value)"><span class="cu">%</span></div>
@@ -522,7 +526,8 @@ input::placeholder{color:var(--mut)!important;}
       <button class="bi" onclick="alignStk('ml')">←</button><button class="bi act" onclick="alignStk('cc')">⊕</button><button class="bi" onclick="alignStk('mr')">→</button>
       <button class="bi" onclick="alignStk('bl')">↙</button><button class="bi" onclick="alignStk('bc')">↓</button><button class="bi" onclick="alignStk('br')">↘</button>
     </div>
-    <div class="advgrp" id="adv-multi"><div class="advh" onclick="toggleAdv('adv-multi')"><span>▤ 多素材排布</span><button class="hlp" onclick="showHelp(event,'multi')">?</button><span class="advarr">▾</span></div><div class="advb"><div class="sec-title">对齐勾选的素材</div><div style="display:flex;gap:3px;flex-wrap:wrap"><button class="bi" onclick="alignStksTogether('l')" title="左对齐">⭱</button><button class="bi" onclick="alignStksTogether('cx')" title="水平居中">⭳</button><button class="bi" onclick="alignStksTogether('r')" title="右对齐">⭲</button><button class="bi" onclick="alignStksTogether('t')" title="顶对齐">⭶</button><button class="bi" onclick="alignStksTogether('cy')" title="垂直居中">⭴</button><button class="bi" onclick="alignStksTogether('b')" title="底对齐">⭷</button></div><div class="sec-title" style="margin-top:5px">均匀分布 / 统一尺寸</div><div style="display:flex;gap:3px"><button class="bi" onclick="distributeStks('x')">↔ 水平分布</button><button class="bi" onclick="distributeStks('y')">↕ 垂直分布</button><button class="bi" onclick="matchSize()" title="以当前活跃素材为基准">统一尺寸</button></div></div></div><div class="quickbar"><button onclick="autoFitSticker()" title="自动对准杯身并缩放到合适大小"><b>智能定位</b><i>对准杯身</i></button><button onclick="cutoutActiveStk()" title="去掉白色背景，可调容差与边缘"><b>一键抠图</b><i>去白底</i></button><button onclick="variantsActiveStk()" title="批量生成多个配色版本"><b>配色变体</b><i>做 SKU</i></button></div>
+    <div class="advgrp" id="adv-multi"><div class="advh" onclick="toggleAdv('adv-multi')"><span>▤ 多素材排布</span><button class="hlp" onclick="showHelp(event,'multi')">?</button><span class="advarr">▾</span></div><div class="advb"><div class="sec-title">对齐勾选的素材</div><div style="display:flex;gap:3px;flex-wrap:wrap"><button class="bi" onclick="alignStksTogether('l')" title="左对齐">⭱</button><button class="bi" onclick="alignStksTogether('cx')" title="水平居中">⭳</button><button class="bi" onclick="alignStksTogether('r')" title="右对齐">⭲</button><button class="bi" onclick="alignStksTogether('t')" title="顶对齐">⭶</button><button class="bi" onclick="alignStksTogether('cy')" title="垂直居中">⭴</button><button class="bi" onclick="alignStksTogether('b')" title="底对齐">⭷</button></div><div class="sec-title" style="margin-top:5px">均匀分布 / 统一尺寸</div><div style="display:flex;gap:3px"><button class="bi" onclick="distributeStks('x')">↔ 水平分布</button><button class="bi" onclick="distributeStks('y')">↕ 垂直分布</button><button class="bi" onclick="matchSize()" title="以当前活跃素材为基准">统一尺寸</button></div></div></div><div id="phys-info" class="phys" style="display:none"></div>
+    <div class="quickbar"><button onclick="cutoutActiveStk()" title="去掉白色背景"><b>一键抠图</b><i>去白底</i></button><button onclick="invertActiveStk()" title="反转颜色"><b>反转颜色</b><i>白转黑</i></button><button onclick="variantsActiveStk()" title="批量生成多个配色"><b>配色变体</b><i>做 SKU</i></button></div>
     <div class="brow"><button class="bg" onclick="applyToAll()">同步全部</button><button class="bg" onclick="resetActiveStkToPreset()">↺ 重置</button></div>
   </div>
   <div class="tab-pane" id="tab-base">
@@ -578,6 +583,27 @@ input::placeholder{color:var(--mut)!important;}
     <div style="display:flex;gap:4px;margin-top:4px"><button class="bi" onclick="resetObjWarp('ip')">重置变形</button></div>
     <div class="ag"><button class="bi" onclick="alignLogo('ip','tl')">↖</button><button class="bi" onclick="alignLogo('ip','tc')">↑</button><button class="bi act" onclick="alignLogo('ip','tr')">↗</button><button class="bi" onclick="alignLogo('ip','ml')">←</button><button class="bi" onclick="alignLogo('ip','cc')">⊕</button><button class="bi" onclick="alignLogo('ip','mr')">→</button><button class="bi" onclick="alignLogo('ip','bl')">↙</button><button class="bi" onclick="alignLogo('ip','bc')">↓</button><button class="bi" onclick="alignLogo('ip','br')">↘</button></div>
   </div>
+<div class="tab-pane" id="tab-cup">
+  <div class="cupsec">
+    <div class="cupsec-h">套用 <i>点一下就放到记住的位置 · <kbd>,</kbd> <kbd>.</kbd> 切换</i></div>
+    <button class="cup-reuse" id="cup-reuse-big" onclick="reuseCup()"></button>
+    <div id="cup-apply-list"></div>
+  </div>
+  <div class="cupsec">
+    <div class="cupsec-h">存入 <i>先在画布上摆好印花</i></div>
+    <button class="bp full" onclick="quickSaveCup()">＋ 把当前位置存为印位 <kbd>Shift+V</kbd></button>
+    <button class="bg full" id="cup-update-btn" onclick="updateCupHere()" style="margin-top:6px"></button>
+    <div class="cup-tip">存的是：位置、大小、角度、曲面、光泽、拉伸。套用时原样还原。</div>
+  </div>
+  <div class="cupsec" id="cup-settings">
+    <div class="cupsec-h">设置</div>
+    <div id="cup-set-body"></div>
+    <div class="m-btns" style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:10px">
+      <button class="bi" onclick="exportCups()">导出全部</button>
+      <button class="bi" onclick="G('cup-imp').click()">导入</button>
+    </div>
+  </div>
+</div>
 <div class="tab-pane" id="tab-text"><div style="display:flex;gap:4px"><button class="bp" onclick="newText()" style="flex:1">＋ 新建文字</button><button class="bd2 danger" onclick="deleteActiveText()">删除</button></div><div id="text-none" class="emp" style="margin-top:8px">点「新建文字」添加，或在画布上双击文字编辑</div><div id="text-props" style="display:none;flex-direction:column;gap:7px;margin-top:8px"><textarea id="tx-content" rows="2" placeholder="输入文字，回车换行" oninput="textCtrl('text',this.value)" style="width:100%;background:var(--surf3);color:var(--txt);border:1px solid var(--bd);border-radius:var(--r);padding:7px 9px;font-size:12px;outline:none;resize:vertical;box-sizing:border-box"></textarea><div class="cr"><span class="cl">字体</span><select id="tx-font" onchange="textCtrl('font',this.value)" style="flex:1;background:var(--surf3);color:var(--txt);border:1px solid var(--bd);border-radius:var(--r);padding:4px 6px;font-size:11px;outline:none"><option value="0">无衬线</option><option value="1">衬线</option><option value="2">等宽</option><option value="3">圆体</option><option value="4">黑体粗</option></select><select id="tx-weight" onchange="textCtrl('weight',this.value)" style="width:66px;background:var(--surf3);color:var(--txt);border:1px solid var(--bd);border-radius:var(--r);padding:4px;font-size:11px;outline:none"><option value="400">常规</option><option value="700">粗体</option><option value="900">特粗</option></select></div><div class="cr"><span class="cl">字号</span><input type="range" id="tx-size" min="8" max="400" value="40" oninput="textCtrl('size',this.value)"><input type="number" id="tx-size-n" value="40" min="8" max="400" oninput="textCtrl('size',this.value)"><span class="cu">px</span></div><div class="cr"><span class="cl">颜色</span><input type="color" id="tx-color" value="#ffffff" oninput="textCtrl('color',this.value)" style="flex:1;height:26px;background:var(--surf3);border:1px solid var(--bd);border-radius:var(--r);cursor:pointer"><span class="cl" style="width:auto">描边</span><input type="color" id="tx-stroke" value="#000000" oninput="textCtrl('stroke',this.value)" style="flex:1;height:26px;background:var(--surf3);border:1px solid var(--bd);border-radius:var(--r);cursor:pointer"></div><div class="cr"><span class="cl">描边粗</span><input type="range" id="tx-strokew" min="0" max="24" value="0" oninput="textCtrl('strokeW',this.value)"><input type="number" id="tx-strokew-n" value="0" min="0" max="24" oninput="textCtrl('strokeW',this.value)"><span class="cu">px</span></div><div class="cr"><span class="cl">弧形</span><input type="range" id="tx-curve" class="wm" min="-160" max="160" value="0" oninput="textCtrl('curve',this.value)"><input type="number" id="tx-curve-n" value="0" min="-160" max="160" oninput="textCtrl('curve',this.value)"><span class="cu">°</span></div><div class="cr"><span class="cl">旋转</span><input type="range" id="tx-rot" class="wm" min="-180" max="180" value="0" oninput="textCtrl('rot',this.value)"><input type="number" id="tx-rot-n" value="0" min="-180" max="180" oninput="textCtrl('rot',this.value)"><span class="cu">°</span></div><div class="cr"><span class="cl">字距</span><input type="range" id="tx-letter" class="tl" min="-10" max="40" value="0" oninput="textCtrl('letter',this.value)"><span class="cu">px</span></div><div class="cr"><span class="cl">阴影</span><input type="range" id="tx-shadow" class="tl" min="0" max="30" value="0" oninput="textCtrl('shadow',this.value)"><span class="cu">px</span></div><div class="cr"><span class="cl">透明</span><input type="range" id="tx-op" min="0" max="100" value="100" oninput="textCtrl('op',this.value)"><span class="cu">%</span></div><div style="display:flex;gap:3px"><button class="bi" onclick="textCtrl('align','left')">左</button><button class="bi" onclick="textCtrl('align','center')">中</button><button class="bi" onclick="textCtrl('align','right')">右</button><button class="bi" onclick="editTextPrompt()">编辑内容</button></div></div></div>
   <div id="exp-zone">
     <div id="exp-desc">—</div><div id="exp-eta" style="font-size:10px;color:var(--mut);font-family:var(--mono);margin-bottom:5px"></div>
@@ -618,7 +644,11 @@ input::placeholder{color:var(--mut)!important;}
     <tr><td>Ctrl + Z</td><td>撤销</td></tr>
     <tr><td>Ctrl + C / X / V</td><td>复制 / 剪切 / 粘贴素材</td></tr>
     <tr><td>Esc</td><td>取消选择 / 关闭弹窗</td></tr>
-    <tr><td>F</td><td>智能定位到杯身</td></tr>
+    <tr><td>V</td><td>印位：复用当前印位（位置/大小/角度/曲面）</td></tr>
+    <tr><td>Shift + V</td><td>印位：把当前位置存为新印位</td></tr>
+    <tr><td>Alt + V</td><td>印位：更新当前印位为现在的位置</td></tr>
+    <tr><td>, 　/　.</td><td>印位：上一个 / 下一个并直接套用</td></tr>
+    <tr><td>F</td><td>自动识别杯身定位（备用，优先用印位）</td></tr>
     <tr><td>R</td><td>印花厘米标尺</td></tr>
     <tr><td>C</td><td>有无印花对比</td></tr>
     <tr><td>G</td><td>全底图画廊</td></tr>
@@ -767,11 +797,11 @@ input::placeholder{color:var(--mut)!important;}
         <button class="bi" onclick="cutPreset('crisp')">锐利边缘</button>
       </div>
       <div class="sec-title">参数微调</div>
-      <div class="cr"><span class="cl">容差</span><input type="range" id="cut-tol" min="4" max="120" value="24" oninput="setCutOpt('tol',this.value)"><input type="number" id="cut-tol-n" value="24" min="4" max="120" oninput="setCutOpt('tol',this.value)"></div>
-      <div class="cr"><span class="cl">羽化</span><input type="range" id="cut-feather" class="tl" min="0" max="6" value="2" oninput="setCutOpt('feather',this.value)"><input type="number" id="cut-feather-n" value="2" min="0" max="6" oninput="setCutOpt('feather',this.value)"></div>
-      <div class="cr"><span class="cl">去白边</span><input type="range" id="cut-shrink" class="tl" min="0" max="5" value="0" oninput="setCutOpt('shrink',this.value)"><input type="number" id="cut-shrink-n" value="0" min="0" max="5" oninput="setCutOpt('shrink',this.value)"></div>
-      <div class="cr"><span class="cl">去杂点</span><input type="range" id="cut-despeckle" class="tl" min="0" max="4" value="1" oninput="setCutOpt('despeckle',this.value)"><input type="number" id="cut-despeckle-n" value="1" min="0" max="4" oninput="setCutOpt('despeckle',this.value)"></div>
-      <div class="cr"><span class="cl">内部白</span><input type="range" id="cut-inner" class="tl" min="0" max="100" value="0" oninput="setCutOpt('innerKeep',this.value)"><input type="number" id="cut-inner-n" value="0" min="0" max="100" oninput="setCutOpt('innerKeep',this.value)"><span class="cu">%</span></div>
+      <div class="cr"><span class="cl">容差</span><input type="range" id="cut-tol" min="4" max="120" value="24" oninput="setCutOpt('tol',this.value,true)"><input type="number" id="cut-tol-n" value="24" min="4" max="120" oninput="setCutOpt('tol',this.value)"></div>
+      <div class="cr"><span class="cl">羽化</span><input type="range" id="cut-feather" class="tl" min="0" max="6" value="2" oninput="setCutOpt('feather',this.value,true)"><input type="number" id="cut-feather-n" value="2" min="0" max="6" oninput="setCutOpt('feather',this.value)"></div>
+      <div class="cr"><span class="cl">去白边</span><input type="range" id="cut-shrink" class="tl" min="0" max="5" value="0" oninput="setCutOpt('shrink',this.value,true)"><input type="number" id="cut-shrink-n" value="0" min="0" max="5" oninput="setCutOpt('shrink',this.value)"></div>
+      <div class="cr"><span class="cl">去杂点</span><input type="range" id="cut-despeckle" class="tl" min="0" max="4" value="1" oninput="setCutOpt('despeckle',this.value,true)"><input type="number" id="cut-despeckle-n" value="1" min="0" max="4" oninput="setCutOpt('despeckle',this.value)"></div>
+      <div class="cr"><span class="cl">内部白</span><input type="range" id="cut-inner" class="tl" min="0" max="100" value="0" oninput="setCutOpt('innerKeep',this.value,true)"><input type="number" id="cut-inner-n" value="0" min="0" max="100" oninput="setCutOpt('innerKeep',this.value)"><span class="cu">%</span></div>
       <label style="display:flex;align-items:center;gap:7px;margin-top:7px;font-size:11px;color:var(--dim);cursor:pointer"><input type="checkbox" id="cut-keepinner" checked onchange="setCutOpt('keepInner',this.checked)">区分内外</label>
       <div class="sec-title" style="margin-top:12px">操作说明</div>
       <div style="font-size:10px;color:var(--mut);line-height:1.8">
@@ -784,6 +814,66 @@ input::placeholder{color:var(--mut)!important;}
     </div>
   </div>
   <div class="mbtns"><button class="bg" onclick="closeCutout()">取消</button><button class="bp" onclick="confirmCutout()">生成去背版本</button></div>
+</div></div>
+<div id="cupchip-menu"></div>
+<div id="cup-ov" class="ov"><div class="ov-card" style="width:min(560px,94vw)">
+  <div class="ov-t">印位模板 <span style="font-size:11px;color:var(--dim);font-weight:400">把摆好的位置存下来，其它项目也能用</span></div>
+  <div id="cup-list" style="max-height:48vh;overflow-y:auto;margin-bottom:10px"></div>
+  <div class="m-btns" style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+    <button class="bp" onclick="saveCupFromSticker();openCupPicker()">➕ 存为新印位</button>
+    <button class="bi" id="cup-unbind" onclick="unbindCup()" style="display:none">解除绑定</button>
+    <button class="bi" onclick="exportCups()">导出</button>
+    <button class="bi" onclick="G('cup-imp').click()">导入</button>
+  </div>
+  <input type="file" id="cup-imp" accept="application/json" hidden onchange="importCups(this)">
+  <div style="font-size:10.5px;color:var(--mut);margin-top:10px;line-height:1.7">在画布上把印花拖到合适位置和大小，再点「存为新印位」。<br>以后换印花只需点一下印位，位置、大小、角度一次到位。微调后可点「更新为当前位置」。</div>
+  <div class="mbtns"><button class="bg" onclick="closeCupPicker()">关闭</button></div>
+</div></div>
+<div id="cal-ov" class="ov"><div class="ov-card" style="width:min(900px,94vw)">
+  <div class="ov-t">标定印刷区 <span style="font-size:11px;color:var(--dim);font-weight:400">框出可印范围并填实际尺寸，以后同款直接套用</span></div>
+  <div class="cal-body">
+    <div id="cal-stage"><canvas id="cal-canvas"></canvas></div>
+    <div class="cal-side">
+      <div class="sec-title">套用已有印位</div>
+      <select id="cal-pick" onchange="applyCupPick()" style="width:100%"></select>
+      <div class="sec-title" style="margin-top:12px">印位名称</div>
+      <input type="text" id="cal-name" placeholder="例：500ml 保温杯" style="width:100%">
+      <div class="cr" style="margin-top:10px"><span class="cl">可印宽</span><input type="number" id="cal-w" value="8" min="1" max="60" step="0.1" oninput="drawCalib()"><span class="cu">cm</span></div>
+      <div class="cr"><span class="cl">可印高</span><input type="number" id="cal-h" min="1" max="60" step="0.1" placeholder="可留空"><span class="cu">cm</span></div>
+      <div class="cr"><span class="cl">杯身直径</span><input type="number" id="cal-dia" min="1" max="40" step="0.1" placeholder="可留空"><span class="cu">cm</span></div>
+      <div id="cal-info" style="font-size:10.5px;color:var(--mut);margin-top:8px;line-height:1.6"></div>
+      <div class="m-btns" style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:12px">
+        <button class="bi" onclick="calibAuto()">自动识别杯身</button>
+        <button class="bi" onclick="applyCupToAllBases()">套到全部底图</button>
+      </div>
+      <div style="font-size:10.5px;color:var(--mut);margin-top:10px;line-height:1.7">在左边图上拖动框选可印范围；拖边框可调大小，拖中间可移动。<br>填了实际宽度后，选中印花时会显示实际厘米数和 DPI。</div>
+    </div>
+  </div>
+  <div class="mbtns"><button class="bg" onclick="closeCalib()">取消</button><button class="bp" onclick="saveCalib()">保存印位</button></div>
+</div></div>
+<div id="err-ov" class="ov"><div class="ov-card" style="width:600px;max-width:94vw">
+  <div class="ov-t">错误记录 <span style="font-size:11px;color:var(--dim);font-weight:400">只存在本机，用于反馈问题</span></div>
+  <div id="err-body" style="max-height:52vh;overflow-y:auto;margin-bottom:10px"></div>
+  <div class="mbtns"><button class="bg" onclick="clearErrLog()">清空</button><button class="bg" onclick="copyErrLog()">复制全部</button><button class="bp" onclick="closeErrLog()">关闭</button></div>
+</div></div>
+<div id="sync-ov" class="ov"><div class="ov-card" style="width:560px;max-width:94vw">
+  <div class="ov-t">跨设备同步 <span style="font-size:11px;color:var(--dim);font-weight:400">用 Supabase 把素材和项目同步到手机/其它电脑</span></div>
+  <div id="sync-state" style="font-size:11.5px;color:var(--dim);margin-bottom:10px"></div>
+  <div class="cr"><span class="cl" style="min-width:86px">Project URL</span><input type="text" id="sb-url" placeholder="https://xxxx.supabase.co" style="flex:1"></div>
+  <div class="cr"><span class="cl" style="min-width:86px">anon key</span><input type="password" id="sb-key" placeholder="粘贴 anon public key" style="flex:1"></div>
+  <div class="cr"><span class="cl" style="min-width:86px">Storage 桶</span><input type="text" id="sb-bucket" value="tagmycup" style="flex:1"></div>
+  <label style="display:flex;align-items:center;gap:8px;margin:8px 0;font-size:12px;color:var(--dim);cursor:pointer"><input type="checkbox" id="sb-auto"> 保存后自动上传（延迟 8 秒）</label>
+  <div class="mbtns" style="margin:10px 0"><button class="bg" onclick="saveSync()">保存设置</button><button class="bg" onclick="sbTest()">测试连接</button><button class="bg" onclick="sbPull()">↓ 从云端恢复</button><button class="bp" onclick="sbPush()">↑ 上传到云端</button></div>
+  <details style="margin-top:6px"><summary style="cursor:pointer;font-size:11.5px;color:var(--dim)">首次使用：在 Supabase 的 SQL Editor 里跑这段</summary><pre id="sb-sql" style="font-size:10px;line-height:1.6;background:var(--surf3);padding:10px;border-radius:8px;overflow:auto;max-height:180px;margin:8px 0;white-space:pre-wrap">create table if not exists tm_assets (id text primary key, kind text, name text, fp text, size bigint, updated_at timestamptz default now());
+create table if not exists tm_projects (name text primary key, data jsonb, updated_at timestamptz default now());
+alter table tm_assets enable row level security;
+alter table tm_projects enable row level security;
+create policy "anon all" on tm_assets for all to anon using (true) with check (true);
+create policy "anon all" on tm_projects for all to anon using (true) with check (true);
+insert into storage.buckets (id, name, public) values ('tagmycup','tagmycup', false) on conflict do nothing;
+create policy "anon obj" on storage.objects for all to anon using (bucket_id = 'tagmycup') with check (bucket_id = 'tagmycup');</pre><button class="bi" onclick="copySQL()">复制 SQL</button></details>
+  <div style="font-size:10.5px;color:var(--mut);margin-top:10px;line-height:1.7">密钥只保存在这台设备的浏览器里，不会随项目导出。<br>ℹ anon key 在前端是公开的，上面的策略允许持有该 key 的人读写这两张表。内部工具可接受，但不要把地址和 key 外传。</div>
+  <div class="mbtns"><button class="bg" onclick="closeSync()">关闭</button></div>
 </div></div>
 <div id="tpls-ov" class="ov"><div class="ov-card wide">
   <div class="ov-t">▤ 排版模板 <span id="tpls-info" style="font-size:11px;color:var(--dim);font-weight:400"></span></div>
@@ -812,7 +902,7 @@ input::placeholder{color:var(--mut)!important;}
   <button onclick="selAlign('dy')" title="垂直均匀分布">↕ 分布</button>
   <button onclick="selMatchSize()" title="统一为相同宽度">统一尺寸</button>
   <button onclick="selDuplicate()" title="复制选中的素材">复制</button>
-  <button class="del" onclick="deleteActiveSticker()" title="移出项目（云端保留）">移出</button>
+  <button class="del" onclick="deleteActiveSticker()" title="移出项目（素材库保留）">移出</button>
   <button onclick="clearSel()">取消选择</button>
 </div>
 <div id="sbatch-bar">
@@ -820,12 +910,12 @@ input::placeholder{color:var(--mut)!important;}
   <button onclick="sideBatchSelAll()">全选</button>
   <button onclick="sideBatchInvertPick()">反选</button>
   <span class="sb-sep"></span>
-  <button onclick="sideBatchAddToProject()" title="把选中的云端素材加入当前项目">加入项目</button>
+  <button onclick="sideBatchAddToProject()" title="把选中的素材加入当前项目">加入项目</button>
   <button onclick="sideBatchSetChecked(true)" title="在画布/导出中启用">选中</button>
   <button onclick="sideBatchSetChecked(false)" title="在画布/导出中停用">取消选中</button>
-  <button onclick="sideBatchRemoveFromProject()" title="从当前项目移出，云端保留">移出项目</button>
+  <button onclick="sideBatchRemoveFromProject()" title="从当前项目移出，素材库保留">移出项目</button>
   <span class="sb-sep"></span>
-  <button class="del" onclick="sideBatchDelete()">从云端删除</button>
+  <button class="del" onclick="sideBatchDelete()">彻底删除</button>
   <button onclick="exitSideBatch()">完成</button>
 </div>
 <div id="ctx-menu"></div>
@@ -2172,6 +2262,169 @@ body.sbatch .tdel,body.sbatch .tdel2,body.sbatch .xi-del,body.sbatch .libi-del{d
 
 @keyframes rowFlash{0%,100%{background:transparent}30%{background:rgba(245,158,11,.25)}}
 .flash{animation:rowFlash 1.2s ease;border-radius:6px;}
+
+#store-info{font-size:10.5px;color:var(--mut);font-family:var(--mono);cursor:pointer;white-space:nowrap;padding:0 4px;}
+#store-info.warn{color:var(--warm);}
+#store-info.danger{color:var(--err);font-weight:700;}
+#sync-btn.on{border-color:var(--teal)!important;color:var(--teal)!important;}
+#backup-warn{display:flex;align-items:center;gap:10px;justify-content:center;padding:7px 14px;
+  background:var(--warm-d);border-bottom:1px solid var(--warm);font-size:12px;color:var(--txt);}
+#backup-warn b{color:var(--warm);}
+#backup-warn button{padding:5px 12px;border-radius:999px;border:1px solid var(--warm);background:var(--warm);color:#fff;font-size:11.5px;cursor:pointer;}
+#backup-warn button.x{background:transparent;color:var(--dim);border-color:var(--bd);}
+@media (max-width:820px), (pointer:coarse) and (max-width:1024px){ #store-info,#backup-warn{display:none!important;} }
+
+/* 简洁模式:隐藏不常用参数(功能仍在,切到专业即恢复) */
+
+#simple-btn.act{border-color:var(--teal)!important;color:var(--teal)!important;}
+.advgrp.adv-fold{margin:6px 0;}
+#cut-adv .advh{font-size:11px;}
+body.simple #cut-adv.off .advb{display:none;}
+
+/* 错误记录 */
+#err-btn{border-color:var(--warm)!important;color:var(--warm)!important;font-family:var(--mono);font-size:11px;}
+.err-row{padding:8px 10px;border-radius:var(--rs);background:var(--surf2);margin-bottom:6px;}
+.err-t{font-size:10px;color:var(--mut);font-family:var(--mono);}
+.err-m{font-size:12px;color:var(--txt);word-break:break-word;margin-top:2px;}
+.err-a{font-size:10px;color:var(--dim);font-family:var(--mono);margin-top:2px;}
+
+/* 「隐藏了几项」提示条 */
+.hid-hint{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;margin-top:8px;
+  padding:9px 10px;border-radius:var(--rs);border:1px dashed var(--bd);background:var(--surf2);
+  color:var(--dim);font-size:11.5px;cursor:pointer;transition:all .14s;}
+.hid-hint:hover{border-color:var(--acc);color:var(--acc-l);background:var(--acc-d);}
+.hid-hint i{font-style:normal;font-size:10px;}
+.hid-hint.open{border-style:solid;color:var(--acc-l);border-color:var(--acc);}
+body:not(.simple) .hid-hint{display:none;}
+#simple-btn{font-weight:600;}
+body.simple #simple-btn::before{content:'';display:inline-block;width:6px;height:6px;border-radius:50%;
+  background:var(--teal);margin-right:5px;vertical-align:middle;}
+
+/* 印位标定 */
+.cal-body{display:flex;gap:14px;min-height:0;}
+#cal-stage{flex:1 1 auto;min-width:0;height:56vh;display:flex;align-items:center;justify-content:center;
+  background:repeating-conic-gradient(#233241 0 25%,#1a2734 0 50%) 0 0/16px 16px;border:1px solid var(--bd);border-radius:var(--rs);}
+#cal-canvas{max-width:100%;max-height:100%;cursor:crosshair;touch-action:none;}
+.cal-side{flex:0 0 250px;overflow-y:auto;}
+/* 实际尺寸读数 */
+.phys{margin-bottom:8px;padding:7px 10px;border-radius:var(--rs);background:var(--grad-soft);
+  font-size:11.5px;color:var(--dim);line-height:1.6;}
+.phys b{color:var(--txt);font-family:var(--mono);}
+.phys.warn{background:var(--warm-d);color:var(--warm);}
+.phys.warn b{color:var(--warm);}
+.phys span{display:block;font-size:10.5px;opacity:.9;}
+@media (max-width:820px), (pointer:coarse) and (max-width:1024px){
+  .cal-body{flex-direction:column;}
+  #cal-stage{height:40vh;}
+  .cal-side{flex:0 0 auto;max-height:36vh;}
+}
+
+/* 印位列表 */
+.cup-i{padding:10px 12px;border-radius:var(--rs);background:var(--surf2);margin-bottom:7px;cursor:pointer;
+  border:1.5px solid transparent;transition:all .14s;}
+.cup-i:hover{border-color:var(--acc);}
+.cup-i.cur{background:var(--grad-soft);border-color:var(--acc);}
+.cup-nm{font-size:13px;font-weight:600;color:var(--txt);}
+.cup-nm b{font-size:10px;color:var(--acc-l);font-weight:600;margin-left:4px;}
+.cup-meta{font-size:10.5px;color:var(--mut);font-family:var(--mono);margin-top:2px;}
+.cup-acts{display:flex;gap:5px;margin-top:8px;flex-wrap:wrap;}
+.cup-acts button{padding:5px 10px;border-radius:999px;border:1px solid var(--bd);background:var(--surf3);
+  color:var(--dim);font-size:11px;cursor:pointer;}
+.cup-acts button:hover{border-color:var(--acc);color:var(--acc-l);}
+.cup-acts button.dg:hover{border-color:var(--err);color:var(--err);}
+
+/* ═══ 印位条 ═══ */
+#cupbar{display:flex;flex-wrap:wrap;align-items:center;gap:5px;margin-bottom:8px;padding:7px 8px;
+  background:var(--surf2);border-radius:var(--rs);}
+#cupbar:empty{display:none;}
+.cup-reuse{flex:1 1 100%;display:flex;align-items:center;justify-content:center;gap:5px;padding:9px 10px;
+  border-radius:var(--rs);border:none;background:var(--grad);color:#fff;font-size:12.5px;font-weight:600;cursor:pointer;
+  box-shadow:0 3px 10px rgba(59,130,246,.3);}
+.cup-reuse b{font-weight:700;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.cup-reuse:hover{filter:brightness(1.08);}
+.cup-reuse:active{transform:scale(.97);}
+.cup-reuse.off{background:var(--surf3);color:var(--mut);box-shadow:none;cursor:default;}
+.cup-chip{display:inline-flex;align-items:center;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  padding:5px 11px;border-radius:999px;background:var(--surf3);color:var(--dim);font-size:11.5px;cursor:pointer;
+  border:1.5px solid transparent;transition:all .13s;}
+.cup-chip:hover{border-color:var(--acc);color:var(--acc-l);}
+.cup-chip.on{background:var(--grad-soft);border-color:var(--acc);color:var(--txt);font-weight:600;}
+.cup-rename{width:110px;padding:2px 6px;border-radius:999px;border:1px solid var(--acc);background:var(--surf);
+  color:var(--txt);font-size:11.5px;}
+.cup-add,.cup-upd,.cup-more{padding:5px 11px;border-radius:999px;border:1px dashed var(--bd);background:transparent;
+  color:var(--dim);font-size:11.5px;cursor:pointer;}
+.cup-add:hover,.cup-upd:hover,.cup-more:hover{border-color:var(--acc);color:var(--acc-l);border-style:solid;}
+.cup-upd,.cup-more{border-style:solid;padding:5px 9px;}
+#cupchip-menu{display:none;position:fixed;z-index:9000;background:var(--surf2);border:1px solid var(--bdhi);
+  border-radius:var(--rs);padding:4px;min-width:170px;box-shadow:var(--sh-lg);}
+#cupchip-menu.on{display:block;}
+#cupchip-menu button{display:block;width:100%;text-align:left;background:transparent;border:none;color:var(--txt);
+  font-size:12px;padding:7px 10px;border-radius:6px;cursor:pointer;white-space:nowrap;}
+#cupchip-menu button:hover{background:var(--acc-d);color:var(--acc-l);}
+#cupchip-menu button.dg:hover{background:rgba(251,113,133,.15);color:var(--err);}
+@media (max-width:820px), (pointer:coarse) and (max-width:1024px){
+  #cupbar{padding:8px;gap:6px;}
+  .cup-reuse{padding:12px;font-size:14px;}
+  .cup-chip,.cup-add,.cup-upd,.cup-more{padding:8px 13px;font-size:12.5px;}
+}
+
+/* 印位标签页 */
+#tab-cup .cupsec{margin-bottom:12px;padding:10px;border-radius:var(--rs);background:var(--surf2);}
+.cupsec-h{font-size:11px;font-weight:700;color:var(--txt);margin-bottom:8px;display:flex;align-items:baseline;gap:6px;}
+.cupsec-h i{font-style:normal;font-weight:400;font-size:10.5px;color:var(--mut);}
+#cup-reuse-big{width:100%;display:flex;flex-direction:column;align-items:center;gap:2px;padding:12px;border:none;
+  border-radius:var(--rs);background:var(--grad);color:#fff;font-size:13px;font-weight:600;cursor:pointer;
+  box-shadow:0 3px 12px rgba(59,130,246,.3);}
+#cup-reuse-big i{font-style:normal;font-size:10px;opacity:.85;font-family:var(--mono);}
+#cup-reuse-big b{font-weight:700;}
+#cup-reuse-big:hover{filter:brightness(1.08);}
+#cup-reuse-big.off{background:var(--surf3);color:var(--mut);box-shadow:none;cursor:default;}
+.cup-row{position:relative;padding:9px 72px 9px 11px;border-radius:var(--rs);background:var(--surf3);margin-top:6px;
+  cursor:pointer;border:1.5px solid transparent;transition:all .13s;}
+.cup-row:hover{border-color:var(--acc);}
+.cup-row.on{background:var(--grad-soft);border-color:var(--acc);}
+.cup-row-nm{font-size:12.5px;font-weight:600;color:var(--txt);}
+.cup-row-nm b{font-size:9.5px;color:var(--acc-l);margin-left:5px;}
+.cup-row-meta{font-size:10.5px;color:var(--mut);font-family:var(--mono);margin-top:1px;}
+.cup-row-go{position:absolute;right:8px;top:50%;transform:translateY(-50%);padding:6px 13px;border-radius:999px;
+  border:1px solid var(--acc);background:var(--acc-d);color:var(--acc-l);font-size:11.5px;cursor:pointer;}
+.cup-row-go:hover{background:var(--grad);color:#fff;border-color:transparent;}
+.cup-tip{font-size:10.5px;color:var(--mut);line-height:1.7;margin-top:8px;}
+.bp.full,.bg.full{width:100%;display:block;}
+.bi.dg{color:var(--err);border-color:rgba(251,113,133,.4);}
+/* 素材面板的复用小按钮 */
+.cup-quick{width:100%;margin-bottom:8px;padding:9px;border-radius:var(--rs);border:1px solid var(--acc);
+  background:var(--acc-d);color:var(--acc-l);font-size:12px;cursor:pointer;}
+.cup-quick b{color:var(--txt);}
+.cup-quick:hover{background:var(--grad);color:#fff;border-color:transparent;}
+.cup-quick:hover b{color:#fff;}
+.cup-quick.off{border-style:dashed;border-color:var(--bd);background:transparent;color:var(--mut);}
+
+/* ═══ 左侧栏:更顺手 ═══ */
+.uh{position:sticky;top:0;z-index:6;                      /* 滚动时标题和按钮一直可见 */
+  backdrop-filter:blur(8px);}
+.usec{position:relative;}
+.ut{cursor:pointer;}
+.ut:hover{color:var(--acc-l);}
+.tag.cnt{min-width:24px;text-align:center;font-family:var(--mono);font-size:10px;}
+.tag.cnt.part{color:var(--acc-l);border-color:var(--acc);background:var(--acc-d);}
+/* 上传按钮更紧凑,把空间留给缩略图 */
+.usec .ub > .br:first-child .bp{padding:7px 10px;font-size:11.5px;}
+.ub{padding:9px 10px 10px;}
+.br{margin-bottom:6px;}
+/* 拖拽进来时整块高亮 */
+.usec.drop-active{border-color:var(--acc)!important;background:var(--acc-d)!important;}
+.usec.drop-active::after{content:'松手即可上传';position:absolute;inset:0;display:flex;align-items:center;
+  justify-content:center;background:rgba(15,23,32,.72);color:var(--acc-l);font-size:13px;font-weight:600;
+  border-radius:var(--rl);pointer-events:none;z-index:9;}
+/* 区块之间更清楚 */
+.usec{box-shadow:0 1px 2px rgba(0,0,0,.18);}
+.usec:focus-within{border-color:var(--bdhi);}
+.ps{padding:10px 10px 18px;}
+
+kbd{display:inline-block;padding:0 5px;margin-left:4px;border-radius:4px;border:1px solid var(--bd);background:var(--surf3);
+  color:var(--dim);font:600 10px/16px var(--mono);vertical-align:1px;}
+.bp kbd{background:rgba(255,255,255,.18);border-color:rgba(255,255,255,.35);color:#fff;}
 </style>
 <script>
 /* ============================================================
@@ -2398,7 +2651,7 @@ function renderBaseGrid() {
   const g = G('base-grid');
   g.querySelectorAll('.ti').forEach(e => e.remove());
   G('base-empty').style.display = S.bases.length ? 'none' : 'block';
-  G('base-cnt').textContent = S.bases.length;
+  setCnt('base-cnt', S.bases.filter(x => x.checked !== false).length, S.bases.length);
   S.bases.forEach((b, i) => {
     const d = document.createElement('div');
     d.dataset.id = b.id; if (b.aid) d.dataset.aid = b.aid;
@@ -2434,7 +2687,7 @@ function renderBaseGrid() {
       S.activeBase = clamp(S.activeBase, -1, S.bases.length - 1);
       if (!S.bases.length) S.activeBase = -1;
       refreshAll();
-      notifyUndo(`已移出「${b.name}」（云端保留）`, () => { S.bases.splice(at, 0, bak); S.activeBase = at; refreshAll(); });
+      notifyUndo(`已移出「${b.name}」（素材库保留）`, () => { S.bases.splice(at, 0, bak); S.activeBase = at; refreshAll(); });
     };
     d.appendChild(del);
     const n = document.createElement('span'); n.className = 'ti-n'; n.textContent = i + 1; d.appendChild(n);
@@ -2445,7 +2698,7 @@ function renderStkGrid() {
   const g = G('stk-grid');
   g.querySelectorAll('.sti').forEach(e => e.remove());
   G('stk-empty').style.display = S.stks.length ? 'none' : 'block';
-  G('stk-cnt').textContent = S.stks.length;
+  setCnt('stk-cnt', S.stks.filter(x => x.checked).length, S.stks.length);
   S.stks.forEach((s, i) => {
     const d = document.createElement('div');
     d.dataset.id = s.id; if (s.aid) d.dataset.aid = s.aid;
@@ -2491,7 +2744,7 @@ function renderStkGrid() {
       S.stks.splice(i, 1);
       if (S.activeStk === s.id) S.activeStk = null;
       refreshAll();
-      notifyUndo(`已移出「${s.name}」（云端保留）`, () => { S.stks.splice(at, 0, bak); S.activeStk = bak.id; refreshAll(); });
+      notifyUndo(`已移出「${s.name}」（素材库保留）`, () => { S.stks.splice(at, 0, bak); S.activeStk = bak.id; refreshAll(); });
     };
     d.appendChild(del);
     const n = document.createElement('span'); n.className = 'sti-n'; n.textContent = i + 1; d.appendChild(n);
@@ -2588,6 +2841,7 @@ function confirmModal() {
 <script>
 /* ---------- 右侧面板 ---------- */
 function switchTab(t) {
+  setTimeout(() => { if (typeof updHiddenHints === 'function') updHiddenHints(); }, 0);
   const pane = G('tab-' + t);
   if (!pane) return;                                   // 未知标签名 → 忽略,避免抛错
   document.querySelectorAll('.etab').forEach(e => e.classList.remove('act'));
@@ -2620,6 +2874,9 @@ function selAddRect(r) {
     if (r.x < s.x + w / 2 && r.x + r.w > s.x - w / 2 && r.y < s.y + h / 2 && r.y + r.h > s.y - h / 2) selSet.add(s.id);
   });
   if (typeof updSelBar === 'function') updSelBar();
+  if (typeof updPhysicalReadout === 'function') updPhysicalReadout();
+  if (typeof renderCupBar === 'function') renderCupBar();
+  if (typeof syncSecHeads === 'function') syncSecHeads();
 }
 
 let dragSnapDone = false;
@@ -3378,7 +3635,8 @@ function clearManualBody() {
 function autoFitSticker() {
   const a = activeStkObj();
   if (!a) return notify('请先选中素材', 'err');
-  const r = bodyRect();
+  const pr = printRect();
+  const r = pr ? { cx: pr.cx, cy: pr.cy, w: pr.w, h: pr.h, top: pr.y, bot: pr.y + pr.h, calib: true } : bodyRect();
   if (!r) return notify('未能识别杯身，请手动调整', 'err');
   snapshot();
   const targets = grpTargets();
@@ -3388,7 +3646,7 @@ function autoFitSticker() {
     const cw = srcW(s) * (cb.w / cr.w), chh = srcH(s) * (cb.h / cr.h); // 实际内容像素尺寸
     // 以杯身宽度为主导:印花占可视宽约 62%(曲面下有效可视面更窄)
     // 高度上限放宽到杯身 78%,避免细长瓶身把印花压得过小
-    const tw = r.w * 0.62, th = r.h * 0.78;
+    const tw = r.calib ? r.w * 0.96 : r.w * 0.62, th = r.calib ? r.h * 0.96 : r.h * 0.78;
     const byW = tw / Math.max(1, cw), byH = th / Math.max(1, chh);
     const sc = Math.min(byW, byH) * 100;
     s.scale = clamp(Math.round(sc * 10) / 10, 5, 300);
@@ -3669,7 +3927,7 @@ function rebindThumbs(kind) {
   });
 }
 function rebindAllThumbs() { ['base', 'sticker', 'extra'].forEach(rebindThumbs); }
-/* 批量模式下的额外动作(不删云端) */
+/* 批量模式下的额外动作(不删素材库) */
 function sideBatchSetChecked(on) {
   const k = sideBatch.kind;
   const arr = k === 'base' ? S.bases : k === 'sticker' ? S.stks : k === 'extra' ? S.extras : [];
@@ -3708,7 +3966,7 @@ function sideBatchRemoveFromProject() {
   else if (k === 'extra') S.extras = S.extras.filter(keep);
   const n = before - (k === 'base' ? S.bases : k === 'sticker' ? S.stks : S.extras).length;
   refreshAll();
-  notify(`已移出 ${n} 个（云端保留，可撤销）`, 'ok');
+  notify(`已移出 ${n} 个（素材库保留，可撤销）`, 'ok');
 }
 function sideBatchInvertPick() {
   if (!sideBatch.on) return;
@@ -3716,6 +3974,937 @@ function sideBatchInvertPick() {
     list.forEach(a => { if (sideBatch.picked.has(a.id)) sideBatch.picked.delete(a.id); else sideBatch.picked.add(a.id); });
     updSideBatchBar(); refreshAll();
   });
+}
+
+/* ═══════════════ Supabase 同步(素材 + 项目,跨设备) ═══════════════
+   设置由用户自己填写并存在本机;素材二进制走 Storage,元数据与项目走表。
+   冲突策略:素材按 id 不可变(有就跳过);项目按 updated_at 取新的。 */
+const SB_KEY = 'tm_sb_cfg';
+let sbCfg = null, sbBusy = false;
+function sbLoad() {
+  if (sbCfg) return sbCfg;
+  try { sbCfg = JSON.parse(store.get(SB_KEY) || '{}'); } catch (e) { sbCfg = {}; }
+  sbCfg.bucket = sbCfg.bucket || 'tagmycup';
+  return sbCfg;
+}
+function sbSave(c) { sbCfg = c; store.set(SB_KEY, JSON.stringify(c)); updSyncUI(); }
+function sbOn() { const c = sbLoad(); return !!(c.url && c.key); }
+function sbHeaders(extra) {
+  const c = sbLoad();
+  return Object.assign({ apikey: c.key, Authorization: 'Bearer ' + c.key }, extra || {});
+}
+function sbUrl(path) { return sbLoad().url.replace(/\/+$/, '') + path; }
+async function sbFetch(path, opt) {
+  const o = Object.assign({}, opt || {});
+  o.headers = sbHeaders(o.headers);     // 密钥必须最后合并,否则会被调用方的 headers 覆盖掉
+  const r = await fetch(sbUrl(path), o);
+  if (!r.ok) throw new Error(`${r.status} ${(await r.text()).slice(0, 160)}`);
+  return r;
+}
+async function sbTest() {
+  const c = sbLoad();
+  if (!c.url || !c.key) return notify('请先填写 Project URL 和 anon key', 'err');
+  setProg(true, '测试连接…', 40);
+  try {
+    await sbFetch('/rest/v1/tm_assets?select=id&limit=1');
+    await sbFetch(`/storage/v1/object/list/${c.bucket}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ limit: 1, prefix: '' }) });
+    setProg(false);
+    notify('连接正常：表和存储桶都可访问', 'ok');
+    G('sync-state').textContent = '连接正常';
+  } catch (e) {
+    setProg(false);
+    notify('连接失败：' + e.message, 'err');
+    G('sync-state').textContent = '连接失败：' + e.message;
+  }
+}
+/* 上传本机 → 云端 */
+async function sbPush(silent) {
+  if (!sbOn() || sbBusy) return;
+  sbBusy = true;
+  const c = sbLoad();
+  try {
+    if (!silent) setProg(true, '读取本机数据…', 5);
+    const all = await assetAll();
+    const r = await sbFetch('/rest/v1/tm_assets?select=id');
+    const remote = new Set((await r.json()).map(x => x.id));
+    const todo = all.filter(a => !remote.has(a.id));
+    let n = 0;
+    for (const a of todo) {
+      const rec = await assetGetRaw(a.id);
+      if (!rec || !rec.blob) continue;
+      await sbFetch(`/storage/v1/object/${c.bucket}/assets/${a.id}`, {
+        method: 'POST', headers: { 'Content-Type': rec.blob.type || 'image/png', 'x-upsert': 'true' }, body: rec.blob });
+      await sbFetch('/rest/v1/tm_assets', { method: 'POST',
+        headers: { 'Content-Type': 'application/json', Prefer: 'resolution=merge-duplicates' },
+        body: JSON.stringify([{ id: a.id, kind: a.kind, name: a.name, fp: a.fp || null, size: (rec.blob || {}).size || 0, updated_at: new Date().toISOString() }]) });
+      n++;
+      if (!silent) setProg(true, `上传素材 ${n}/${todo.length}`, 5 + n / Math.max(1, todo.length) * 70);
+    }
+    // 项目(去掉内嵌二进制,只留引用与参数)
+    const rows = [];
+    for (const pn of projects) {
+      const d = await idbGet(projKey(pn));
+      if (!d) continue;
+      const clean = JSON.parse(JSON.stringify(d, (k, v) => (k === 'blob' ? undefined : v)));
+      rows.push({ name: pn, data: clean, updated_at: new Date(d.ts || Date.now()).toISOString() });
+    }
+    if (rows.length) await sbFetch('/rest/v1/tm_projects', { method: 'POST',
+      headers: { 'Content-Type': 'application/json', Prefer: 'resolution=merge-duplicates' }, body: JSON.stringify(rows) });
+    sbSave(Object.assign(sbLoad(), { last: Date.now() }));
+    if (!silent) { setProg(false); notify(`已上传：素材 +${n}，项目 ${rows.length}`, 'ok'); }
+    markBackup();
+  } catch (e) {
+    if (!silent) { setProg(false); notify('上传失败：' + e.message, 'err'); }
+  } finally { sbBusy = false; }
+}
+/* 云端 → 本机 */
+async function sbPull() {
+  if (!sbOn() || sbBusy) return;
+  sbBusy = true;
+  const c = sbLoad();
+  try {
+    setProg(true, '读取云端…', 5);
+    const rows = await (await sbFetch('/rest/v1/tm_assets?select=id,kind,name,fp')).json();
+    const local = new Set((await assetAll()).map(a => a.id));
+    const todo = rows.filter(r => !local.has(r.id));
+    let n = 0;
+    for (const r of todo) {
+      const resp = await sbFetch(`/storage/v1/object/${c.bucket}/assets/${r.id}`);
+      const blob = await resp.blob();
+      await assetPut({ id: r.id, kind: r.kind, name: r.name, fp: r.fp || null, blob, ts: Date.now() });
+      n++;
+      setProg(true, `下载素材 ${n}/${todo.length}`, 5 + n / Math.max(1, todo.length) * 70);
+    }
+    const prows = await (await sbFetch('/rest/v1/tm_projects?select=name,data,updated_at')).json();
+    let pn2 = 0;
+    for (const r of prows) {
+      const cur = await idbGet(projKey(r.name));
+      const remoteT = +new Date(r.updated_at || 0), localT = cur ? (cur.ts || 0) : 0;
+      if (cur && localT >= remoteT) continue;
+      await idbPut(Object.assign({}, r.data, { ts: remoteT || Date.now() }), projKey(r.name));
+      if (!projects.includes(r.name)) projects.push(r.name);
+      pn2++;
+    }
+    store.set('tm_projects', JSON.stringify(projects));
+    invalidateLibCache(); invalidateProjPreview();
+    await restoreWorkspace();
+    refreshAll(); renderLibrary(); renderTabs();
+    sbSave(Object.assign(sbLoad(), { last: Date.now() }));
+    setProg(false);
+    notify(`已恢复：素材 +${n}，项目 ${pn2} 个更新`, 'ok');
+  } catch (e) { setProg(false); notify('恢复失败：' + e.message, 'err'); }
+  finally { sbBusy = false; }
+}
+let _sbAutoT = null;
+function sbAutoSync() {
+  const c = sbLoad();
+  if (!c.auto || !sbOn()) return;
+  clearTimeout(_sbAutoT);
+  _sbAutoT = setTimeout(() => sbPush(true), 8000);     // 保存后 8 秒静默上传
+}
+function openSync() {
+  const c = sbLoad();
+  G('sb-url').value = c.url || ''; G('sb-key').value = c.key || ''; G('sb-bucket').value = c.bucket || 'tagmycup';
+  G('sb-auto').checked = !!c.auto;
+  updSyncUI();
+  G('sync-ov').classList.add('on');
+}
+function closeSync() { G('sync-ov').classList.remove('on'); }
+function saveSync() {
+  sbSave({ url: G('sb-url').value.trim(), key: G('sb-key').value.trim(), bucket: G('sb-bucket').value.trim() || 'tagmycup',
+    auto: G('sb-auto').checked, last: sbLoad().last });
+  notify('已保存同步设置（仅存在本机）', 'ok');
+}
+function updSyncUI() {
+  const c = sbLoad(), st = G('sync-state'), b = G('sync-btn');
+  if (st && !st.textContent.startsWith('连接')) st.textContent = sbOn() ? (c.last ? '上次同步：' + new Date(c.last).toLocaleString() : '已配置，尚未同步') : '未配置';
+  if (b) b.classList.toggle('on', sbOn());
+}
+function copySQL() {
+  const t = G('sb-sql').textContent;
+  navigator.clipboard ? navigator.clipboard.writeText(t).then(() => notify('SQL 已复制', 'ok')) : notify('请手动复制', 'err');
+}
+
+/* ═══════════════ 印位印刷区标定 ═══════════════
+   给一张底图框出可印区域并填写实际厘米数,存成「印位」。
+   之后同款底图直接套用:印花自动落到区域内,并实时显示实际尺寸与 DPI。 */
+const CUPS_KEY = 'tm_cups', CUPMAP_KEY = 'tm_cupmap';
+let cupProfiles = null, cupMap = null;
+function cupsLoad() {
+  if (!cupProfiles) { try { cupProfiles = JSON.parse(store.get(CUPS_KEY) || '[]'); } catch (e) { cupProfiles = []; } }
+  if (!cupMap) { try { cupMap = JSON.parse(store.get(CUPMAP_KEY) || '{}'); } catch (e) { cupMap = {}; } }
+  return cupProfiles;
+}
+function cupsSave() {
+  try { store.set(CUPS_KEY, JSON.stringify(cupProfiles || [])); store.set(CUPMAP_KEY, JSON.stringify(cupMap || {})); } catch (e) {}
+}
+function cupById(id) { cupsLoad(); return cupProfiles.find(c => c.id === id) || null; }
+function cupOf(base) {
+  cupsLoad();
+  const b = base || S.bases[S.activeBase];
+  if (!b || !b.aid) return null;
+  return cupById(cupMap[b.aid]);
+}
+function setCupFor(base, cupId) {
+  cupsLoad();
+  if (!base || !base.aid) return;
+  if (cupId) cupMap[base.aid] = cupId; else delete cupMap[base.aid];
+  cupsSave();
+  refreshAll();
+}
+/* 标定区域(相对底图 0..1) → 当前输出画布坐标,和 bodyRect 同一套映射 */
+function printRect(baseIdx) {
+  const i = baseIdx === undefined ? S.activeBase : baseIdx;
+  const t = baseXform(i);
+  if (!t) return null;
+  const cup = cupOf(t.b);
+  if (!cup) return null;
+  const g = cup.geom;
+  let x, y, w, h;
+  if (g && g.cx !== undefined) {
+    w = g.w * t.bw * t.sc; h = (g.h || g.w) * t.bh * t.sc;
+    x = g.cx * t.bw * t.sc + t.ox - w / 2; y = g.cy * t.bh * t.sc + t.oy - h / 2;
+  } else if (cup.rect) {
+    const r = cup.rect;
+    x = t.ox + r.x * t.bw * t.sc; y = t.oy + r.y * t.bh * t.sc;
+    w = r.w * t.bw * t.sc; h = r.h * t.bh * t.sc;
+  } else return null;
+  return { x, y, w, h, cx: x + w / 2, cy: y + h / 2, cup };
+}/* 印花实际尺寸与 DPI */
+function stkPhysical(s, baseIdx) {
+  const pr = printRect(baseIdx);
+  if (!pr || !s || !s.img) return null;
+  const cb = contentBox(s);
+  const cr = s.crop || { x: 0, y: 0, w: s.img.naturalWidth, h: s.img.naturalHeight };
+  const drawnW = drawW(s) * (cb.w / cr.w), drawnH = drawH(s) * (cb.h / cr.h);  // 画布上的内容尺寸
+  const cmPerPx = pr.cup.wCm / pr.w;
+  const wCm = drawnW * cmPerPx, hCm = drawnH * cmPerPx;
+  const srcPx = srcW(s) * (cb.w / cr.w);                                        // 内容的原始像素宽
+  const dpi = wCm > 0 ? srcPx / (wCm / 2.54) : 0;
+  return { wCm, hCm, dpi: Math.round(dpi), cup: pr.cup };
+}
+function updPhysicalReadout() {
+  const el = G('phys-info');
+  if (!el) return;
+  const a = activeStkObj(), p = a ? stkPhysical(a) : null;
+  if (!p) { el.style.display = 'none'; return; }
+  el.style.display = '';
+  const low = p.dpi < 150;
+  el.className = low ? 'phys warn' : 'phys';
+  el.innerHTML = `实际 <b>${p.wCm.toFixed(1)} × ${p.hCm.toFixed(1)} cm</b> · ${p.dpi} DPI` +
+    (low ? ' <span>印刷偏糊，建议换更大的图或缩小印花</span>' : '');
+  el.title = `按印位「${p.cup.name}」的可印宽度 ${p.cup.wCm}cm 换算`;
+}
+/* ── 从画布上摆好的印花反推印位（手动标定的主入口） ── */
+function baseXform(baseIdx) {
+  const i = baseIdx === undefined ? S.activeBase : baseIdx;
+  const b = S.bases[i];
+  if (!b || !b.img) return null;
+  const { W, H } = outSize(i);
+  const a = b.adj, bw = b.img.naturalWidth, bh = b.img.naturalHeight;
+  const sc = Math.max(W / bw, H / bh) * a.sc / 100;
+  return { b, bw, bh, sc, ox: (W - bw * sc) / 2 + a.ox, oy: (H - bh * sc) / 2 + a.oy };
+}
+const CUP_SHAPE = ['rot', 'curve', 'cvv', 'gloss', 'glp', 'sx', 'sy', 'taper', 'skx', 'sky'];
+function stkToRect(s, baseIdx) {           // 兼容旧数据:仍返回矩形
+  const g = stkGeom(s, baseIdx);
+  return g ? { x: g.cx - g.w / 2, y: g.cy - g.h / 2, w: g.w, h: g.h } : null;
+}
+/* 把印花的完整状态记成「相对底图」的几何:中心点 + 宽高 + 全部形变参数 */
+function stkGeom(s, baseIdx) {
+  const t = baseXform(baseIdx);
+  if (!t || !s || !s.img) return null;
+  const w = drawW(s), h = drawH(s);
+  const g = {
+    cx: (s.x - t.ox) / (t.bw * t.sc),
+    cy: (s.y - t.oy) / (t.bh * t.sc),
+    w: w / (t.bw * t.sc),
+    h: h / (t.bh * t.sc)
+  };
+  CUP_SHAPE.forEach(k => { g[k] = s[k] === undefined ? (k === 'sx' || k === 'sy' ? 1 : (k === 'glp' ? 34 : 0)) : s[k]; });
+  g.warp = s.warp ? s.warp.slice() : null;
+  return g;
+}
+/* 还原:位置、实际大小、角度、曲面/光泽/拉伸全部按存的来 */
+function applyGeomToStk(s, geom, baseIdx) {
+  const t = baseXform(baseIdx);
+  if (!t || !s || !geom) return;
+  const g = geom.cx !== undefined ? geom : {          // 旧格式(只有矩形)自动升级
+    cx: geom.x + geom.w / 2, cy: geom.y + geom.h / 2, w: geom.w, h: geom.h
+  };
+  CUP_SHAPE.forEach(k => { if (g[k] !== undefined) s[k] = g[k]; });
+  s.warp = g.warp ? g.warp.slice() : null;
+  // 目标宽度(画布像素) → 反推 scale,保证实际印刷尺寸一致
+  const targetW = g.w * t.bw * t.sc;
+  const unit = srcW(s) * (s.sx || 1);                  // scale=100 时的宽度
+  if (unit > 0) s.scale = clamp(targetW / unit * 100, 3, 400);
+  const targetH = (g.h || 0) * t.bh * t.sc;
+  if (targetH > 0) {                                   // 换了比例不同的印花时,别超出记录的高度
+    const hNow = drawH(s);
+    if (hNow > targetH * 1.02) s.scale = clamp(s.scale * (targetH / hNow), 3, 400);
+  }
+  s.x = Math.round(g.cx * t.bw * t.sc + t.ox);
+  s.y = Math.round(g.cy * t.bh * t.sc + t.oy);
+  s._fx = null; s._fxk = null; s._cb = null; s._cbk = null; s._wc = null; s._wk = null;
+}function saveCupFromSticker(existingId) {
+  const a = activeStkObj();
+  if (!a) return notify('请先在画布上摆好一个印花', 'err');
+  const b = S.bases[S.activeBase];
+  if (!b) return notify('请先选一张底图', 'err');
+  const geom = stkGeom(a);
+  if (!geom) return notify('无法读取位置', 'err');
+  const rect = stkToRect(a);
+  cupsLoad();
+  const old = existingId ? cupById(existingId) : null;
+  const name = prompt(old ? '更新印位名称：' : '把当前位置存成印位，起个名字：', old ? old.name : (b.name || '印位'));
+  if (name === null) return;
+  const wCmIn = prompt('这个印花在实物上的宽度是多少厘米？\n（用于显示实际尺寸和 DPI，不确定可留空）', old ? String(old.wCm || '') : '');
+  if (wCmIn === null) return;
+  const id = existingId || ('cup' + Date.now().toString(36));
+  const prof = { id, name: (name || '').trim() || '未命名印位', wCm: +wCmIn || 0,
+    hCm: old ? old.hCm : 0, dia: old ? old.dia : 0, geom, rect, rot: a.rot || 0, ts: Date.now() };
+  const k = cupProfiles.findIndex(c => c.id === id);
+  if (k >= 0) cupProfiles[k] = prof; else cupProfiles.push(prof);
+  setCupFor(b, id);
+  cupsSave();
+  refreshAll();
+  notify(`已保存印位「${prof.name}」，其它项目也能直接套用`, 'ok');
+  return id;
+}
+/* 把印位套到印花上:位置、大小、角度一次到位 */
+function applyCup(cupId, opts) {
+  opts = opts || {};
+  const cup = cupById(cupId), b = S.bases[S.activeBase];
+  if (!cup || !b) return notify('印位不存在', 'err');
+  if (opts.bind !== false) { setCupFor(b, cupId); setLastCup(cupId); }
+  applyCupSilent(cupId);
+}function nudgeCup(dx, dy, dScale, dRot) {   // 微调并写回印位
+  const b = S.bases[S.activeBase], cup = cupOf(b);
+  if (!cup) return notify('当前底图还没有印位', 'err');
+  const a = activeStkObj();
+  if (!a) return notify('请先选中一个印花', 'err');
+  snapshot();
+  a.x += dx; a.y += dy;
+  if (dScale) a.scale = clamp(a.scale * dScale, 3, 400);
+  if (dRot) a.rot = clamp((a.rot || 0) + dRot, -180, 180);
+  const geom = stkGeom(a);
+  if (geom) { cup.geom = geom; cup.rect = stkToRect(a); cup.rot = a.rot || 0; cupsSave(); }
+  refreshAll();
+}
+/* 印位选择面板 */
+function openCupPicker() {
+  cupsLoad();
+  const b = S.bases[S.activeBase];
+  const cur = cupOf(b);
+  const box = G('cup-list');
+  if (!box) return;
+  box.innerHTML = '';
+  if (!cupProfiles.length) {
+    box.innerHTML = '<div class="m-empty">还没有印位。<br>在画布上把印花摆到合适位置，点「存为印位」。</div>';
+  }
+  cupProfiles.slice().sort((x, y) => (y.ts || 0) - (x.ts || 0)).forEach(c => {
+    const d = document.createElement('div');
+    d.className = 'cup-i' + (cur && cur.id === c.id ? ' cur' : '');
+    d.innerHTML = `<div class="cup-nm">${c.name}${cur && cur.id === c.id ? ' <b>当前</b>' : ''}</div>
+      <div class="cup-meta">${c.wCm ? c.wCm + ' cm 宽 · ' : ''}${c.rot ? '旋转 ' + c.rot + '° · ' : ''}位置 ${Math.round(c.rect.x * 100)},${Math.round(c.rect.y * 100)}%</div>`;
+    const acts = document.createElement('div'); acts.className = 'cup-acts';
+    const mk = (t, fn, cls) => { const x = document.createElement('button'); x.textContent = t; x.className = cls || ''; x.onclick = e => { e.stopPropagation(); fn(); }; return x; };
+    acts.appendChild(mk('套用', () => { applyCup(c.id); openCupPicker(); }));
+    acts.appendChild(mk('更新为当前位置', () => { saveCupFromSticker(c.id); openCupPicker(); }));
+    acts.appendChild(mk('改名', () => {
+      const n = prompt('新名称：', c.name);
+      if (n && n.trim()) { c.name = n.trim(); cupsSave(); openCupPicker(); }
+    }));
+    acts.appendChild(mk('删除', () => {
+      if (!confirm(`删除印位「${c.name}」？绑定它的底图会回到手动模式。`)) return;
+      cupProfiles = cupProfiles.filter(x => x.id !== c.id);
+      Object.keys(cupMap).forEach(k => { if (cupMap[k] === c.id) delete cupMap[k]; });
+      cupsSave(); refreshAll(); openCupPicker();
+    }, 'dg'));
+    d.appendChild(acts);
+    d.onclick = () => applyCup(c.id);
+    box.appendChild(d);
+  });
+  const un = G('cup-unbind');
+  if (un) un.style.display = cur ? '' : 'none';
+  G('cup-ov').classList.add('on');
+}
+function closeCupPicker() { G('cup-ov').classList.remove('on'); }
+function unbindCup() {
+  const b = S.bases[S.activeBase];
+  if (!b) return;
+  setCupFor(b, null);
+  notify('已解除绑定，这张底图回到手动摆放');
+  openCupPicker();
+}
+/* 印位导出/导入:换电脑或给同事 */
+function exportCups() {
+  cupsLoad();
+  if (!cupProfiles.length) return notify('还没有印位', 'err');
+  const blob = new Blob([JSON.stringify({ v: 1, cups: cupProfiles, map: cupMap }, null, 1)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = '印位标定.json';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+  notify(`已导出 ${cupProfiles.length} 个印位`, 'ok');
+}
+function importCups(input) {
+  const f = input.files && input.files[0];
+  if (!f) return;
+  const fr = new FileReader();
+  fr.onload = () => {
+    try {
+      const d = JSON.parse(fr.result);
+      if (!d || !Array.isArray(d.cups)) throw new Error('格式不对');
+      cupsLoad();
+      let add = 0, upd = 0;
+      d.cups.forEach(c => {
+        const k = cupProfiles.findIndex(x => x.id === c.id);
+        if (k >= 0) { cupProfiles[k] = c; upd++; } else { cupProfiles.push(c); add++; }
+      });
+      if (d.map) Object.assign(cupMap, d.map);
+      cupsSave(); refreshAll(); openCupPicker();
+      notify(`已导入：新增 ${add} 个，更新 ${upd} 个`, 'ok');
+    } catch (e) { notify('导入失败：' + e.message, 'err'); }
+  };
+  fr.readAsText(f);
+  input.value = '';
+}
+
+/* ═══════════ 印位条:存位置 + 一键复用,都在一个组件里 ═══════════ */
+const LASTCUP_KEY = 'tm_lastcup';
+function lastCupId() { return store.get(LASTCUP_KEY) || ''; }
+function setLastCup(id) { try { store.set(LASTCUP_KEY, id || ''); } catch (e) {} }
+/* 当前该复用哪个:优先底图绑定的,其次最近用过的 */
+function activeCup() {
+  const b = S.bases[S.activeBase];
+  return cupOf(b) || cupById(lastCupId());
+}
+/* 一键复用:不弹窗、不确认,直接放好 */
+function reuseCup() {
+  const c = activeCup();
+  if (!c) return notify('还没有印位。把印花摆好后点「＋ 存位置」', 'err');
+  applyCupSilent(c.id);
+}
+function applyCupSilent(cupId) {
+  const cup = cupById(cupId), b = S.bases[S.activeBase];
+  if (!cup || !b) return;
+  setCupFor(b, cupId); setLastCup(cupId);
+  const targets = selSet.size > 1 ? selList() : (activeStkObj() ? [activeStkObj()] : S.stks.filter(x => x.checked));
+  if (!targets.length) { renderCupBar(); return notify(`已选用「${cup.name}」，加入印花后会自动落位`, 'ok'); }
+  const geom = cup.geom || cup.rect;
+  if (!geom) return notify('这个印位没有记录位置', 'err');
+  snapshot();
+  targets.forEach(s2 => applyGeomToStk(s2, geom));
+  refreshAll();
+  const g = cup.geom;
+  notify(`已按「${cup.name}」放好${targets.length > 1 ? ' ' + targets.length + ' 个' : ''}` +
+    (g && g.curve ? `（含曲面 ${Math.round(g.curve)}%）` : ''), 'ok');
+}/* 存当前位置:不弹窗,自动起名,存完可就地改名 */
+function quickSaveCup(opt) {
+  const a = activeStkObj();
+  if (!a) return notify('先在画布上摆好一个印花', 'err');
+  const b = S.bases[S.activeBase];
+  if (!b) return notify('请先选一张底图', 'err');
+  const geom = stkGeom(a);
+  if (!geom) return;
+  cupsLoad();
+  const base = (b.name || '印位').replace(/\.(png|jpe?g|webp)$/i, '').slice(0, 12);
+  let name = base, n = 2;
+  while (cupProfiles.some(c => c.name === name)) name = base + ' ' + n++;
+  const id = 'cup' + Date.now().toString(36);
+  cupProfiles.push({ id, name, wCm: 0, hCm: 0, dia: 0, geom, rect: stkToRect(a), rot: a.rot || 0, ts: Date.now() });
+  setCupFor(b, id); setLastCup(id); cupsSave();
+  refreshAll();
+  notify(`已存为「${name}」，点名字可改`, 'ok');
+  if (!(opt && opt.stay)) {                    // 用快捷键存时留在原处,不打断摆放
+    switchTab('cup');
+    setTimeout(() => { const n = G('cup-set-name'); if (n) { n.focus(); n.select(); } }, 80);
+  }
+  return id;
+}
+function cycleCup(dir) {                        /* , 上一个  . 下一个:按创建顺序循环并直接套用 */
+  cupsLoad();
+  if (!cupProfiles.length) return notify('还没有印位，Shift+V 可存当前位置', 'err');
+  const cur = activeCup();
+  let i = cur ? cupProfiles.findIndex(c => c.id === cur.id) : -1;
+  i = (i + dir + cupProfiles.length) % cupProfiles.length;
+  applyCupSilent(cupProfiles[i].id);
+  notify(`印位 ${i + 1}/${cupProfiles.length}：${cupProfiles[i].name}`, 'ok');
+}
+function updateCupHere(id) {
+  const a = activeStkObj();
+  if (!a) return notify('先选中一个印花', 'err');
+  const c = cupById(id || (activeCup() || {}).id);
+  if (!c) return;
+  const geom = stkGeom(a);
+  if (!geom) return;
+  c.geom = geom; c.rect = stkToRect(a); c.rot = a.rot || 0; c.ts = Date.now();
+  cupsSave(); renderCupBar();
+  notify(`「${c.name}」已更新为当前位置`, 'ok');
+}
+function startRenameCup(id) {
+  const chip = document.querySelector(`.cup-chip[data-id="${id}"]`);
+  const c = cupById(id);
+  if (!chip || !c) return;
+  const inp = document.createElement('input');
+  inp.className = 'cup-rename'; inp.value = c.name;
+  chip.innerHTML = ''; chip.appendChild(inp);
+  inp.focus(); inp.select();
+  const done = save => {
+    if (save && inp.value.trim()) { c.name = inp.value.trim().slice(0, 20); cupsSave(); }
+    renderCupBar();
+  };
+  inp.onkeydown = e => { e.stopPropagation(); if (e.key === 'Enter') done(true); if (e.key === 'Escape') done(false); };
+  inp.onblur = () => done(true);
+}
+function delCup(id) {
+  const c = cupById(id);
+  if (!c || !confirm(`删除印位「${c.name}」？`)) return;
+  cupProfiles = cupProfiles.filter(x => x.id !== id);
+  Object.keys(cupMap).forEach(k => { if (cupMap[k] === id) delete cupMap[k]; });
+  if (lastCupId() === id) setLastCup('');
+  cupsSave(); refreshAll();
+}
+function renderCupBar() {
+  try { cupsLoad(); } catch (e) { return; }
+  const cur = activeCup(), bound = cupOf(S.bases[S.activeBase]);
+  /* 素材面板上的小按钮 */
+  const q = document.querySelector('.cup-quick');
+  if (q) {
+    q.innerHTML = cur ? `↻ 复用位置 <b>${cur.name}</b>` : '↻ 复用位置（先按 Shift+V 存一个）';
+    q.classList.toggle('off', !cur);
+  }
+  /* 印位标签页 */
+  const big = G('cup-reuse-big');
+  if (big) {
+    big.innerHTML = cur ? `↻ 复用 <b>${cur.name}</b><i>V</i>` : '还没有印位';
+    big.classList.toggle('off', !cur);
+  }
+  const list = G('cup-apply-list');
+  if (list) {
+    list.innerHTML = '';
+    const all = cupProfiles.slice().sort((a, b2) => (b2.ts || 0) - (a.ts || 0));
+    if (!all.length) list.innerHTML = '<div class="cup-tip">还没有印位。在画布上摆好印花，点下面的「＋ 存为印位」。</div>';
+    all.forEach(c => {
+      const row = document.createElement('div');
+      row.className = 'cup-row' + (bound && bound.id === c.id ? ' on' : '');
+      row.dataset.id = c.id;
+      const g = c.geom || {};
+      const bits = [];
+      if (c.wCm) bits.push(c.wCm + ' cm');
+      if (g.rot) bits.push(Math.round(g.rot) + '°');
+      if (g.curve) bits.push('曲面 ' + Math.round(g.curve) + '%');
+      row.innerHTML = `<div class="cup-row-nm">${c.name}${bound && bound.id === c.id ? '<b>当前</b>' : ''}</div>` +
+        `<div class="cup-row-meta">${bits.join(' · ') || '位置已记录'}</div>`;
+      const go = document.createElement('button');
+      go.className = 'cup-row-go'; go.textContent = '套用';
+      go.onclick = e => { e.stopPropagation(); applyCupSilent(c.id); };
+      row.appendChild(go);
+      row.onclick = () => { setCupFor(S.bases[S.activeBase], c.id); setLastCup(c.id); renderCupBar(); };
+      row.oncontextmenu = e => { e.preventDefault(); cupChipMenu(e, c.id); };
+      list.appendChild(row);
+    });
+  }
+  /* 存入区的「更新」按钮 */
+  const ub = G('cup-update-btn');
+  if (ub) {
+    ub.style.display = bound ? '' : 'none';
+    ub.innerHTML = bound ? `⟳ 把「${bound.name}」更新为当前位置 <kbd>Alt+V</kbd>` : '';
+  }
+  /* 设置区 */
+  const sb = G('cup-set-body');
+  if (sb) {
+    const c = bound || cur;
+    if (!c) { sb.innerHTML = '<div class="cup-tip">选中一个印位后可以改名、填实际尺寸。</div>'; return; }
+    sb.innerHTML = `
+      <div class="cr"><span class="cl">名称</span><input type="text" id="cup-set-name" value="${(c.name || '').replace(/"/g, '&quot;')}" style="flex:1"></div>
+      <div class="cr"><span class="cl">实际宽</span><input type="number" id="cup-set-cm" value="${c.wCm || ''}" min="0" max="60" step="0.1" placeholder="填了才算 DPI"><span class="cu">cm</span></div>
+      <div class="cup-tip">${bound ? '当前底图正在使用这个印位' : '这是最近用过的印位，点上面列表可绑定到当前底图'}</div>
+      <div class="m-btns" style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px">
+        <button class="bi" onclick="saveCupSettings('${c.id}')">保存修改</button>
+        <button class="bi" onclick="${bound ? `unbindCupHere()` : `applyCupSilent('${c.id}')`}">${bound ? '解除绑定' : '绑定到当前底图'}</button>
+        <button class="bi dg" style="grid-column:1/-1" onclick="delCup('${c.id}')">删除这个印位</button>
+      </div>`;
+    const nm = G('cup-set-name');
+    if (nm) nm.onkeydown = e => { e.stopPropagation(); if (e.key === 'Enter') saveCupSettings(c.id); };
+  }
+}
+function saveCupSettings(id) {
+  const c = cupById(id);
+  if (!c) return;
+  const nm = G('cup-set-name'), cm = G('cup-set-cm');
+  if (nm && nm.value.trim()) c.name = nm.value.trim().slice(0, 24);
+  if (cm) c.wCm = +cm.value || 0;
+  cupsSave(); refreshAll();
+  notify('已保存', 'ok');
+}
+function unbindCupHere() {
+  setCupFor(S.bases[S.activeBase], null);
+  renderCupBar();
+  notify('已解除绑定，这张底图回到手动摆放');
+}
+
+function cupChipMenu(e, id) {
+  const c = cupById(id);
+  if (!c) return;
+  const m = G('cupchip-menu');
+  if (!m) return;
+  m.innerHTML = '';
+  const add = (t, fn, cls) => { const b = document.createElement('button'); b.textContent = t; if (cls) b.className = cls; b.onclick = () => { m.classList.remove('on'); fn(); }; m.appendChild(b); };
+  add('套用到当前印花', () => applyCupSilent(id));
+  add('更新为当前位置', () => updateCupHere(id));
+  add('改名', () => startRenameCup(id));
+  if (c.wCm) add(`实际宽 ${c.wCm} cm（改）`, () => setCupCm(id)); else add('填写实际宽度（算 DPI）', () => setCupCm(id));
+  if (cupOf(S.bases[S.activeBase]) && cupOf(S.bases[S.activeBase]).id === id) add('解除绑定', () => { setCupFor(S.bases[S.activeBase], null); renderCupBar(); });
+  add('删除', () => delCup(id), 'dg');
+  m.classList.add('on');
+  const r = m.getBoundingClientRect();
+  m.style.left = Math.min(e.clientX, window.innerWidth - r.width - 8) + 'px';
+  m.style.top = Math.min(e.clientY, window.innerHeight - r.height - 8) + 'px';
+  setTimeout(() => document.addEventListener('click', () => m.classList.remove('on'), { once: true }), 0);
+}
+function setCupCm(id) {
+  const c = cupById(id);
+  if (!c) return;
+  const v = prompt(`「${c.name}」在实物上的印花宽度是多少厘米？\n填了才能显示实际尺寸和 DPI`, String(c.wCm || ''));
+  if (v === null) return;
+  c.wCm = +v || 0; cupsSave(); refreshAll();
+}
+
+/* ── 标定弹窗 ── */
+let calState = null;
+function openCalib(baseIdx) {
+  const i = baseIdx === undefined ? S.activeBase : baseIdx;
+  const b = S.bases[i];
+  if (!b || !b.img) return notify('请先选一张底图', 'err');
+  cupsLoad();
+  const cur = cupOf(b);
+  calState = { base: b, idx: i, rect: cur && cur.rect ? { ...cur.rect } : { x: 0.34, y: 0.18, w: 0.32, h: 0.5 }, drag: null };
+  G('cal-name').value = cur ? cur.name : (b.name || '印位') ;
+  G('cal-w').value = cur ? cur.wCm : 8;
+  G('cal-h').value = cur ? (cur.hCm || '') : '';
+  G('cal-dia').value = cur ? (cur.dia || '') : (G('cup-dia') ? G('cup-dia').value : '');
+  renderCupPicker();
+  G('cal-ov').classList.add('on');
+  setTimeout(drawCalib, 30);
+}
+function closeCalib() { G('cal-ov').classList.remove('on'); calState = null; }
+function renderCupPicker() {
+  const sel = G('cal-pick');
+  if (!sel) return;
+  cupsLoad();
+  const cur = calState && cupOf(calState.base);
+  sel.innerHTML = '<option value="">— 新建印位 —</option>' +
+    cupProfiles.map(c => `<option value="${c.id}"${cur && cur.id === c.id ? ' selected' : ''}>${c.name}（${c.wCm}cm）</option>`).join('');
+}
+function applyCupPick() {
+  const id = G('cal-pick').value;
+  if (!id || !calState) return;
+  const c = cupById(id);
+  if (!c) return;
+  calState.rect = { ...c.rect };
+  G('cal-name').value = c.name; G('cal-w').value = c.wCm;
+  G('cal-h').value = c.hCm || ''; G('cal-dia').value = c.dia || '';
+  drawCalib();
+}
+function drawCalib() {
+  const cv = G('cal-canvas');
+  if (!cv || !calState) return;
+  const b = calState.base;
+  const box = G('cal-stage').getBoundingClientRect();
+  const iw = b.img.naturalWidth, ih = b.img.naturalHeight;
+  const sc = Math.min((box.width - 20) / iw, (box.height - 20) / ih) || 0.3;
+  cv.width = Math.max(1, Math.round(iw * sc)); cv.height = Math.max(1, Math.round(ih * sc));
+  calState.sc = sc;
+  const x = cv.getContext('2d');
+  x.clearRect(0, 0, cv.width, cv.height);
+  x.drawImage(b.img, 0, 0, cv.width, cv.height);
+  const r = calState.rect;
+  const rx = r.x * cv.width, ry = r.y * cv.height, rw = r.w * cv.width, rh = r.h * cv.height;
+  x.save();
+  x.fillStyle = 'rgba(0,0,0,.45)';
+  x.fillRect(0, 0, cv.width, ry); x.fillRect(0, ry + rh, cv.width, cv.height - ry - rh);
+  x.fillRect(0, ry, rx, rh); x.fillRect(rx + rw, ry, cv.width - rx - rw, rh);
+  x.strokeStyle = '#3b82f6'; x.lineWidth = 2; x.setLineDash([6, 4]);
+  x.strokeRect(rx, ry, rw, rh);
+  x.setLineDash([]); x.fillStyle = '#3b82f6';
+  [[rx, ry], [rx + rw, ry], [rx, ry + rh], [rx + rw, ry + rh]].forEach(([hx, hy]) => x.fillRect(hx - 5, hy - 5, 10, 10));
+  x.restore();
+  const wCm = +G('cal-w').value || 0;
+  const info = G('cal-info');
+  if (info) info.textContent = wCm ? `可印区约 ${wCm} × ${(wCm * (rh / rw)).toFixed(1)} cm（按框的比例推算高度）` : '填写可印宽度后显示';
+}
+function calibPt(e) {
+  const cv = G('cal-canvas'), r = cv.getBoundingClientRect();
+  return { x: clamp((e.clientX - r.left) / r.width, 0, 1), y: clamp((e.clientY - r.top) / r.height, 0, 1) };
+}
+function calibDown(e) {
+  if (!calState) return;
+  e.preventDefault();
+  const p = calibPt(e), r = calState.rect;
+  const near = (a, b2) => Math.abs(a - b2) < 0.03;
+  let mode = 'new';
+  if (p.x > r.x && p.x < r.x + r.w && p.y > r.y && p.y < r.y + r.h) mode = 'move';
+  if (near(p.x, r.x) || near(p.x, r.x + r.w) || near(p.y, r.y) || near(p.y, r.y + r.h)) mode = 'resize';
+  calState.drag = { mode, p0: p, r0: { ...r },
+    ex: near(p.x, r.x) ? 'l' : near(p.x, r.x + r.w) ? 'r' : '', ey: near(p.y, r.y) ? 't' : near(p.y, r.y + r.h) ? 'b' : '' };
+  if (mode === 'new') { calState.rect = { x: p.x, y: p.y, w: 0.001, h: 0.001 }; calState.drag.mode = 'resize'; calState.drag.ex = 'r'; calState.drag.ey = 'b'; calState.drag.r0 = { ...calState.rect }; }
+}
+function calibMove(e) {
+  if (!calState || !calState.drag) return;
+  const p = calibPt(e), d = calState.drag, r0 = d.r0;
+  let r = { ...calState.rect };
+  if (d.mode === 'move') {
+    r.x = clamp(r0.x + (p.x - d.p0.x), 0, 1 - r0.w); r.y = clamp(r0.y + (p.y - d.p0.y), 0, 1 - r0.h);
+    r.w = r0.w; r.h = r0.h;
+  } else {
+    let x0 = r0.x, y0 = r0.y, x1 = r0.x + r0.w, y1 = r0.y + r0.h;
+    if (d.ex === 'l') x0 = p.x; if (d.ex === 'r') x1 = p.x;
+    if (d.ey === 't') y0 = p.y; if (d.ey === 'b') y1 = p.y;
+    r = { x: Math.min(x0, x1), y: Math.min(y0, y1), w: Math.abs(x1 - x0), h: Math.abs(y1 - y0) };
+  }
+  r.w = Math.max(0.02, r.w); r.h = Math.max(0.02, r.h);
+  calState.rect = r;
+  drawCalib();
+}
+function calibUp() { if (calState) calState.drag = null; }
+function calibAuto() {                          // 用自动识别的杯身填一个初始框
+  if (!calState) return;
+  const bd = detectBody(calState.base);
+  if (!bd) return notify('这张图没识别出杯身，手动框选吧', 'err');
+  calState.rect = { x: clamp(bd.cx - bd.w / 2, 0, 1), y: clamp(bd.top, 0, 1), w: clamp(bd.w, .02, 1), h: clamp(bd.bot - bd.top, .02, 1) };
+  drawCalib();
+  notify('已用自动识别的杯身填入，可再手动调整');
+}
+function saveCalib() {
+  if (!calState) return;
+  const name = (G('cal-name').value || '').trim() || '未命名印位';
+  const wCm = +G('cal-w').value;
+  if (!(wCm > 0)) return notify('请填写可印区域的实际宽度（厘米）', 'err');
+  cupsLoad();
+  const id = G('cal-pick').value || ('cup' + Date.now().toString(36));
+  const prof = { id, name, wCm, hCm: +G('cal-h').value || 0, dia: +G('cal-dia').value || 0, rect: { ...calState.rect }, ts: Date.now() };
+  const k = cupProfiles.findIndex(c => c.id === id);
+  if (k >= 0) cupProfiles[k] = prof; else cupProfiles.push(prof);
+  setCupFor(calState.base, id);
+  cupsSave();
+  if (prof.dia && G('cup-dia')) { G('cup-dia').value = prof.dia; }
+  closeCalib();
+  notify(`已保存印位「${name}」，同款底图可直接套用`, 'ok');
+  refreshAll();
+}
+function applyCupToAllBases() {                 // 把当前印位套到项目内其它底图
+  const b = S.bases[S.activeBase], cup = cupOf(b);
+  if (!cup) return notify('当前底图还没有标定', 'err');
+  let n = 0;
+  S.bases.forEach(x => { if (x !== b && x.aid) { cupMap[x.aid] = cup.id; n++; } });
+  cupsSave(); refreshAll();
+  notify(n ? `已把「${cup.name}」套用到另外 ${n} 张底图` : '没有其它底图', n ? 'ok' : 'err');
+}
+
+/* ═══════════════ 错误记录 ═══════════════
+   没有后台服务,出问题只能靠用户描述。这里把运行错误留在本机,可一键复制反馈。 */
+const ERR_KEY = 'tm_errlog';
+let errLog = [];
+try { errLog = JSON.parse(store.get(ERR_KEY) || '[]'); } catch (e) { errLog = []; }
+function logErr(kind, msg, extra) {
+  const rec = { t: Date.now(), kind, msg: String(msg || '').slice(0, 300), at: String(extra || '').slice(0, 200) };
+  errLog.push(rec);
+  if (errLog.length > 40) errLog = errLog.slice(-40);
+  try { store.set(ERR_KEY, JSON.stringify(errLog)); } catch (e) {}
+  updErrBadge();
+}
+function updErrBadge() {
+  const b = G('err-btn');
+  if (!b) return;
+  const today = errLog.filter(e => Date.now() - e.t < 864e5).length;
+  b.style.display = errLog.length ? '' : 'none';
+  b.textContent = '⚠ ' + errLog.length;
+  b.title = `记录了 ${errLog.length} 条错误（今天 ${today} 条）· 点击查看`;
+}
+window.addEventListener('error', e => {
+  if (e && e.message) logErr('错误', e.message, (e.filename || '') + ':' + (e.lineno || ''));
+});
+window.addEventListener('unhandledrejection', e => {
+  const r = e && e.reason;
+  logErr('未处理的异步错误', r && (r.message || r) || '未知', r && r.stack ? String(r.stack).split('\n')[1] : '');
+});
+function openErrLog() {
+  const box = G('err-body');
+  if (!box) return;
+  box.innerHTML = errLog.length ? '' : '<div class="m-empty">没有记录，一切正常</div>';
+  [...errLog].reverse().forEach(e => {
+    const d = document.createElement('div');
+    d.className = 'err-row';
+    d.innerHTML = `<div class="err-t">${new Date(e.t).toLocaleString()} · ${e.kind}</div>
+      <div class="err-m">${(e.msg || '').replace(/[<>]/g, '')}</div>` + (e.at ? `<div class="err-a">${e.at.replace(/[<>]/g, '')}</div>` : '');
+    box.appendChild(d);
+  });
+  G('err-ov').classList.add('on');
+}
+function closeErrLog() { G('err-ov').classList.remove('on'); }
+function copyErrLog() {
+  const txt = ['环境：' + navigator.userAgent, '版本：' + (window.APP_VER || '-'), '']
+    .concat(errLog.map(e => `[${new Date(e.t).toLocaleString()}] ${e.kind}: ${e.msg}${e.at ? ' @ ' + e.at : ''}`)).join('\n');
+  if (navigator.clipboard) navigator.clipboard.writeText(txt).then(() => notify('已复制，可直接粘贴反馈', 'ok'));
+  else notify('请手动选择复制', 'err');
+}
+function clearErrLog() {
+  errLog = []; try { store.set(ERR_KEY, '[]'); } catch (e) {}
+  updErrBadge(); openErrLog(); notify('已清空错误记录');
+}
+/* ═══════════════ 项目自动存档 ═══════════════
+   保存时滚动保留 3 个历史版本,改坏了可以退回。存的是项目记录(素材仍在素材库里,不重复占空间)。 */
+const SNAP_MAX = 3, SNAP_GAP = 6 * 60000;       // 最多 3 个,彼此至少间隔 6 分钟
+const snapKey = (n, i) => 'snap:' + (n || curProj) + ':' + i;
+async function pushSnapshot(name, data) {
+  try {
+    const list = await listSnapshots(name);
+    if (list.length && Date.now() - list[0].ts < SNAP_GAP) return;    // 太密集就跳过
+    for (let i = SNAP_MAX - 1; i > 0; i--) {
+      const prev = await idbGet(snapKey(name, i - 1));
+      if (prev) await idbPut(prev, snapKey(name, i));
+    }
+    await idbPut({ ...data, _snapTs: Date.now() }, snapKey(name, 0));
+  } catch (e) { logErr('自动存档失败', e && e.message); }
+}
+async function listSnapshots(name) {
+  const out = [];
+  for (let i = 0; i < SNAP_MAX; i++) {
+    try {
+      const d = await idbGet(snapKey(name, i));
+      if (d) out.push({ i, ts: d._snapTs || d.ts || 0, bases: (d.bases || []).length, stks: (d.stks || []).length });
+    } catch (e) {}
+  }
+  return out;
+}
+async function restoreSnapshot(name, i) {
+  const d = await idbGet(snapKey(name, i));
+  if (!d) return notify('这个存档已经没有了', 'err');
+  const when = new Date(d._snapTs || 0).toLocaleString();
+  if (!confirm(`把「${name}」恢复到 ${when} 的存档？\n\n当前内容会先存成一个新存档，可以再退回来。`)) return;
+  const cur = await idbGet(projKey(name));
+  if (cur) await pushSnapshotForce(name, cur);
+  await idbPut({ ...d, ts: Date.now() }, projKey(name));
+  invalidateProjPreview(name);
+  if (name === curProj) { resetState(); await restoreWorkspace(); refreshAll(); pvFit(); }
+  notify(`已恢复到 ${when}`, 'ok');
+  if (G('pm-ov').classList.contains('on')) renderProjMgr();
+}
+async function pushSnapshotForce(name, data) {
+  for (let i = SNAP_MAX - 1; i > 0; i--) {
+    const prev = await idbGet(snapKey(name, i - 1));
+    if (prev) await idbPut(prev, snapKey(name, i));
+  }
+  await idbPut({ ...data, _snapTs: Date.now() }, snapKey(name, 0));
+}
+async function openSnapshots(name) {
+  const list = await listSnapshots(name);
+  if (!list.length) return notify('这个项目还没有自动存档（保存几次后才会有）');
+  const txt = list.map((x, k) => `${k + 1}. ${new Date(x.ts).toLocaleString()} — ${x.bases} 底图 / ${x.stks} 素材`).join('\n');
+  const pick = prompt(`「${name}」的自动存档：\n\n${txt}\n\n输入序号恢复，取消则不动`, '1');
+  if (pick === null) return;
+  const k = parseInt(pick) - 1;
+  if (list[k]) restoreSnapshot(name, list[k].i);
+}
+
+/* ═══════════ 简洁 / 专业模式 ═══════════
+   简洁模式把不常用的参数收起来(功能仍在,不删),点顶栏「专业」随时展开 */
+const SIMPLE_KEY = 'tm_simple';
+function isSimple() { return false; }      // 默认简洁
+function applySimple() {
+  const on = isSimple();
+  if (!on) document.querySelectorAll('.adv-shown').forEach(e => { e.classList.remove('adv-shown'); e.classList.add('adv-only'); });
+  document.body.classList.toggle('simple', on);
+  const b = G('simple-btn');
+  if (b) { b.textContent = on ? '简洁模式' : '专业模式'; b.title = on ? '当前:简洁模式 — 点一下显示全部参数' : '当前:专业模式 — 点一下隐藏不常用参数'; b.classList.toggle('act', !on); }
+}
+function toggleSimple() { /* 已移除简洁模式:功能不多,全部直接显示 */ }
+/* 简洁模式下,在每个面板底部显示「隐藏了几项」的提示条,点一下就地展开(不必切全局模式) */
+function updHiddenHints() { document.querySelectorAll('.hid-hint').forEach(e => e.remove()); }
+function toggleHidden(pane) {
+  const shown = [...pane.querySelectorAll('.adv-shown')];
+  if (shown.length) shown.forEach(e => { e.classList.remove('adv-shown'); e.classList.add('adv-only'); });
+  else pane.querySelectorAll('.adv-only').forEach(e => { e.classList.remove('adv-only'); e.classList.add('adv-shown'); });
+  updHiddenHints();
+}
+
+/* 标记哪些属于「不常用」 */
+function markAdvanced() {
+  /* 抠图参数多,仍然折一组;其余参数一律直接显示 */
+  const rows = ['cut-feather', 'cut-shrink', 'cut-despeckle', 'cut-inner']
+    .map(id => { const e = G(id); return e && e.closest('.cr'); }).filter(Boolean);
+  const kb = G('cut-keepinner'), lab = kb && kb.closest('label');
+  if (rows.length && !G('cut-adv')) {
+    const g = document.createElement('div');
+    g.className = 'advgrp adv-fold'; g.id = 'cut-adv';
+    const h = document.createElement('button');
+    h.type = 'button'; h.className = 'advh';
+    h.innerHTML = '<span>高级参数（羽化 / 去白边 / 去杂点 / 内部白）</span><i class="advarr">▾</i>';
+    h.onclick = () => g.classList.toggle('off');
+    const bd = document.createElement('div'); bd.className = 'advb';
+    rows[0].parentNode.insertBefore(g, rows[0]);
+    rows.forEach(r => bd.appendChild(r));
+    if (lab) bd.appendChild(lab);
+    g.appendChild(h); g.appendChild(bd);
+  }
+}
+
+/* ═══════════ 存储用量 / 配额 / 备份提醒 ═══════════ */
+let _storeInfo = { used: 0, quota: 0, ts: 0 };
+async function checkStorage(force) {
+  if (!force && Date.now() - _storeInfo.ts < 20000) return _storeInfo;
+  try {
+    if (navigator.storage && navigator.storage.estimate) {
+      const e = await navigator.storage.estimate();
+      _storeInfo = { used: e.usage || 0, quota: e.quota || 0, ts: Date.now() };
+    }
+  } catch (e) {}
+  updStorageUI();
+  return _storeInfo;
+}
+function updStorageUI() {
+  const el = G('store-info');
+  if (!el) return;
+  const { used, quota } = _storeInfo;
+  if (!quota) { el.textContent = ''; return; }
+  const pct = used / quota * 100;
+  el.textContent = `本机已用 ${fmtSize(used)} / ${fmtSize(quota)}`;
+  el.classList.toggle('warn', pct > 70);
+  el.classList.toggle('danger', pct > 88);
+  el.title = pct > 70 ? '空间快满了，建议导出备份后清理不用的素材' : '素材与项目保存在这台设备的浏览器里';
+}
+/* 写入失败(空间不足)统一处理 */
+function isQuotaErr(e) {
+  const n = e && (e.name || e.message || '');
+  return /Quota|quota|NS_ERROR_DOM_QUOTA|storage/i.test(String(n));
+}
+function notifyQuota(e) {
+  checkStorage(true);
+  notify('保存失败：本机存储空间不足。请先「导出」备份，再删除不用的素材', 'err');
+  console.warn('storage quota', e);
+}
+/* 备份提醒:超过 7 天没备份且有内容时提示一次 */
+const BK_KEY = 'tm_last_backup';
+function markBackup() { store.set(BK_KEY, String(Date.now())); const w = G('backup-warn'); if (w) w.style.display = 'none'; }
+function daysSinceBackup() {
+  const t = +store.get(BK_KEY) || 0;
+  return t ? (Date.now() - t) / 86400000 : 999;
+}
+async function checkBackupDue() {
+  try {
+    const all = await assetAll();
+    if (!all.length) return;
+    const d = daysSinceBackup();
+    const w = G('backup-warn');
+    if (d >= 7) {
+      if (w) { w.style.display = ''; w.querySelector('b').textContent = d > 900 ? '还没备份过' : `已 ${Math.floor(d)} 天没备份`; }
+      notifyUndo(`数据只存在这台设备上，${d > 900 ? '建议导出一份备份' : `已 ${Math.floor(d)} 天没备份`}`, () => { exportAll(); });
+      const nf = G('notif'); const btn = nf && nf.querySelector('.nf-undo');
+      if (btn) btn.textContent = '立即备份';
+    } else if (w) w.style.display = 'none';
+  } catch (e) {}
 }
 
 /* ═══════════ 导出区收纳:常用项常显,其余收进可展开分组 ═══════════ */
@@ -3828,7 +5017,31 @@ document.addEventListener('keydown', e => {
   if (document.querySelector('.ov.on')) return;
   if (e.key === 'PageDown') { e.preventDefault(); pageStep(1); }
   else if (e.key === 'PageUp') { e.preventDefault(); pageStep(-1); }
+  else if (!e.ctrlKey && !e.metaKey) {
+    const k = (e.key || '').toLowerCase();
+    if (k === 'v' && e.altKey) { e.preventDefault(); updateCupHere(); }                 /* Alt+V 更新当前印位 */
+    else if (k === 'v' && e.shiftKey) { e.preventDefault(); quickSaveCup({ stay: true }); }  /* Shift+V 存为新印位 */
+    else if (k === 'v' && !e.altKey) { e.preventDefault(); reuseCup(); }               /* V 复用 */
+    else if ((e.key === ',' || e.key === '.') && !e.altKey) { e.preventDefault(); cycleCup(e.key === '.' ? 1 : -1); }
+  }
 });
+
+/* 左侧栏计数:选中/总数,全选时只显示总数 */
+function setCnt(id, sel, total) {
+  const e = G(id);
+  if (!e) return;
+  e.textContent = (total && sel !== total) ? `${sel}/${total}` : String(total);
+  e.classList.toggle('part', !!total && sel !== total);
+  e.title = total ? `共 ${total} 个，勾选 ${sel} 个参与导出` : '还没有内容';
+}
+/* 折叠时把数量显示在标题旁,不用展开就知道有多少 */
+function syncSecHeads() {
+  ['base', 'stk', 'extra'].forEach(k => {
+    const sec = G('drop-' + (k === 'stk' ? 'stk' : k));
+    const cnt = G(k + '-cnt');
+    if (sec && cnt) sec.classList.toggle('has', +String(cnt.textContent).split('/').pop() > 0);
+  });
+}
 
 /* ═══════════ 渲染调度:rAF 合并,避免一帧内重复绘制 ═══════════ */
 let _rafPending = false, _rafPanel = false;
@@ -4797,7 +6010,7 @@ function deleteActiveSticker() {
     S.stks = S.stks.filter(s2 => !selSet.has(s2.id));
     const n = selSet.size; selSet.clear(); S.activeStk = null;
     refreshAll();
-    setTimeout(() => notifyUndo(`已移出 ${n} 个素材（云端素材库保留）`, () => {
+    setTimeout(() => notifyUndo(`已移出 ${n} 个素材（素材库保留）`, () => {
       bak.sort((a, b) => a.at - b.at).forEach(({ s: s2, at }) => S.stks.splice(at, 0, s2));
       refreshAll();
     }), 0);
@@ -5022,7 +6235,7 @@ function drawCropLayer() {
 }
 
 /* ---------- 拖放上传 ---------- */
-[['drop-base', 'base'], ['drop-stk', 'sticker'], ['drop-brand-in', 'brand'], ['drop-ip-in', 'ip']].forEach(([id, kind]) => {
+[['drop-base', 'base'], ['drop-stk', 'sticker'], ['drop-extra', 'extra'], ['drop-brand-in', 'brand'], ['drop-ip-in', 'ip']].forEach(([id, kind]) => {
   const el = G(id);
   el.addEventListener('dragover', e => { if (![...e.dataTransfer.types].includes('Files')) return; e.preventDefault(); el.classList.add('drop-active'); });
   el.addEventListener('dragleave', () => el.classList.remove('drop-active'));
@@ -5161,7 +6374,7 @@ async function buildProjMenu() {
     tags.forEach(t => bar.appendChild(mk(t, t)));
   } else {
     const tip = document.createElement('span'); tip.className = 'dd-tagtip';
-    tip.textContent = '点右侧 🏷 给项目分类（容量 / 颜色 / 杯型）';
+    tip.textContent = '点右侧 🏷 给项目分类（容量 / 颜色 / 印位）';
     bar.appendChild(tip);
   }
   menu.appendChild(bar);
@@ -5405,21 +6618,27 @@ async function blobFingerprint(blob) {
 }
 /* 存入素材库(按内容指纹去重,重复上传不会占两份空间) */
 async function libraryAdd(kind, name, blob) {
-  const fp = await blobFingerprint(blob);
   try {
-    const all = await assetAll();
-    const dup = all.find(a => a.kind === kind && ((fp && a.fp === fp) || (a.name === name && a.blob && blob.size && a.blob.size === blob.size)));
-    if (dup) {
-      const cached = assetCache.get(dup.id);
-      assetCache.set(dup.id, { ...dup, img: cached ? cached.img : null });
-      return dup.id;
-    }
-  } catch (e) {}
-  const rec = { id: newAid(), kind, name, blob, fp, tags: [], ts: Date.now() };
-  await assetPut(rec);
-  assetCache.set(rec.id, { ...rec, img: null });
-  invalidateLibCache();
-  return rec.id;
+    const fp = await blobFingerprint(blob);
+    try {
+      const all = await assetAll();
+      const dup = all.find(a => a.kind === kind && ((fp && a.fp === fp) || (a.name === name && a.blob && blob.size && a.blob.size === blob.size)));
+      if (dup) {
+        const cached = assetCache.get(dup.id);
+        assetCache.set(dup.id, { ...dup, img: cached ? cached.img : null });
+        return dup.id;
+      }
+    } catch (e) {}
+    const rec = { id: newAid(), kind, name, blob, fp, tags: [], ts: Date.now() };
+    await assetPut(rec);
+    assetCache.set(rec.id, { ...rec, img: null });
+    invalidateLibCache();
+    return rec.id;
+  
+  } catch (e) {
+    if (isQuotaErr(e)) { notifyQuota(e); return null; }
+    throw e;
+  }
 }
 /* 取素材(含解码后的 Image),带内存缓存 */
 async function assetLoad(id) {
@@ -5523,7 +6742,9 @@ function makeProjThumb() {
 async function saveWorkspace() {
   try {
     const pickL = k => { const L = S.logos[k]; return { aid: L.aid || null, blob: L.aid ? null : (L.blob || null), name: L.name, en: L.en, x: L.x, y: L.y, scale: L.scale, op: L.op, sx: L.sx || 1, sy: L.sy || 1, taper: L.taper || 0, skx: L.skx || 0, sky: L.sky || 0, warp: L.warp ? L.warp.slice() : null, rot: L.rot || 0, curve: L.curve || 0, cvv: L.cvv || 0, gloss: L.gloss || 0, glp: L.glp === undefined ? 34 : L.glp }; };
+    if (typeof sbAutoSync === 'function') sbAutoSync();
     const _thumb = makeProjThumb();
+    const _prev = await idbGet(projKey()).catch(() => null);
     if (_thumb) prevCache[curProj] = _thumb;
     await idbPut({
       v: 3, ts: Date.now(), thumb: _thumb,
@@ -5536,6 +6757,7 @@ async function saveWorkspace() {
       dia: +G('cup-dia').value, tpl: G('name-tpl').value,
       exp: collectExportSettings()
     });
+    if (_prev) pushSnapshot(curProj, _prev);      // 保存前的版本进自动存档
     invalidateProjPreview(curProj);
     const dot = G('save-dot'); if (dot) { dot.className = 'saved'; setTimeout(() => dot.className = '', 1600); }
     setStatus(curProj + ' · 已保存 ' + new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }));
@@ -6148,7 +7370,7 @@ async function appendLibItems(kind) {
     const inBatch = sideBatch.on && sideBatch.kind === kind;
     d.dataset.aid = a.id;
     d.className = 'libi' + (inBatch && sideBatch.picked.has(a.id) ? ' sbpick' : '');
-    d.title = inBatch ? a.name + '（勾选后可从云端删除）' : a.name + '（点击加入项目）';
+    d.title = inBatch ? a.name + '（勾选后可彻底删除）' : a.name + '（点击加入项目）';
     if (inBatch) {
       const sb = document.createElement('div');
       sb.className = 'sb-sel' + (sideBatch.picked.has(a.id) ? ' on' : '');
@@ -6453,7 +7675,7 @@ function gridPickHandler(kind) {
   };
 }
 
-/* ================= 侧栏批量管理(直接删云端素材) ================= */
+/* ================= 侧栏批量管理(直接删素材库素材) ================= */
 let sideBatch = { on: false, kind: null, picked: new Set() };
 function toggleSideBatch(kind) {
   if (sideBatch.on && sideBatch.kind === kind) return exitSideBatch();
@@ -6461,7 +7683,7 @@ function toggleSideBatch(kind) {
   document.body.classList.add('sbatch');
   ['base','sticker','logo'].forEach(k2 => { const b = G('sbtn-' + k2); if (b) b.classList.toggle('act', k2 === kind); });
   refreshAll(); updSideBatchBar();
-  notify(`批量模式：勾选要从云端删除的${kind === 'base' ? '底图' : kind === 'logo' ? 'Logo' : '素材'}`);
+  notify(`批量模式：勾选要彻底删除的${kind === 'base' ? '底图' : kind === 'logo' ? 'Logo' : '素材'}`);
 }
 function exitSideBatch() {
   sideBatch = { on: false, kind: null, picked: new Set() };
@@ -6491,8 +7713,8 @@ async function sideBatchSelAll() {
   list.forEach(a => sideBatch.picked.add(a.id));
   refreshAll(); updSideBatchBar();
 }
-/* 从云端永久删除一组素材,并清除所有项目中的引用(底图/素材/细节图/Logo) */
-/* ═══ 云端删除 ═══
+/* 彻底删除一组素材,并清除所有项目中的引用(底图/素材/细节图/Logo) */
+/* ═══ 彻底删除 ═══
    · 确认提示:每次打开(本次会话)只问一次
    · 之后的删除不再弹窗 → 为防误删,先从界面移除并给 7 秒「撤销」,到时才真正删除 */
 let _delAsked = false;
@@ -6510,7 +7732,7 @@ async function cloudDeleteAssets(ids, kn, skipConfirm) {
   if (!skipConfirm && needDelConfirm()) {
     let bytes = 0;
     try { const all = await assetAll(); ids.forEach(i => { const a = all.find(x => x.id === i); if (a) bytes += assetBytes(a); }); } catch (e) {}
-    if (!confirm(`从云端素材库删除 ${ids.length} 个${kn || ''}？（约 ${fmtSize(bytes)}）\n\n会从所有项目中一并清除。删除后 7 秒内可撤销。\n\n确认后，本次使用期间不再询问。`)) return 0;
+    if (!confirm(`从素材库彻底删除 ${ids.length} 个${kn || ''}？（约 ${fmtSize(bytes)}）\n\n会从所有项目中一并清除。删除后 7 秒内可撤销。\n\n确认后，本次使用期间不再询问。`)) return 0;
     markDelConfirmed();
   }
   if (_pendingDel) await flushPendingDel();          // 上一批先落地
@@ -7157,8 +8379,7 @@ function renderExtraGrid() {
   const g = G('extra-grid');
   if (!g) return;
   g.querySelectorAll('.xi,.libi,.emp').forEach(e => e.remove());
-  const cnt = G('extra-cnt');
-  if (cnt) cnt.textContent = S.extras.length;
+  setCnt('extra-cnt', S.extras.filter(x => x.checked).length, S.extras.length);
   S.extras.forEach((x, i) => {
     const d = document.createElement('div');
     d.className = 'xi' + (x.checked ? ' on' : '');
@@ -7175,12 +8396,12 @@ function renderExtraGrid() {
     d.onclick = () => { x.checked = !x.checked; renderExtraGrid(); updExpDesc(); };
     d.oncontextmenu = ev => { ev.preventDefault(); openExtraOpts(x); };
     const del = document.createElement('button'); del.className = 'xi-del'; del.textContent = '✕';
-    del.title = '移出（云端保留）';
+    del.title = '移出（素材库保留）';
     del.onclick = ev => {
       ev.stopPropagation(); snapshot();
       const at = S.extras.indexOf(x), bak = { ...x };
       S.extras.splice(at, 1); refreshAll();
-      setTimeout(() => notifyUndo(`已移出「${x.name}」（云端保留）`, () => { S.extras.splice(at, 0, bak); refreshAll(); }), 0);
+      setTimeout(() => notifyUndo(`已移出「${x.name}」（素材库保留）`, () => { S.extras.splice(at, 0, bak); refreshAll(); }), 0);
     };
     d.appendChild(del);
     g.appendChild(d);
@@ -7213,7 +8434,7 @@ function selectAllExtras() {
 }
 function clearExtras() {
   if (!S.extras.length) return;
-  if (!confirm('清空本项目的细节图？（云端素材库保留）')) return;
+  if (!confirm('清空本项目的细节图？（素材库保留）')) return;
   snapshot(); S.extras = []; refreshAll();
 }
 /* 细节图导出任务 */
@@ -7275,7 +8496,7 @@ function renderExtraCanvas(x, cv2) {
    4) 泛洪只在"明确是背景"的像素间扩散,半透明区不参与 → 不啃掉主体   */
 function cutoutCanvas(img, tol, opts) {
   const o = Object.assign({ feather: 2, despeckle: 1, shrink: 0, keepInner: true, innerKeep: 0 }, opts || {});
-  const w = img.naturalWidth, h = img.naturalHeight;
+  const w = img.naturalWidth || img.width, h = img.naturalHeight || img.height;
   if (!w || !h) return null;
   const c = document.createElement('canvas');
   c.width = w; c.height = h;
@@ -7389,21 +8610,35 @@ function cutoutCanvas(img, tol, opts) {
   }
 
   /* --- 4) 去杂点:前景里孤立的小洞补回,背景里孤立的点去掉 --- */
+  /* 边界像素清单:后面的去杂点/去白边/羽化只需要处理这些,不用全图扫(速度差几倍) */
+  const edgeBuf = new Int32Array(N);
+  let edgeN = 0;
+  for (let y = 0; y < h; y++) {
+    const row = y * w;
+    for (let x2 = 0; x2 < w; x2++) {
+      const p2 = row + x2, a0 = alpha[p2];
+      if ((x2 > 0 && alpha[p2 - 1] !== a0) || (x2 < w - 1 && alpha[p2 + 1] !== a0) ||
+          (y > 0 && alpha[p2 - w] !== a0) || (y < h - 1 && alpha[p2 + w] !== a0)) edgeBuf[edgeN++] = p2;
+    }
+  }
+  const edge = edgeBuf.subarray(0, edgeN);
   for (let r = 0; r < (o.despeckle | 0); r++) {
     const snap = alpha.slice();
-    for (let p2 = 0; p2 < N; p2++) {
-      const cx = p2 % w, cy = (p2 / w) | 0;
+    for (let k = 0; k < edge.length; k++) {
+      const p2 = edge[k], cx = p2 % w, cy = (p2 / w) | 0;
       if (cx === 0 || cy === 0 || cx === w - 1 || cy === h - 1) continue;
       const n = snap[p2 - 1] + snap[p2 + 1] + snap[p2 - w] + snap[p2 + w];
-      if (snap[p2] > 0.5 && n < 0.9) alpha[p2] = 0;        // 孤立前景点 → 去掉
-      else if (snap[p2] < 0.5 && n > 3.1) alpha[p2] = 1;   // 孤立背景洞 → 补上
+      if (snap[p2] > 0.5 && n < 0.9) alpha[p2] = 0;
+      else if (snap[p2] < 0.5 && n > 3.1) alpha[p2] = 1;
     }
   }
 
   /* --- 5) 去白边:整体收缩 alpha 边界 --- */
+  let sband = Array.from(edge);
   for (let r = 0; r < (o.shrink | 0); r++) {
-    const snap = alpha.slice();
-    for (let p2 = 0; p2 < N; p2++) {
+    const snap = alpha.slice(), next = [];
+    for (let k = 0; k < sband.length; k++) {
+      const p2 = sband[k];
       if (snap[p2] <= 0) continue;
       const cx = p2 % w, cy = (p2 / w) | 0;
       let mn = 1;
@@ -7412,33 +8647,38 @@ function cutoutCanvas(img, tol, opts) {
       if (cy > 0) mn = Math.min(mn, snap[p2 - w]);
       if (cy < h - 1) mn = Math.min(mn, snap[p2 + w]);
       if (mn < snap[p2]) alpha[p2] = mn;
+      if (cx > 0) next.push(p2 - 1);
+      if (cx < w - 1) next.push(p2 + 1);
+      if (cy > 0) next.push(p2 - w);
+      if (cy < h - 1) next.push(p2 + w);
     }
+    sband = next;
   }
 
   /* --- 6) 羽化:对 alpha 做小半径模糊,过渡更自然 --- */
   const F = clamp(o.feather | 0, 0, 6);
   if (F > 0) {
-    let src = alpha;
+    let fband = Array.from(edge);
     for (let r = 0; r < F; r++) {
-      const out = new Float32Array(N);
-      for (let p2 = 0; p2 < N; p2++) {
-        const cx = p2 % w, cy = (p2 / w) | 0;
-        let sum = src[p2], cnt = 1;
-        if (cx > 0) { sum += src[p2 - 1]; cnt++; }
-        if (cx < w - 1) { sum += src[p2 + 1]; cnt++; }
-        if (cy > 0) { sum += src[p2 - w]; cnt++; }
-        if (cy < h - 1) { sum += src[p2 + w]; cnt++; }
-        // 只模糊边界附近,内部保持实心
-        out[p2] = (src[p2] > 0.02 && src[p2] < 0.98) ? sum / cnt : src[p2];
+      const snap = alpha.slice(), next = [];
+      for (let k = 0; k < fband.length; k++) {
+        const p2 = fband[k], cx = p2 % w, cy = (p2 / w) | 0;
+        let sum = snap[p2], cnt = 1;
+        if (cx > 0) { sum += snap[p2 - 1]; cnt++; next.push(p2 - 1); }
+        if (cx < w - 1) { sum += snap[p2 + 1]; cnt++; next.push(p2 + 1); }
+        if (cy > 0) { sum += snap[p2 - w]; cnt++; next.push(p2 - w); }
+        if (cy < h - 1) { sum += snap[p2 + w]; cnt++; next.push(p2 + w); }
+        // 只模糊过渡带,实心区域保持不变(否则边缘内侧会被削掉一圈)
+        if (snap[p2] > 0.02 && snap[p2] < 0.98) alpha[p2] = sum / cnt;
       }
-      src = out;
+      fband = next;
     }
-    for (let p2 = 0; p2 < N; p2++) alpha[p2] = src[p2];
   }
 
   /* --- 7) 色彩去污:半透明像素里扣掉混入的背景色,消除白边 --- */
   for (let p2 = 0; p2 < N; p2++) {
     const a = alpha[p2];
+    if (a >= 1) continue;               // 完全保留的像素无需改写(占大多数)
     const i4 = p2 * 4;
     if (a <= 0) { px[i4 + 3] = 0; continue; }
     if (a < 0.97) {
@@ -7818,20 +9058,34 @@ function drawCutPreview(c) {
 function openCutout(aid, name, onDone) {
   assetLoad(aid).then(a => {
     if (!a || !a.img) return notify('素材加载失败', 'err');
-    cutState = { aid, name: name || a.name, img: a.img, onDone,
+    const fw = a.img.naturalWidth, fh = a.img.naturalHeight;
+    // 编辑期用降采样副本(最长边 1100px),调参数才不会每次卡半秒;生成成品时再按原图重算
+    const WORK_MAX = 950;
+    const sc = Math.min(1, WORK_MAX / Math.max(fw, fh));
+    let work = a.img;
+    if (sc < 1) {
+      work = document.createElement('canvas');
+      work.width = Math.max(1, Math.round(fw * sc)); work.height = Math.max(1, Math.round(fh * sc));
+      const wx = work.getContext('2d');
+      wx.imageSmoothingQuality = 'high';
+      wx.drawImage(a.img, 0, 0, work.width, work.height);
+    }
+    cutState = { aid, name: name || a.name, img: work, fullImg: a.img, workScale: sc, fullW: fw, fullH: fh, onDone,
       tol: 24, feather: 2, shrink: 0, despeckle: 1, keepInner: true, innerKeep: 0 };
-    initCutMask(a.img.naturalWidth, a.img.naturalHeight);
+    const ww = work.naturalWidth || work.width, wh = work.naturalHeight || work.height;
+    initCutMask(ww, wh);
     cutView = { zoom: 1, ox: 0, oy: 0, panning: false, p0: null, spc: false };
-    // 缓存原图像素,供「恢复」笔把算法删掉的部分补回
+    // 缓存工作副本的像素,供「恢复」笔把算法删掉的部分补回
     try {
       const tc = document.createElement('canvas');
-      tc.width = a.img.naturalWidth; tc.height = a.img.naturalHeight;
+      tc.width = ww; tc.height = wh;
       const tx = tc.getContext('2d', { willReadFrequently: true });
-      tx.drawImage(a.img, 0, 0);
-      cutState.origData = tx.getImageData(0, 0, tc.width, tc.height);
+      tx.drawImage(work, 0, 0, ww, wh);
+      cutState.origData = tx.getImageData(0, 0, ww, wh);
     } catch (e) { cutState.origData = null; }
     G('cut-ov').classList.add('on');
-    syncCutUI(); setBrushMode('erase'); setBrushSize(28); setBrushSoft(55); updCutUndoUI();
+    syncCutUI(); setBrushMode('erase'); setBrushSize(28);
+    cutState._needFit = true; setBrushSoft(55); updCutUndoUI();
     renderCutPreview();
   });
 }
@@ -7854,7 +9108,7 @@ function syncCutUI() {
   set('cut-inner', Math.round((cutState.innerKeep || 0) * 100));
   set('cut-inner-n', Math.round((cutState.innerKeep || 0) * 100));
 }
-function setCutOpt(k, v) {
+function setCutOpt(k, v, draft) {
   if (!cutState) return;
   if (k === 'keepInner') cutState.keepInner = !!v;
   else if (k === 'tol') cutState.tol = clamp(+v || 24, 4, 120);
@@ -7863,7 +9117,7 @@ function setCutOpt(k, v) {
   else if (k === 'despeckle') cutState.despeckle = clamp(+v || 0, 0, 4);
   else if (k === 'innerKeep') cutState.innerKeep = clamp((+v || 0) / 100, 0, 1);
   syncCutUI();
-  renderCutPreview();
+  renderCutPreview(!!draft);
 }
 function cutPreset(k) {
   if (!cutState) return;
@@ -7879,18 +9133,48 @@ function cutPreset(k) {
   notify({ pure: '纯白底', soft: '浅灰底', hard: '强力去背', crisp: '锐利边缘' }[k] + ' 预设');
 }
 let cutT = null;
-function renderCutPreview() {
+let _cutDraftT = null;
+function cutDraftSrc() {                 /* 拖滑块时用的小图(最长边 460px),算得快 */
+  const st = cutState;
+  if (st._draft) return st._draft;
+  const w = cutBrush.w, h = cutBrush.h;
+  const sc = Math.min(1, 460 / Math.max(w, h));
+  if (sc >= 1) return (st._draft = st.img);
+  const c = document.createElement('canvas');
+  c.width = Math.max(1, Math.round(w * sc)); c.height = Math.max(1, Math.round(h * sc));
+  const x = c.getContext('2d'); x.imageSmoothingQuality = 'medium';
+  x.drawImage(st.img, 0, 0, c.width, c.height);
+  return (st._draft = c);
+}
+function renderCutPreview(draft) {
   clearTimeout(cutT);
   cutT = setTimeout(() => {
     if (!cutState) return;
-    const c = cutoutCanvas(cutState.img, cutState.tol, cutState);
+    const useDraft = !!draft && cutBrush.w > 520;
+    const c = cutoutCanvas(useDraft ? cutDraftSrc() : cutState.img, cutState.tol, cutState);
     if (!c) { notify('无法预览（图片跨域受限）', 'err'); return; }
-    cutState.baseCanvas = c;
-    const st = G('cut-stat');
-    if (st && c._cutStat) st.textContent = `去掉 ${Math.round(c._cutStat.removed / c._cutStat.total * 100)}% · ${c.width}×${c.height}`;
-    if (!cutState._bgDone) { cutState._bgDone = true; autoCutBg(c); }
+    let algo = c;
+    if (useDraft) {                      /* 草稿放大到工作尺寸,手绘遮罩才能对齐 */
+      const big = cutState._up || (cutState._up = document.createElement('canvas'));
+      big.width = cutBrush.w; big.height = cutBrush.h;
+      const bx = big.getContext('2d');
+      bx.clearRect(0, 0, big.width, big.height);
+      bx.imageSmoothingQuality = 'medium';
+      bx.drawImage(c, 0, 0, big.width, big.height);
+      algo = big;
+    }
+    cutState.baseCanvas = algo;
+    const stt = G('cut-stat');
+    if (stt && c._cutStat) stt.textContent = `去掉 ${Math.round(c._cutStat.removed / c._cutStat.total * 100)}% · 原图 ${cutState.fullW}×${cutState.fullH}` +
+      (cutState.workScale < 1 ? '（预览已缩小，生成时按原图）' : '') + (useDraft ? ' · 草稿' : '');
+    if (!cutState._bgDone) { cutState._bgDone = true; autoCutBg(algo); }
     applyCutMask(true);
-  }, 130);
+    if (cutState._needFit) { cutState._needFit = false; setTimeout(cutFitView, 30); }
+    if (useDraft) {                      /* 停手 200ms 后按工作分辨率精算一次 */
+      clearTimeout(_cutDraftT);
+      _cutDraftT = setTimeout(() => { if (cutState) renderCutPreview(false); }, 200);
+    }
+  }, draft ? 24 : 110);
 }
 /* 对比原图 / 背景切换 */
 let cutBgIdx = 0, cutBgManual = null;
@@ -7926,8 +9210,8 @@ function cutShowOrig(on) {
   if (on) {
     if (!cutState.origCanvas) {
       const c = document.createElement('canvas');
-      c.width = cutState.img.naturalWidth; c.height = cutState.img.naturalHeight;
-      c.getContext('2d').drawImage(cutState.img, 0, 0);
+      c.width = cutBrush.w; c.height = cutBrush.h;
+      c.getContext('2d').drawImage(cutState.img, 0, 0, c.width, c.height);
       cutState.origCanvas = c;
     }
     drawCutPreview(cutState.origCanvas);
@@ -7941,12 +9225,14 @@ function cutToggleParams() { G('cut-ov').classList.toggle('params-open'); }
 
 async function confirmCutout() {
   if (!cutState) return;
-  if (!cutState.canvas) { renderCutPreview(); await new Promise(r => setTimeout(r, 220)); }
-  const c = cutState.canvas || cutState.baseCanvas;
-  if (!c) return notify('抠图失败', 'err');
-  setProg(true, '写入素材库…', 60);
+  let out = cutState.canvas || cutState.algoCanvas;
+  if (!out) return notify('抠图失败', 'err');
+  setProg(true, '按原图生成…', 30);
+  await new Promise(r => setTimeout(r, 16));
   try {
-    const blob = await canvasBlob(c, 'image/png');
+    if (cutState.workScale < 1) out = await renderFullRes();
+    setProg(true, '写入素材库…', 75);
+    const blob = await canvasBlob(out, 'image/png');
     const a = await assetLoad(cutState.aid);
     const nid = await libraryAdd(a ? a.kind : 'sticker', cutState.name.replace(/_去背$/, '') + '_去背', blob);
     invalidateLibCache(); renderLibrary(); renderLibStrips();
@@ -7956,9 +9242,56 @@ async function confirmCutout() {
     notify('已生成去背版本', 'ok');
     if (cb) cb(nid);
     return nid;
-  } catch (e) { setProg(false); notify('抠图失败', 'err'); }
+  } catch (e) { setProg(false); notify('抠图失败：' + (e && e.message || e), 'err'); }
 }
-
+/* 用原图重跑算法,并把编辑时画的遮罩按比例放大后应用 */
+async function renderFullRes() {
+  const st = cutState;
+  const algo = cutoutCanvas(st.fullImg, st.tol, st);
+  if (!algo) return st.canvas || st.algoCanvas;
+  const W = algo.width, H = algo.height;
+  const hasMask = cutMask && cutMask.some(v => v !== 0);
+  if (!hasMask) return algo;
+  // 遮罩(工作分辨率) → 放大到原图尺寸
+  const mw = cutBrush.w, mh = cutBrush.h;
+  const mc = document.createElement('canvas'); mc.width = mw; mc.height = mh;
+  const mx = mc.getContext('2d');
+  const md = mx.createImageData(mw, mh);
+  for (let i = 0; i < cutMask.length; i++) {
+    const v = cutMask[i], i4 = i * 4;
+    md.data[i4] = v < 0 ? Math.round(-v * 255) : 0;      // R = 擦除强度
+    md.data[i4 + 1] = v > 0 ? Math.round(v * 255) : 0;   // G = 恢复强度
+    md.data[i4 + 3] = 255;
+  }
+  mx.putImageData(md, 0, 0);
+  const big = document.createElement('canvas'); big.width = W; big.height = H;
+  const bx = big.getContext('2d', { willReadFrequently: true });
+  bx.imageSmoothingQuality = 'high';
+  bx.drawImage(mc, 0, 0, W, H);
+  const mdata = bx.getImageData(0, 0, W, H).data;
+  // 原图像素(供恢复笔用)
+  const oc = document.createElement('canvas'); oc.width = W; oc.height = H;
+  const ox2 = oc.getContext('2d', { willReadFrequently: true });
+  ox2.drawImage(st.fullImg, 0, 0, W, H);
+  const orig = ox2.getImageData(0, 0, W, H).data;
+  const ax = algo.getContext('2d', { willReadFrequently: true });
+  const ad = ax.getImageData(0, 0, W, H), px = ad.data;
+  for (let i = 0; i < W * H; i++) {
+    const i4 = i * 4, er = mdata[i4] / 255, re = mdata[i4 + 1] / 255;
+    if (er > 0.004) { px[i4 + 3] = Math.round(px[i4 + 3] * (1 - er)); continue; }
+    if (re > 0.004) {
+      const a0 = px[i4 + 3], oa = orig[i4 + 3];
+      if (oa <= a0) continue;
+      const k = a0 < 8 ? 1 : re;
+      px[i4] = Math.round(px[i4] + (orig[i4] - px[i4]) * k);
+      px[i4 + 1] = Math.round(px[i4 + 1] + (orig[i4 + 1] - px[i4 + 1]) * k);
+      px[i4 + 2] = Math.round(px[i4 + 2] + (orig[i4 + 2] - px[i4 + 2]) * k);
+      px[i4 + 3] = Math.round(a0 + (oa - a0) * re);
+    }
+  }
+  ax.putImageData(ad, 0, 0);
+  return algo;
+}
 async function cutoutAsset(aid, name) {
   return new Promise(res => openCutout(aid, name, res));
 }
@@ -8008,7 +9341,7 @@ function suggestParams() {
   const r = bodyRect();
   if (!r) return notify('未识别到杯身，请先上传底图或手动框选', 'err');
   const a = activeStkObj();
-  const ratio = r.h / Math.max(1, r.w);          // 高宽比判断杯型
+  const ratio = r.h / Math.max(1, r.w);          // 高宽比判断印位
   let curve, cvv, kind;
   if (ratio > 3.0) { curve = 72; cvv = 14; kind = '细长瓶身'; }
   else if (ratio > 2.2) { curve = 65; cvv = 12; kind = '保温杯'; }
@@ -8581,6 +9914,7 @@ async function renderProjMgr() {
     acts.appendChild(mkb('标签', '编辑分类标签', () => editProjTags(name)));
     acts.appendChild(mkb('副本', '复制项目', () => pmDup(name)));
     acts.appendChild(mkb('改名', '重命名', () => pmRename(name)));
+    acts.appendChild(mkb('存档', '恢复到之前的自动存档', () => openSnapshots(name)));
     acts.appendChild(mkb('删除', '删除项目', () => pmDel(name), 'del'));
     d.appendChild(acts);
     grid.appendChild(d);
@@ -9321,7 +10655,7 @@ function mobConfirm(title, msg, okText, blobs) {
 async function mobCloudDelOne(aid, kn) {
   if (needDelConfirm()) {
     const r = await assetLoad(aid);
-    const ok = await mobConfirm(`从云端删除这个${kn || '素材'}？`, '会从所有项目中清除，删除后 7 秒内可撤销。<br><span style="color:var(--mut)">确认后，本次使用期间不再询问。</span>', '删除', r && r.blob ? [r.blob] : []);
+    const ok = await mobConfirm(`彻底删除这个${kn || '素材'}？`, '会从所有项目中清除，删除后 7 秒内可撤销。<br><span style="color:var(--mut)">确认后，本次使用期间不再询问。</span>', '删除', r && r.blob ? [r.blob] : []);
     if (!ok) return 0;
     markDelConfirmed();
   }
@@ -9340,7 +10674,7 @@ function mobBatchCheck(on) {
 }
 function mobBatchRemove() {
   const it = mobPickedItems();
-  if (!it.length) return notify(mobPickedLibAids().length ? '素材库里的图不在项目中，无需移出；要删除请用「云端删除」' : '请先勾选', 'err');
+  if (!it.length) return notify(mobPickedLibAids().length ? '素材库里的图不在项目中，无需移出；要删除请用「彻底删除」' : '请先勾选', 'err');
   snapshot();
   const k = mobSel.kind, ids = new Set(it.map(o => o.id));
   const arr0 = mobArr(k), bak = arr0.map((o, i) => ({ o, i })).filter(x => ids.has(x.o.id));
@@ -9365,8 +10699,8 @@ async function mobBatchCloudDel() {
   if (needDelConfirm()) {
     const blobs = [];
     for (const a of aids.slice(0, 12)) { const r = await assetLoad(a); if (r && r.blob) blobs.push(r.blob); }
-    const ok = await mobConfirm(`从云端删除 ${aids.length} 个${kn}？`,
-      '会从<b>云端素材库</b>和<b>所有项目</b>中删除，删除后 7 秒内可撤销。<br>只想从当前项目拿掉，请用「移出」。<br><span style="color:var(--mut)">确认后，本次使用期间不再询问。</span>', '删除', blobs);
+    const ok = await mobConfirm(`彻底删除 ${aids.length} 个${kn}？`,
+      '会从<b>本机素材库</b>和<b>所有项目</b>中删除，删除后 7 秒内可撤销。<br>只想从当前项目拿掉，请用「移出」。<br><span style="color:var(--mut)">确认后，本次使用期间不再询问。</span>', '删除', blobs);
     if (!ok) return;
     markDelConfirmed();
   }
@@ -9389,7 +10723,7 @@ function mobItemMenu(kind, o) {
   }
   h += row('☑', '多选…', `mobToggleBatch('${kind}');mobSel.picked.add(${o.id});mobPanel();mobUpdBBar()`);
   h += row('↩', '从项目移出（素材库保留）', `mobMenuAct('${kind}',${o.id},'remove')`, 'warn');
-  if (o.aid) h += row('🗑', '从云端永久删除', `mobMenuAct('${kind}',${o.id},'cloud')`, 'dg');
+  if (o.aid) h += row('🗑', '彻底删除', `mobMenuAct('${kind}',${o.id},'cloud')`, 'dg');
   mobOpenSheet(h);
 }
 async function mobMenuAct(kind, id, act) {
@@ -9428,7 +10762,7 @@ function mobLibMenu(a) {
   const esc = String(a.name || '').replace(/</g, '&lt;');
   mobOpenSheet(`<div class="ms-ttl">${esc}</div>
     <div class="ms-item" onclick="mobCloseSheet();mobLibAdd('${a.id}')"><div class="ms-ic">＋</div><div class="ms-nm">加入项目</div></div>
-    <div class="ms-item dg" onclick="mobCloseSheet();mobCloudDelOne('${a.id}','').then(()=>mobPanel())"><div class="ms-ic">🗑</div><div class="ms-nm">从云端永久删除</div></div>`);
+    <div class="ms-item dg" onclick="mobCloseSheet();mobCloudDelOne('${a.id}','').then(()=>mobPanel())"><div class="ms-ic">🗑</div><div class="ms-nm">彻底删除</div></div>`);
 }
 async function mobLibAdd(aid) {
   const a = await assetLoad(aid); if (!a) return;
@@ -9742,6 +11076,7 @@ async function dataURLToBlob(u) {
   try { return await (await fetch(u)).blob(); } catch (e) { return null; }
 }
 async function exportProject() {
+  try { markBackup(); } catch (e) {}
   if (!S.bases.length && !S.stks.length) return notify('当前项目为空', 'err');
   setProg(true, '正在打包项目…', 20);
   try {
@@ -9880,6 +11215,17 @@ G('tag-ov').addEventListener('click', e => { if (e.target === G('tag-ov')) close
 G('lib-ov').addEventListener('click', e => { if (e.target === G('lib-ov')) closeLibrary(); });
 G('tpls-ov').addEventListener('click', e => { if (e.target === G('tpls-ov')) closeTpls(); });
 G('cut-ov').addEventListener('click', e => { if (e.target === G('cut-ov')) closeCutout(); });
+(function bindCalib() {
+  const cv = G('cal-canvas');
+  if (!cv) return;
+  cv.addEventListener('mousedown', calibDown);
+  window.addEventListener('mousemove', calibMove);
+  window.addEventListener('mouseup', calibUp);
+  cv.addEventListener('touchstart', e => { if (e.touches[0]) { e.preventDefault(); calibDown(e.touches[0]); } }, { passive: false });
+  cv.addEventListener('touchmove', e => { if (e.touches[0]) { e.preventDefault(); calibMove(e.touches[0]); } }, { passive: false });
+  cv.addEventListener('touchend', calibUp);
+  G('cal-ov').addEventListener('click', e => { if (e.target === G('cal-ov')) closeCalib(); });
+})();
 (function bindCutBrush() {
   const stage = G('cut-stage');
   if (!stage) return;
@@ -10026,6 +11372,13 @@ function maybeFirstRun() {   /* ⑩ 首次使用引导 */
   renderTabs();
   updXClipUI();
   restructureExport();
+  markAdvanced();
+  applySimple();
+  updHiddenHints();
+  updErrBadge();
+  checkStorage(true);
+  setTimeout(checkBackupDue, 2500);
+  setInterval(() => checkStorage(), 60000);
   if (isMob()) setTimeout(mobInit, 120);
   maybeFirstRun();
   if (G('status').textContent === '就绪' || !S.bases.length && !S.stks.length) setStatus('就绪');
