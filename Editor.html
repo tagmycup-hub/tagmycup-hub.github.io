@@ -313,7 +313,22 @@ input::placeholder{color:var(--mut)!important;}
 .ti-n,.sti-n{color:var(--dim)!important;}
 .dd-tl-i,.pm-tl i{color:var(--dim)!important;}
 .kb-tbl td{color:var(--dim);}
-</style></head><body>
+
+.ai-pick{display:block;font-size:10.5px;color:var(--mut);margin:-2px 0 8px;cursor:pointer;}
+.ai-pick u{color:var(--acc-l);margin-left:4px;}
+#cb-ai.act{box-shadow:0 0 0 2px var(--acc-g);}
+
+#net-badge{padding:3px 9px;border-radius:999px;background:var(--warm-d);color:var(--warm);font-size:11px;font-weight:600;}
+
+#cut-cursor{left:0!important;top:0!important;will-change:transform;}
+#cut-cursor:not([style*="translate3d"]){transform:translate(-50%,-50%);}
+#cut-tag{left:0!important;top:0!important;will-change:transform;}
+</style><link rel="manifest" href="editor.webmanifest">
+<meta name="theme-color" content="#0f1720">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="贴图合成器">
+<link rel="apple-touch-icon" href="editor-icon-192.png">
+</head><body>
 
 <!-- ═══════════ 手机版专属界面 ═══════════ -->
 <div id="mob">
@@ -358,7 +373,8 @@ input::placeholder{color:var(--mut)!important;}
   <button id="proj-ren" title="重命名当前项目" onclick="renameProject()">改名</button>
   <button id="proj-dup" title="复制当前项目（含全部素材与底图）" onclick="duplicateProject()">⧉ 副本</button>
   <button id="proj-mgr" title="项目管理页（P）" onclick="openProjMgr()">▦ 管理</button>
-  <button class="bd2" id="err-btn" style="display:none" onclick="openErrLog()"></button>
+  <span id="net-badge" style="display:none" title="当前离线，编辑导出照常">离线</span>
+    <button class="bd2" id="err-btn" style="display:none" onclick="openErrLog()"></button>
     <button class="bd2" id="sync-btn" onclick="openSync()" title="跨设备同步（Supabase）">☁ 同步</button><span id="store-info" onclick="openLibrary('sticker')" title="素材与项目保存在这台设备的浏览器里"></span><button id="proj-exp" title="导出当前项目为文件（备份/换电脑）" onclick="exportProject()">导出</button>
   <button id="proj-imp" title="从文件导入项目" onclick="G('proj-file').click()">导入</button>
   <input type="file" id="proj-file" accept=".json,application/json" style="display:none" onchange="importProject(this)">
@@ -374,10 +390,12 @@ input::placeholder{color:var(--mut)!important;}
     <div class="pb-r1"><span class="pb-lbl">模式</span><div id="preset-chips"></div><button class="pchip pchip-add" onclick="openNewPresetModal()">＋</button></div>
     <div class="pb-r2"><span id="preset-name">—</span><button class="pb-act save" onclick="savePreset()">保存</button><button class="pb-act" onclick="resetPreset()">重置</button><button class="pb-act del" id="preset-del" onclick="deletePreset()" style="display:none">删除</button></div>
   </div>
-  <div class="ps">
+  <div id="snav"><button data-sec="drop-base" onclick="sideJump('drop-base')" ondblclick="sideFocus('drop-base')">底图<b id="sn-base"></b></button><button data-sec="drop-stk" onclick="sideJump('drop-stk')" ondblclick="sideFocus('drop-stk')">素材<b id="sn-stk"></b></button><button data-sec="drop-extra" onclick="sideJump('drop-extra')" ondblclick="sideFocus('drop-extra')">细节图<b id="sn-extra"></b></button><button data-sec="drop-brand" onclick="sideJump('drop-brand')" ondblclick="sideFocus('drop-brand')">Logo</button></div>
+<div class="ps">
     <div class="usec" id="drop-base">
       <div class="uh"><span class="ut sec-t" onclick="toggleUsec('drop-base')" title="点击折叠/展开">底图</span><button class="hlp" onclick="showHelp(event,'body')">?</button><span class="tag cnt" id="base-cnt">0</span><button class="bd2 ok" onclick="selectAllBases()">全选</button><button class="bd2 sb-btn" id="sbtn-base" onclick="toggleSideBatch('base')" title="批量管理底图">☑ 批量</button><div class="umore"><button class="bd2 umore-b" onclick="toggleUMore(event)" title="更多操作">⋯</button><div class="umore-m"><button onclick="switchTab('cup')">印位模板</button><button onclick="startBodyPick()">手动框选杯身</button><button onclick="clearManualBody()">恢复自动识别</button><button onclick="openLibrary('base')">打开素材库</button><button class="dg" onclick="clearBases()">清空本项目底图</button></div></div><button class="usec-tg" onclick="toggleUsec('drop-base')">▾</button></div>
-      <div class="ub"><div class="br"><button class="bp" onclick="G('inp-base').click()">＋ 上传底图</button><input type="file" id="inp-base" accept="image/*" multiple hidden onchange="loadFiles('base',this)"></div><div class="tg" id="base-grid"><div class="emp" id="base-empty">上传底图 · 自动进库 · 全项目共享</div></div>
+      <div class="ub"><div class="br"><button class="bp" onclick="G('inp-base').click()">＋ 上传底图</button><input type="file" id="inp-base" accept="image/*" multiple hidden onchange="loadFiles('base',this)"></div><div class="sfilt" data-k="base"><input type="search" class="sf-q" placeholder="搜索名称…" oninput="sideFilter('base')"><span class="sf-seg"><button class="on" data-f="all" onclick="sideFilterMode('base','all')">全部</button><button data-f="on" onclick="sideFilterMode('base','on')">已选</button><button data-f="off" onclick="sideFilterMode('base','off')">未选</button></span><span class="sf-n"></span></div>
+      <div class="tg" id="base-grid"><div class="emp" id="base-empty">上传底图 · 自动进库 · 全项目共享</div></div>
 </div>
     </div>
     <div class="usec" id="drop-stk">
@@ -386,7 +404,8 @@ input::placeholder{color:var(--mut)!important;}
         <div class="br"><button class="bp" onclick="G('inp-stk').click()">＋ 上传素材</button><input type="file" id="inp-stk" accept="image/*" multiple hidden onchange="loadFiles('sticker',this)"></div>
         <div id="grp-banner"><span>⬡ 编组</span><span id="grp-ct" style="color:var(--acc-l);margin:0 4px">0</span><span>个 · 同步操作</span></div>
         <div style="font-size:10px;color:var(--mut);font-family:var(--mono);margin-bottom:6px;line-height:1.8">☑ 勾选 = 一起合成输出<br>双击 = 进入裁切编辑模式</div>
-        <div class="tg" id="stk-grid"><div class="emp" id="stk-empty">上传透明底 PNG · 自动进库</div></div>
+        <div class="sfilt" data-k="sticker"><input type="search" class="sf-q" placeholder="搜索名称…" oninput="sideFilter('sticker')"><span class="sf-seg"><button class="on" data-f="all" onclick="sideFilterMode('sticker','all')">全部</button><button data-f="on" onclick="sideFilterMode('sticker','on')">已选</button><button data-f="off" onclick="sideFilterMode('sticker','off')">未选</button></span><span class="sf-n"></span></div>
+      <div class="tg" id="stk-grid"><div class="emp" id="stk-empty">上传透明底 PNG · 自动进库</div></div>
 
       </div>
     </div>
@@ -614,14 +633,14 @@ input::placeholder{color:var(--mut)!important;}
     <div class="folder-row"><span class="fl-lbl">🧩</span><select id="exp-mode" onchange="updExpDesc()" style="flex:1;background:var(--surf3);color:var(--txt);border:1px solid var(--bd);border-radius:var(--r);padding:5px 8px;font-size:12px;outline:none"><option value="comp">组合导出 — 当前布局 × 每张底图</option><option value="matrix">矩阵导出 — 每个素材 × 每张底图</option></select></div>
     <div class="folder-row"><span class="fl-lbl">📁</span><input type="text" id="folder-name" placeholder="文件夹名（可选）" maxlength="50"></div>
     <div class="folder-row"><span class="fl-lbl">🏗️</span><input type="text" id="name-tpl" placeholder="{底图}_{素材}" maxlength="80" oninput="updExpDesc()" title="可用变量：{项目} {文件夹} {底图} {素材} {日期} {序号} {尺寸}"><button class="bd2" onclick="openTpl()" title="模板变量说明">?</button></div>
-    <button class="bfolder" id="btn-folder" onclick="exportToFolder()">📂 下载到文件夹</button>
+    <button class="bfolder" id="btn-folder" onclick="guardExport(exportToFolder)">📂 下载到文件夹</button>
     <div class="zip-row"><label class="tog" style="flex-shrink:0"><input type="checkbox" id="zip-toggle" onchange="onZipToggle()"><span class="sl"></span></label><span class="zip-lbl" id="zip-lbl" onclick="G('zip-toggle').click();onZipToggle()">打包为 ZIP</span></div>
     <div id="zip-hint">— 逐个下载 PNG</div>
     <div class="zip-row"><label class="tog"><input type="checkbox" id="print-toggle" checked onchange="onPrintToggle()"><span class="sl"></span></label><button class="hlp" onclick="showHelp(event,'print')" style="margin-right:4px">?</button><span class="zip-lbl on" id="print-lbl" onclick="G('print-toggle').click()">同时导出印花 PNG（透明底）</span></div>
     <div class="folder-row" id="print-row"><span class="fl-lbl">🏷️</span><input type="text" id="print-name" placeholder="留空 = 项目名：印花文件名（默认：印花）" maxlength="50"><label style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--dim);white-space:nowrap;cursor:pointer;flex-shrink:0"><input type="checkbox" id="print-logo" onchange="updExpDesc()" style="accent-color:#3b82f6">含Logo</label></div>
     <div class="folder-row" id="print-dim-row"><span class="fl-lbl">📐</span><input type="number" id="print-dpi" value="300" min="72" max="1200" style="width:52px" title="打印精度 DPI" onchange="updPrintDim()"><span style="font-size:10px;color:var(--mut);flex-shrink:0">dpi</span><input type="number" id="print-mmw" placeholder="宽" min="1" max="3000" step="0.1" style="width:56px" title="物理宽度 mm（可选）" onchange="updPrintDim()"><span style="font-size:10px;color:var(--mut)">×</span><input type="number" id="print-mmh" placeholder="高" min="1" max="3000" step="0.1" style="width:56px" title="物理高度 mm（可选）" onchange="updPrintDim()"><span style="font-size:10px;color:var(--mut);flex-shrink:0">mm</span><span id="print-dim-hint" style="font-size:10px;color:var(--dim);font-family:var(--mono);margin-left:auto;flex-shrink:0"></span></div>
     <div class="folder-row"><span class="fl-lbl">🥤</span><span style="font-size:11px;color:var(--dim);flex-shrink:0">杯身直径</span><input type="number" id="cup-dia" value="7.5" min="1" max="40" step="0.1" style="width:56px" title="用于估算印花实际厘米尺寸" onchange="renderCanvas()"><span style="font-size:10px;color:var(--mut);flex-shrink:0">cm</span><span id="cm-hint" style="font-size:10px;color:var(--warm);font-family:var(--mono);margin-left:auto;flex-shrink:0"></span></div>
-    <button class="bexp" id="btn-exp" onclick="exportAll()">▶ 批量导出</button>
+    <button class="bexp" id="btn-exp" onclick="guardExport(exportAll)">▶ 批量导出</button>
     <div id="prog-wrap"><div id="prog-txt">正在导出…</div><div id="prog-bar"><div id="prog-fill"></div></div><button id="btn-cancel" onclick="cancelExport()">✕ 取消</button></div>
   </div>
 </div>
@@ -644,6 +663,8 @@ input::placeholder{color:var(--mut)!important;}
     <tr><td>Ctrl + Z</td><td>撤销</td></tr>
     <tr><td>Ctrl + C / X / V</td><td>复制 / 剪切 / 粘贴素材</td></tr>
     <tr><td>Esc</td><td>取消选择 / 关闭弹窗</td></tr>
+    <tr><td>/</td><td>搜索素材</td></tr>
+    <tr><td>K</td><td>导出前检查（DPI / 超出印位 / 超出画面）</td></tr>
     <tr><td>V</td><td>印位：复用当前印位（位置/大小/角度/曲面）</td></tr>
     <tr><td>Shift + V</td><td>印位：把当前位置存为新印位</td></tr>
     <tr><td>Alt + V</td><td>印位：更新当前印位为现在的位置</td></tr>
@@ -790,6 +811,8 @@ input::placeholder{color:var(--mut)!important;}
     </div>
     <div class="cut-right">
       <div class="sec-title">快速预设</div>
+        <button class="bp" id="cb-ai" onclick="cutAi()" style="width:100%;margin-bottom:6px" title="适合渐变背景、阴影、复杂背景；首次需下载 4.5MB 模型">✨ AI 抠图（复杂背景）</button>
+        <label class="ai-pick">模型下载不了？<u>选择模型文件</u><input type="file" accept=".onnx" hidden onchange="aiPickModel(this)"></label>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:10px">
         <button class="bi" onclick="cutPreset('pure')">纯白底</button>
         <button class="bi" onclick="cutPreset('soft')">浅灰底</button>
@@ -814,6 +837,12 @@ input::placeholder{color:var(--mut)!important;}
     </div>
   </div>
   <div class="mbtns"><button class="bg" onclick="closeCutout()">取消</button><button class="bp" onclick="confirmCutout()">生成去背版本</button></div>
+</div></div>
+<div id="pf-ov" class="ov"><div class="ov-card" style="width:min(560px,94vw)">
+  <div class="ov-t">导出前检查 <span id="pf-sum" style="font-size:11px;color:var(--dim);font-weight:400"></span></div>
+  <div id="pf-body" style="max-height:50vh;overflow-y:auto"></div>
+  <div class="cup-tip">点一行跳到对应底图和印花。快捷键 K 随时检查。</div>
+  <div class="mbtns"><button class="bg" onclick="closePreflight()">去修改</button><button class="bp" id="pf-go"></button></div>
 </div></div>
 <div id="cupchip-menu"></div>
 <div id="cup-ov" class="ov"><div class="ov-card" style="width:min(560px,94vw)">
@@ -1029,7 +1058,7 @@ input[type=range].tl::-moz-range-thumb{background:var(--teal);}
 .libi:hover .libi-plus{display:flex;}
 .libi-del{position:absolute;top:-5px;right:-5px;width:17px;height:17px;border-radius:50%;background:var(--surf2);border:1px solid var(--bd);color:var(--dim);font-size:9px;cursor:pointer;display:none;align-items:center;justify-content:center;z-index:3;}
 .libi:hover .libi-del{display:flex;}
-.libi.adding{opacity:.25;pointer-events:none;}
+.libi.adding{opacity:1!important;pointer-events:none;}
 .libi{overflow:visible;}
 .libi img{border-radius:5px;}
 .libi-del:hover{background:var(--err);border-color:var(--err);color:#fff;}
@@ -2425,6 +2454,49 @@ body.simple #simple-btn::before{content:'';display:inline-block;width:6px;height
 kbd{display:inline-block;padding:0 5px;margin-left:4px;border-radius:4px;border:1px solid var(--bd);background:var(--surf3);
   color:var(--dim);font:600 10px/16px var(--mono);vertical-align:1px;}
 .bp kbd{background:rgba(255,255,255,.18);border-color:rgba(255,255,255,.35);color:#fff;}
+
+.pf-row{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:var(--rs);background:var(--surf2);margin-bottom:5px;font-size:12px;cursor:pointer;}
+.pf-row:hover{background:var(--surf3);}
+.pf-row i{flex:0 0 18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font:700 11px var(--mono);font-style:normal;color:#fff;}
+.pf-row.err i{background:var(--err);} .pf-row.warn i{background:var(--warm);} .pf-row.info i{background:var(--dim);}
+.pf-row span{flex:1;color:var(--txt);}
+.pf-row button{padding:4px 10px;border-radius:999px;border:1px solid var(--acc);background:var(--acc-d);color:var(--acc-l);font-size:11px;cursor:pointer;}
+.pf-ok{padding:18px;text-align:center;color:var(--ok);font-size:13px;}
+
+/* 统一:素材库里的素材就是「未选中」的素材,外观一致,点一下选中 */
+.libi{opacity:.42!important;border:2px solid transparent!important;border-style:solid!important;background:var(--surf3)!important;}
+.libi:hover{opacity:.7!important;}
+.libi-plus{display:none!important;}
+body:not(.sbatch) .libi-del{display:none!important;}
+body.sbatch .libi{opacity:1!important;}
+
+.sfilt{display:flex;align-items:center;gap:5px;margin:0 0 7px;}
+.sf-q{flex:1 1 auto;min-width:0;padding:5px 9px;border-radius:999px;border:1px solid var(--bd);background:var(--surf2);color:var(--txt);font-size:11.5px;}
+.sf-q:focus{border-color:var(--acc);outline:none;}
+.sf-seg{display:flex;border:1px solid var(--bd);border-radius:999px;overflow:hidden;flex:0 0 auto;}
+.sf-seg button{padding:4px 8px;border:none;background:transparent;color:var(--mut);font-size:10.5px;cursor:pointer;}
+.sf-seg button.on{background:var(--acc-d);color:var(--acc-l);font-weight:600;}
+.sf-n{font:10px var(--mono);color:var(--acc-l);min-width:0;}
+.sf-hide{display:none!important;}
+
+/* 主区域改为占满剩余高度:上方多出提醒条/项目标签时不再把底部挤出屏幕 */
+@media (min-width:821px) and (pointer:fine), (min-width:1025px){
+  body{display:flex;flex-direction:column;height:100vh;height:100dvh;overflow:hidden;}
+  #topbar,#backup-warn,#proj-tabs{flex:0 0 auto;}
+  #app{flex:1 1 auto;min-height:0;height:auto!important;}
+  #left{min-height:0;}
+  #left .ps{flex:1 1 auto;min-height:0;overflow-y:auto;}
+}
+/* 快速跳转条 */
+#snav{flex:0 0 auto;display:grid;grid-template-columns:repeat(4,1fr);gap:4px;padding:7px 10px;border-bottom:1px solid var(--bd);background:var(--surf);}
+#snav button{display:flex;align-items:center;justify-content:center;gap:4px;padding:6px 2px;border-radius:var(--rs);border:1px solid transparent;
+  background:var(--surf2);color:var(--dim);font-size:11.5px;cursor:pointer;white-space:nowrap;transition:all .12s;}
+#snav button:hover{border-color:var(--acc);color:var(--acc-l);}
+#snav button.on{background:var(--acc-d);color:var(--acc-l);border-color:var(--acc);font-weight:600;}
+#snav b{font:600 9.5px var(--mono);color:var(--mut);}
+#snav button.on b{color:var(--acc-l);}
+@keyframes snFlash{0%{box-shadow:0 0 0 0 var(--acc)}40%{box-shadow:0 0 0 3px var(--acc)}100%{box-shadow:0 0 0 0 transparent}}
+.sn-flash{animation:snFlash .9s ease;}
 </style>
 <script>
 /* ============================================================
@@ -2651,7 +2723,7 @@ function renderBaseGrid() {
   const g = G('base-grid');
   g.querySelectorAll('.ti').forEach(e => e.remove());
   G('base-empty').style.display = S.bases.length ? 'none' : 'block';
-  setCnt('base-cnt', S.bases.filter(x => x.checked !== false).length, S.bases.length);
+  setCnt('base-cnt', S.bases.filter(x => x.checked !== false).length, S.bases.length + libAvailN.base);
   S.bases.forEach((b, i) => {
     const d = document.createElement('div');
     d.dataset.id = b.id; if (b.aid) d.dataset.aid = b.aid;
@@ -2664,8 +2736,10 @@ function renderBaseGrid() {
       const from = +e.dataTransfer.getData('text/plain');
       if (isNaN(from) || from === i) return;
       snapshot();
+      const tgtB = (S.bases[i] || {}).aid;
       const [mv] = S.bases.splice(from, 1);
       S.bases.splice(i, 0, mv);
+      sOrdMove('base', mv.aid, tgtB);
       if (S.activeBase === from) S.activeBase = i;
       else if (from < S.activeBase && i >= S.activeBase) S.activeBase--;
       else if (from > S.activeBase && i <= S.activeBase) S.activeBase++;
@@ -2698,11 +2772,12 @@ function renderStkGrid() {
   const g = G('stk-grid');
   g.querySelectorAll('.sti').forEach(e => e.remove());
   G('stk-empty').style.display = S.stks.length ? 'none' : 'block';
-  setCnt('stk-cnt', S.stks.filter(x => x.checked).length, S.stks.length);
+  setCnt('stk-cnt', S.stks.filter(x => x.checked).length, S.stks.length + libAvailN.sticker);
   S.stks.forEach((s, i) => {
     const d = document.createElement('div');
     d.dataset.id = s.id; if (s.aid) d.dataset.aid = s.aid;
     d.className = 'sti' + (s.checked ? ' checked' : '') + (s.id === S.activeStk ? ' active' : '');
+    if (s.aid) d.dataset.aid = s.aid;
     d.title = `${s.name}\n${Math.round(drawW(s))}×${Math.round(drawH(s))}px` +
       (s.crop ? '\n已裁剪' : '') + (s.curve ? `\n曲面 ${s.curve}%` : '') +
       (hasWarp(s) ? '\n已变形' : '') + '\n\n单击选中 · 双击变形 · 右键复制';
@@ -2727,8 +2802,10 @@ function renderStkGrid() {
       const from = +e.dataTransfer.getData('text/plain');
       if (isNaN(from) || from === i) return;
       snapshot();
+      const tgtS = (S.stks[i] || {}).aid;
       const [mv] = S.stks.splice(from, 1);
       S.stks.splice(i, 0, mv);
+      sOrdMove('sticker', mv.aid, tgtS);
       refreshAll(); notify('已调整图层顺序');
     };
     const ck = document.createElement('div'); ck.className = 'sti-ck';
@@ -2877,6 +2954,7 @@ function selAddRect(r) {
   if (typeof updPhysicalReadout === 'function') updPhysicalReadout();
   if (typeof renderCupBar === 'function') renderCupBar();
   if (typeof syncSecHeads === 'function') syncSecHeads();
+  if (typeof updSideNav === 'function') updSideNav();
 }
 
 let dragSnapDone = false;
@@ -4703,6 +4781,156 @@ function applyCupToAllBases() {                 // 把当前印位套到项目�
   notify(n ? `已把「${cup.name}」套用到另外 ${n} 张底图` : '没有其它底图', n ? 'ok' : 'err');
 }
 
+/* ═══════════ PWA:离线可用 + 更新提示 ═══════════
+   需要站点上有 editor-sw.js / editor.webmanifest;没有就静默跳过,不影响使用 */
+function initPWA() {
+  if (!('serviceWorker' in navigator)) return;
+  if (!/^https:|^http:\/\/(localhost|127\.)/.test(location.href)) return;
+  fetch('editor-sw.js', { method: 'HEAD', cache: 'no-store' }).then(r => {
+    if (!r.ok) return;
+    navigator.serviceWorker.register('editor-sw.js', { scope: './Editor.html' }).then(reg => {
+      const ask = w => {
+        notifyUndo('有新版本可用', () => { w.postMessage('skipWaiting'); });
+        const b = document.querySelector('#notif .nf-undo'); if (b) b.textContent = '刷新更新';
+      };
+      if (reg.waiting && navigator.serviceWorker.controller) ask(reg.waiting);
+      reg.addEventListener('updatefound', () => {
+        const w = reg.installing;
+        w && w.addEventListener('statechange', () => { if (w.state === 'installed' && navigator.serviceWorker.controller) ask(w); });
+      });
+      setInterval(() => reg.update().catch(() => {}), 30 * 60000);     // 每 30 分钟查一次更新
+    }).catch(e => logErr && logErr('离线缓存注册失败', e.message));
+    let reloaded = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => { if (!reloaded) { reloaded = true; location.reload(); } });
+  }).catch(() => {});
+}
+/* 离线状态提示 */
+function updOnline() {
+  const on = navigator.onLine;
+  document.body.classList.toggle('offline', !on);
+  const b = G('net-badge'); if (b) b.style.display = on ? 'none' : '';
+}
+window.addEventListener('online', () => { updOnline(); notify('已恢复联网', 'ok'); });
+window.addEventListener('offline', () => { updOnline(); notify('已离线：编辑和导出照常，同步暂停'); });
+
+/* ═══════════════ AI 抠图(u2netp,Apache-2.0,4.5MB) ═══════════════
+   点了才加载:推理库走 CDN,模型优先读本机缓存 → 同站 models/ → GitHub。
+   下载成功后存进 IndexedDB,之后离线也能用。 */
+const AI_ORT = 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.19.2/dist/';
+const AI_MODEL_URLS = ['models/u2netp.onnx', 'https://github.com/danielgatis/rembg/releases/download/v0.0.0/u2netp.onnx'];
+const AI_N = 320, AI_MEAN = [0.485, 0.456, 0.406], AI_STD = [0.229, 0.224, 0.225];
+let aiSess = null, aiLoading = null;
+function loadScript(src) {
+  return new Promise((res, rej) => { const s = document.createElement('script'); s.src = src; s.onload = res; s.onerror = () => rej(new Error('加载失败 ' + src)); document.head.appendChild(s); });
+}
+async function aiModelBytes(onProg) {
+  try { const c = await idbGet('ai:u2netp'); if (c && c.byteLength) return c; } catch (e) {}
+  let last = null;
+  for (const url of AI_MODEL_URLS) {
+    try {
+      const r = await fetch(url);
+      if (!r.ok) throw new Error(r.status);
+      const total = +r.headers.get('content-length') || 4574861, rd = r.body && r.body.getReader();
+      let buf;
+      if (rd) {
+        const parts = []; let got = 0;
+        for (;;) { const { done, value } = await rd.read(); if (done) break; parts.push(value); got += value.length; onProg && onProg(got / total); }
+        buf = new Uint8Array(got); let o = 0; parts.forEach(p => { buf.set(p, o); o += p.length; });
+      } else buf = new Uint8Array(await r.arrayBuffer());
+      try { await idbPut(buf.buffer, 'ai:u2netp'); } catch (e) {}
+      return buf.buffer;
+    } catch (e) { last = e; }
+  }
+  throw new Error('模型下载失败（' + (last && last.message) + '）。可点「选择模型文件」手动载入 u2netp.onnx');
+}
+async function aiEnsure() {
+  if (aiSess) return aiSess;
+  if (aiLoading) return aiLoading;
+  aiLoading = (async () => {
+    setProg(true, '加载 AI 引擎…', 5);
+    if (!window.ort) await loadScript(AI_ORT + 'ort.min.js');
+    ort.env.wasm.wasmPaths = AI_ORT;
+    ort.env.wasm.numThreads = Math.min(4, navigator.hardwareConcurrency || 2);
+    const bytes = await aiModelBytes(f => setProg(true, `下载 AI 模型 ${Math.round(f * 100)}%（仅首次）`, 10 + f * 70));
+    setProg(true, '初始化模型…', 85);
+    aiSess = await ort.InferenceSession.create(bytes, { executionProviders: ['wasm'] });
+    setProg(false);
+    return aiSess;
+  })();
+  try { return await aiLoading; } catch (e) { aiLoading = null; setProg(false); throw e; }
+}
+async function aiPickModel(input) {                   /* 下载不了时:手动选 u2netp.onnx */
+  const f = input.files && input.files[0]; input.value = '';
+  if (!f) return;
+  const buf = await f.arrayBuffer();
+  await idbPut(buf, 'ai:u2netp'); aiSess = null; aiLoading = null;
+  notify('模型已存入本机，之后离线可用', 'ok');
+  if (cutState) cutAi();
+}
+/* 纯函数:320×320 RGBA → 0..1 显著图(与离线验证的流程一致) */
+async function aiMatte(sess, rgba) {
+  const N = AI_N; let mx = 0;
+  for (let i = 0; i < rgba.length; i += 4) { if (rgba[i] > mx) mx = rgba[i]; if (rgba[i + 1] > mx) mx = rgba[i + 1]; if (rgba[i + 2] > mx) mx = rgba[i + 2]; }
+  mx = mx || 1;
+  const f = new Float32Array(3 * N * N);
+  for (let p = 0; p < N * N; p++) for (let c = 0; c < 3; c++) f[c * N * N + p] = (rgba[p * 4 + c] / mx - AI_MEAN[c]) / AI_STD[c];
+  const out = await sess.run({ [sess.inputNames[0]]: new ort.Tensor('float32', f, [1, 3, N, N]) });
+  const d = out[sess.outputNames[0]].data;
+  let a = Infinity, b = -Infinity;
+  for (let i = 0; i < d.length; i++) { if (d[i] < a) a = d[i]; if (d[i] > b) b = d[i]; }
+  const k = b - a || 1, m = new Float32Array(d.length);
+  for (let i = 0; i < d.length; i++) m[i] = (d[i] - a) / k;
+  return m;
+}
+/* 显著图放大到任意尺寸并作为透明度合成 */
+function aiComposite(img, map) {
+  const w = img.naturalWidth || img.width, h = img.naturalHeight || img.height, N = AI_N;
+  const mc = document.createElement('canvas'); mc.width = N; mc.height = N;
+  const mx = mc.getContext('2d'), id = mx.createImageData(N, N);
+  for (let i = 0; i < map.length; i++) { const v = Math.round(map[i] * 255); id.data[i * 4] = id.data[i * 4 + 1] = id.data[i * 4 + 2] = v; id.data[i * 4 + 3] = 255; }
+  mx.putImageData(id, 0, 0);
+  const big = document.createElement('canvas'); big.width = w; big.height = h;
+  const bx = big.getContext('2d', { willReadFrequently: true });
+  bx.imageSmoothingQuality = 'high'; bx.drawImage(mc, 0, 0, w, h);
+  const al = bx.getImageData(0, 0, w, h).data;
+  const out = document.createElement('canvas'); out.width = w; out.height = h;
+  const ox = out.getContext('2d', { willReadFrequently: true });
+  ox.drawImage(img, 0, 0, w, h);
+  const d = ox.getImageData(0, 0, w, h), px = d.data;
+  let removed = 0;
+  for (let i = 0; i < w * h; i++) { const a = al[i * 4]; px[i * 4 + 3] = Math.round(px[i * 4 + 3] * a / 255); if (a < 128) removed++; }
+  ox.putImageData(d, 0, 0);
+  out._cutStat = { removed, total: w * h };
+  return out;
+}
+async function cutAi() {
+  if (!cutState) return;
+  const st = cutState;
+  try {
+    const sess = await aiEnsure();
+    if (cutState !== st) return;
+    setProg(true, 'AI 识别主体…', 90);
+    await new Promise(r => setTimeout(r, 16));
+    const c = document.createElement('canvas'); c.width = AI_N; c.height = AI_N;
+    const x = c.getContext('2d', { willReadFrequently: true });
+    x.drawImage(st.img, 0, 0, AI_N, AI_N);
+    const t0 = performance.now();
+    st.aiMap = await aiMatte(sess, x.getImageData(0, 0, AI_N, AI_N).data);
+    st.mode = 'ai';
+    st.baseCanvas = aiComposite(st.img, st.aiMap);
+    setProg(false);
+    const stt = G('cut-stat');
+    if (stt) stt.textContent = `AI 抠图 · ${Math.round(performance.now() - t0)}ms · 可继续用擦除/恢复/魔棒修边`;
+    G('cb-ai') && G('cb-ai').classList.add('act');
+    applyCutMask(true);
+    notify('AI 抠图完成，调参数滑块会切回普通算法', 'ok');
+  } catch (e) {
+    setProg(false);
+    notify('AI 抠图失败：' + (e.message || e), 'err');
+    logErr && logErr('AI 抠图', e.message || e);
+  }
+}
+
 /* ═══════════════ 错误记录 ═══════════════
    没有后台服务,出问题只能靠用户描述。这里把运行错误留在本机,可一键复制反馈。 */
 const ERR_KEY = 'tm_errlog';
@@ -4907,6 +5135,72 @@ async function checkBackupDue() {
   } catch (e) {}
 }
 
+/* ═══════════ 导出前印刷预检 ═══════════ */
+function stkBox(s) {                               // 旋转后的外接框
+  const w = drawW(s), h = drawH(s), r = (s.rot || 0) * Math.PI / 180;
+  const bw = Math.abs(w * Math.cos(r)) + Math.abs(h * Math.sin(r)), bh = Math.abs(w * Math.sin(r)) + Math.abs(h * Math.cos(r));
+  return { x0: s.x - bw / 2, y0: s.y - bh / 2, x1: s.x + bw / 2, y1: s.y + bh / 2 };
+}
+function preflight() {
+  const out = [], bases = S.bases.map((b, i) => i).filter(i => S.bases[i].checked !== false);
+  const stks = S.stks.filter(x => x.checked);
+  if (!bases.length) out.push({ lv: 'err', msg: '没有勾选任何底图' });
+  if (!stks.length && !S.extras.some(x => x.checked)) out.push({ lv: 'err', msg: '没有勾选任何素材' });
+  const saved = S.activeBase;
+  bases.forEach(bi => {
+    S.activeBase = bi;
+    const b = S.bases[bi], pr = printRect(bi), { W, H } = outSize(bi);
+    if (!pr && stks.length) out.push({ lv: 'info', msg: `「${b.name}」没绑定印位，印花位置靠手动`, bi });
+    stks.forEach(st => {
+      const bx = stkBox(st), tag = `「${b.name}」·「${st.name}」`;
+      if (bx.x0 < -2 || bx.y0 < -2 || bx.x1 > W + 2 || bx.y1 > H + 2) out.push({ lv: 'warn', msg: `${tag} 超出画面，会被裁掉`, bi, sid: st.id });
+      if (pr) {
+        const tol = Math.max(pr.w, pr.h) * 0.03, hw = drawW(st) / 2, hh = drawH(st) / 2;   /* 印位存的是未旋转尺寸,按同一口径比 */
+        if (st.x - hw < pr.x - tol || st.y - hh < pr.y - tol || st.x + hw > pr.x + pr.w + tol || st.y + hh > pr.y + pr.h + tol)
+          out.push({ lv: 'warn', msg: `${tag} 超出印位「${pr.cup.name}」范围`, bi, sid: st.id, fix: 'cup' });
+        const ph = pr.cup.wCm ? stkPhysical(st, bi) : null;
+        if (ph && ph.dpi < 100) out.push({ lv: 'err', msg: `${tag} 仅 ${ph.dpi} DPI，印出来会明显发糊`, bi, sid: st.id });
+        else if (ph && ph.dpi < 150) out.push({ lv: 'warn', msg: `${tag} ${ph.dpi} DPI，偏低`, bi, sid: st.id });
+      }
+    });
+  });
+  S.activeBase = saved;
+  // 同一印花在多张底图重复报同类问题时合并
+  const seen = new Set();
+  return out.filter(x => { const k = x.lv + x.msg.replace(/「[^」]*」·/, ''); if (x.sid && seen.has(k)) return false; seen.add(k); return true; });
+}
+function showPreflight(list, onGo) {
+  const box = G('pf-body');
+  box.innerHTML = list.length ? '' : '<div class="pf-ok">✓ 没发现问题，可以导出</div>';
+  list.forEach(x => {
+    const d = document.createElement('div');
+    d.className = 'pf-row ' + x.lv;
+    d.innerHTML = `<i>${{ err: '✕', warn: '!', info: 'i' }[x.lv]}</i><span>${x.msg}</span>`;
+    if (x.fix === 'cup') {
+      const f = document.createElement('button'); f.textContent = '放回印位';
+      f.onclick = e => { e.stopPropagation(); gotoPage(x.bi); S.activeStk = x.sid; applyCupSilent(cupOf(S.bases[x.bi]).id); d.remove(); };
+      d.appendChild(f);
+    }
+    if (x.bi !== undefined) d.onclick = () => { closePreflight(); gotoPage(x.bi); if (x.sid) { S.activeStk = x.sid; refreshAll(); } };
+    box.appendChild(d);
+  });
+  const n = { err: 0, warn: 0 }; list.forEach(x => n[x.lv] !== undefined && n[x.lv]++);
+  G('pf-sum').textContent = list.length ? `${n.err} 个错误 · ${n.warn} 个提醒` : '';
+  const go = G('pf-go');
+  go.style.display = onGo ? '' : 'none';
+  go.textContent = n.err ? '仍然导出' : '继续导出';
+  go.onclick = () => { closePreflight(); onGo && onGo(); };
+  G('pf-ov').classList.add('on');
+}
+function closePreflight() { G('pf-ov').classList.remove('on'); }
+function runPreflight() { showPreflight(preflight()); }
+/* 导出前拦一下:有错误或提醒才弹,没问题直接导出 */
+function guardExport(fn) {
+  const list = preflight().filter(x => x.lv !== 'info');
+  if (!list.length) return fn();
+  showPreflight(preflight(), fn);
+}
+
 /* ═══════════ 导出区收纳:常用项常显,其余收进可展开分组 ═══════════ */
 function restructureExport() {
   const z = G('exp-zone');
@@ -5022,6 +5316,8 @@ document.addEventListener('keydown', e => {
     if (k === 'v' && e.altKey) { e.preventDefault(); updateCupHere(); }                 /* Alt+V 更新当前印位 */
     else if (k === 'v' && e.shiftKey) { e.preventDefault(); quickSaveCup({ stay: true }); }  /* Shift+V 存为新印位 */
     else if (k === 'v' && !e.altKey) { e.preventDefault(); reuseCup(); }               /* V 复用 */
+    else if (e.key === '/' && !e.altKey) { e.preventDefault(); const q = document.querySelector('.sfilt[data-k="sticker"] .sf-q'); if (q) { q.focus(); q.select(); } }
+    else if (k === 'k' && !e.altKey && !e.shiftKey) { e.preventDefault(); runPreflight(); }
     else if ((e.key === ',' || e.key === '.') && !e.altKey) { e.preventDefault(); cycleCup(e.key === '.' ? 1 : -1); }
   }
 });
@@ -5032,7 +5328,7 @@ function setCnt(id, sel, total) {
   if (!e) return;
   e.textContent = (total && sel !== total) ? `${sel}/${total}` : String(total);
   e.classList.toggle('part', !!total && sel !== total);
-  e.title = total ? `共 ${total} 个，勾选 ${sel} 个参与导出` : '还没有内容';
+  e.title = total ? `共 ${total} 个，选中 ${sel} 个参与导出` : '还没有内容';
 }
 /* 折叠时把数量显示在标题旁,不用展开就知道有多少 */
 function syncSecHeads() {
@@ -7349,6 +7645,111 @@ function renderLibStrips() { appendLibItems('base'); appendLibItems('sticker'); 
 /* 把库中「未加入当前项目」的素材直接续在同一网格里,点击即加入 */
 const stripUrls2 = [];
 const libRenderGen = { base: 0, sticker: 0, logo: 0 };
+/* ═══ 左侧快速跳转 ═══ */
+function sidePS() { return document.querySelector('#left .ps'); }
+function sideJump(id) {
+  const sec = G(id), ps = sidePS();
+  if (!sec || !ps) return;
+  if (sec.classList.contains('folded')) toggleUsec(id);          /* 折叠着就先展开 */
+  const top = sec.getBoundingClientRect().top - ps.getBoundingClientRect().top + ps.scrollTop - 6;
+  if (ps.scrollTo) ps.scrollTo({ top, behavior: 'smooth' }); else ps.scrollTop = top;
+  sec.classList.remove('sn-flash'); void sec.offsetWidth; sec.classList.add('sn-flash');
+}
+/* 双击:只展开这一块,其它折叠(素材多时专心编辑一块) */
+function sideFocus(id) {
+  ['drop-base', 'drop-stk', 'drop-extra', 'drop-brand'].forEach(k => {
+    const el = G(k); if (!el) return;
+    const folded = el.classList.contains('folded');
+    if ((k === id) === folded) toggleUsec(k);
+  });
+  setTimeout(() => sideJump(id), 30);
+  notify('只展开这一块，双击其它按钮切换');
+}
+function updSideNav() {
+  const cnt = id => { const e = G(id); return e ? e.textContent : ''; };
+  const set = (id, v) => { const e = G(id); if (e) e.textContent = v && v !== '0' ? v : ''; };
+  set('sn-base', cnt('base-cnt')); set('sn-stk', cnt('stk-cnt')); set('sn-extra', cnt('extra-cnt'));
+}
+/* 滚动时高亮当前所在区块 */
+function sideSpy() {
+  const ps = sidePS(); if (!ps) return;
+  const top = ps.getBoundingClientRect().top + 40;
+  let cur = 'drop-base';
+  ['drop-base', 'drop-stk', 'drop-extra', 'drop-brand'].forEach(k => { const el = G(k); if (el && el.getBoundingClientRect().top <= top) cur = k; });
+  if (ps.scrollTop + ps.clientHeight >= ps.scrollHeight - 4) cur = 'drop-brand';
+  document.querySelectorAll('#snav button').forEach(b => b.classList.toggle('on', b.dataset.sec === cur));
+}
+
+/* ═══ 左侧素材搜索 / 筛选 ═══ */
+const sideF = { base: 'all', sticker: 'all' };
+function sideItemName(el) { return ((el.title || '').split('\n')[0].replace(/（[^）]*）$/, '') || '').toLowerCase(); }
+function sideItemOn(el) { return el.classList.contains('checked') || el.classList.contains('bchk'); }
+function sideFilter(kind) {
+  const g = G(kind === 'base' ? 'base-grid' : 'stk-grid'), bar = document.querySelector(`.sfilt[data-k="${kind}"]`);
+  if (!g || !bar) return;
+  const q = (bar.querySelector('.sf-q').value || '').trim().toLowerCase(), mode = sideF[kind];
+  let shown = 0, total = 0;
+  [...g.children].forEach(el => {
+    if (!el.dataset || !el.dataset.aid) return;
+    total++;
+    const ok = (!q || sideItemName(el).includes(q)) && (mode === 'all' || (mode === 'on') === sideItemOn(el));
+    el.classList.toggle('sf-hide', !ok);
+    if (ok) shown++;
+  });
+  const n = bar.querySelector('.sf-n');
+  n.textContent = (q || mode !== 'all') ? `${shown}/${total}` : '';
+  bar.classList.toggle('active', !!(q || mode !== 'all'));
+}
+function sideFilterMode(kind, m) {
+  sideF[kind] = m;
+  document.querySelectorAll(`.sfilt[data-k="${kind}"] .sf-seg button`).forEach(b => b.classList.toggle('on', b.dataset.f === m));
+  sideFilter(kind);
+}
+
+/* ═══ 左侧素材位置固定:选中/取消都不挪位置 ═══ */
+const SORD_KEY = 'tm_side_order';
+let sideOrder = null;
+function sOrd(kind) {
+  if (!sideOrder) { try { sideOrder = JSON.parse(store.get(SORD_KEY) || '{}'); } catch (e) { sideOrder = {}; } }
+  return sideOrder[kind] || (sideOrder[kind] = []);
+}
+function sOrdSave() { try { store.set(SORD_KEY, JSON.stringify(sideOrder || {})); } catch (e) {} }
+let _keepScroll = null;
+function keepSideScroll() { const ps = document.querySelector('#left .ps'); if (ps) _keepScroll = { ps, top: ps.scrollTop }; }
+function stabilizeGrid(kind) {
+  const g = G(kind === 'base' ? 'base-grid' : 'stk-grid');
+  if (!g) return;
+  const items = [...g.children].filter(el => el.dataset && el.dataset.aid);
+  if (!items.length) return;
+  const ord = sOrd(kind);
+  let grew = false;
+  items.forEach(el => { if (!ord.includes(el.dataset.aid)) { ord.push(el.dataset.aid); grew = true; } });
+  if (grew) sOrdSave();
+  const idx = new Map(ord.map((a, i) => [a, i]));
+  const sorted = items.slice().sort((a, b) => idx.get(a.dataset.aid) - idx.get(b.dataset.aid));
+  if (sorted.some((el, i) => el !== items[i])) {
+    const anchor = items[0].previousSibling;               // 保持非素材节点(提示等)在原位
+    const frag = document.createDocumentFragment();
+    sorted.forEach(el => frag.appendChild(el));
+    g.insertBefore(frag, anchor ? anchor.nextSibling : g.firstChild);
+  }
+  if (_keepScroll) { const k = _keepScroll; requestAnimationFrame(() => { k.ps.scrollTop = k.top; }); _keepScroll = null; }
+  sideFilter(kind);
+}
+function sOrdMove(kind, aid, tgtAid) {                     // 拖拽排序时同步位置
+  const ord = sOrd(kind);
+  if (!aid || !tgtAid || aid === tgtAid) return;
+  const a = ord.indexOf(aid); if (a >= 0) ord.splice(a, 1);
+  const t = ord.indexOf(tgtAid);
+  ord.splice(t < 0 ? ord.length : (a >= 0 && a <= t ? t + 1 : t), 0, aid);
+  sOrdSave();
+}
+const libAvailN = { base: 0, sticker: 0, logo: 0 };
+function updSideCounts() {
+  setTimeout(() => typeof updSideNav === 'function' && updSideNav(), 0);
+  setCnt('base-cnt', S.bases.filter(x => x.checked !== false).length, S.bases.length + libAvailN.base);
+  setCnt('stk-cnt', S.stks.filter(x => x.checked).length, S.stks.length + libAvailN.sticker);
+}
 async function appendLibItems(kind) {
   const gid = kind === 'base' ? 'base-grid' : kind === 'sticker' ? 'stk-grid' : 'logo-grid';
   const g = G(gid);
@@ -7362,6 +7763,7 @@ async function appendLibItems(kind) {
     : kind === 'sticker' ? S.stks.map(t => t.aid)
     : [S.logos.brand.aid, S.logos.ip.aid]);
   const avail = list.filter(a => !used.has(a.id));
+  libAvailN[kind] = avail.length; updSideCounts();
   const cntEl = G(kind === 'base' ? 'lib-n-base' : kind === 'sticker' ? 'lib-n-sticker' : 'lib-n-logo');
   if (cntEl) cntEl.textContent = list.length;
   if (gen !== libRenderGen[kind]) return;
@@ -7370,7 +7772,7 @@ async function appendLibItems(kind) {
     const inBatch = sideBatch.on && sideBatch.kind === kind;
     d.dataset.aid = a.id;
     d.className = 'libi' + (inBatch && sideBatch.picked.has(a.id) ? ' sbpick' : '');
-    d.title = inBatch ? a.name + '（勾选后可彻底删除）' : a.name + '（点击加入项目）';
+    d.title = inBatch ? a.name + '（勾选后可彻底删除）' : a.name + '（点一下选中）';
     if (inBatch) {
       const sb = document.createElement('div');
       sb.className = 'sb-sel' + (sideBatch.picked.has(a.id) ? ' on' : '');
@@ -7389,8 +7791,8 @@ async function appendLibItems(kind) {
     d.onclick = () => {
       if (d.dataset.busy) return;         // 防连点重复添加
       d.dataset.busy = '1';
-      d.classList.add('adding');
-      d.remove();                          // 立即从库区移除,给出即时反馈
+      d.classList.add('adding');           // 原地变亮,不挪位置
+      keepSideScroll();
       addFromLibrary(a.id);
     };
     const im = document.createElement('img');
@@ -7398,13 +7800,9 @@ async function appendLibItems(kind) {
     stripUrls2.push(u);
     if (stripUrls2.length > 150) URL.revokeObjectURL(stripUrls2.shift());
     lazyImg(im, u); d.appendChild(im);
-    const pl = document.createElement('span'); pl.className = 'libi-plus'; pl.textContent = '＋'; d.appendChild(pl);
-    const del = document.createElement('button'); del.className = 'libi-del'; del.textContent = '✕';
-    del.title = '从素材库永久删除';
-    del.onclick = ev => { ev.stopPropagation(); deleteFromLibrary(a.id, a.name); };
-    d.appendChild(del);
     g.appendChild(d);
   });
+  if (kind !== 'logo') stabilizeGrid(kind);
   if (kind !== 'logo') {
     const emp = G(kind === 'base' ? 'base-empty' : 'stk-empty');
     const hasAny = (kind === 'base' ? S.bases.length : S.stks.length) || avail.length;
@@ -8708,7 +9106,7 @@ const CUT_UNDO_MAX = 40;
 
 /* 遮罩(有符号): 0 = 跟随算法结果 · -1 = 完全擦除 · +1 = 完全恢复原图
    旧版只有「保留系数」,恢复笔无法找回算法删掉的像素,这里改成双向 */
-let cutDirty = null;
+let cutDirty = null, cutHasMask = false;
 function cutMarkDirty(x0, y0, x1, y1) {
   if (cutDirty === 'all') return;
   if (!cutDirty) cutDirty = { x0, y0, x1, y1 };
@@ -8718,7 +9116,7 @@ function cutMarkDirty(x0, y0, x1, y1) {
 function initCutMask(w, h) {
   cutMask = new Float32Array(w * h);          // 全 0
   cutBrush.w = w; cutBrush.h = h;
-  cutUndo = []; cutRedo = []; cutDirty = 'all';
+  cutUndo = []; cutRedo = []; cutDirty = 'all'; cutHasMask = false;
   updCutUndoUI();
 }
 /* ---------- 撤销 / 重做 ---------- */
@@ -8733,6 +9131,7 @@ function cutDoUndo() {
   if (!cutUndo.length || !cutMask) return notify('没有可撤销的涂抹');
   cutRedo.push(cutMask.slice());
   cutMask = cutUndo.pop();
+  cutHasMask = cutMask.some(v => v !== 0);
   applyCutMask(true); updCutUndoUI();
   notify('已撤销');
 }
@@ -8740,6 +9139,7 @@ function cutDoRedo() {
   if (!cutRedo.length || !cutMask) return notify('没有可重做的操作');
   cutUndo.push(cutMask.slice());
   cutMask = cutRedo.pop();
+  cutHasMask = cutMask.some(v => v !== 0);
   applyCutMask(true); updCutUndoUI();
   notify('已重做');
 }
@@ -8780,15 +9180,14 @@ function updBrushCursor(e) {
   }
   if (!_curXY) return;
   const wand = cutBrush.mode === 'wand' || cutBrush.mode === 'wandr';
-  el.style.left = _curXY.x + 'px'; el.style.top = _curXY.y + 'px';
+  el.style.transform = `translate3d(${_curXY.x - d / 2}px,${_curXY.y - d / 2}px,0)`;   /* transform 不触发重排 */
   el.style.display = wand ? 'none' : 'block';      // 明确设为 block(空字符串会被 CSS 的 display:none 覆盖)
   if (tag) {
     const lbl = { erase: '擦除', restore: '恢复', wand: '✦ 魔棒擦除', wandr: '✧ 魔棒恢复' }[cutBrush.mode] || '';
     tag.textContent = wand ? lbl : `${lbl} ${Math.round(cutBrush.size)}px`;
     tag.className = 'm-' + cutBrush.mode;
     const off = wand ? 14 : d / 2 + 8;
-    tag.style.left = (_curXY.x + off) + 'px';
-    tag.style.top = (_curXY.y + off) + 'px';
+    tag.style.transform = `translate3d(${_curXY.x + off}px,${_curXY.y + off}px,0)`;
     tag.style.display = 'block';
   }
 }
@@ -8824,6 +9223,7 @@ function paintMask(cx, cy, val) {
       const t = d <= core ? 1 : 1 - (d - core) / Math.max(1e-6, R - core);
       const i = y * w + x;
       cutMask[i] = val === 0 ? Math.min(cutMask[i], -t) : Math.max(cutMask[i], t);
+      cutHasMask = true;
     }
   }
   cutMarkDirty(x0, y0, x1, y1);
@@ -8845,7 +9245,7 @@ function cutWand(px, py, restore) {
     seen[p] = 1;
     const i4 = p * 4, dr = od[i4] - r0, dg = od[i4 + 1] - g0, db = od[i4 + 2] - b0;
     if (dr * dr + dg * dg + db * db > T2) continue;
-    cutMask[p] = restore ? 1 : -1; n++;
+    cutMask[p] = restore ? 1 : -1; n++; cutHasMask = true;
     const cx = p % w, cy = (p / w) | 0;
     if (cx < mx0) mx0 = cx; if (cx > mx1) mx1 = cx; if (cy < my0) my0 = cy; if (cy > my1) my1 = cy;
     if (cx > 0) st.push(p - 1); if (cx < w - 1) st.push(p + 1);
@@ -8964,7 +9364,7 @@ function cutBrushUp() {
 function clearCutMask() {
   if (!cutMask) return;
   cutSnapshot();
-  cutMask.fill(0); cutDirty = 'all';
+  cutMask.fill(0); cutDirty = 'all'; cutHasMask = false;
   applyCutMask();
   notify('已清除全部涂抹');
 }
@@ -8983,6 +9383,11 @@ function applyCutMask(full) {
     if (fresh) { out = cutState.canvas = document.createElement('canvas'); out.width = w; out.height = h; cutDirty = 'all'; }
     const d0 = cutDirty; cutDirty = null;
     if (!d0) { drawCutPreview(out); return; }
+    if (!cutHasMask) {                         /* 还没涂抹:直接整张贴,省掉逐像素运算 */
+      const ox0 = out.getContext('2d');
+      ox0.clearRect(0, 0, w, h); ox0.drawImage(src, 0, 0);
+      drawCutPreview(out); return;
+    }
     const R = d0 === 'all' ? { x0: 0, y0: 0, x1: w - 1, y1: h - 1 } : d0;
     const rw = R.x1 - R.x0 + 1, rh = R.y1 - R.y0 + 1;
     if (rw <= 0 || rh <= 0) { drawCutPreview(out); return; }
@@ -9133,6 +9538,55 @@ function cutPreset(k) {
   notify({ pure: '纯白底', soft: '浅灰底', hard: '强力去背', crisp: '锐利边缘' }[k] + ' 预设');
 }
 let cutT = null;
+/* ═══════════ 抠图算法放到后台线程 ═══════════
+   算法主体直接取自 cutoutCanvas 的源码(只有一份,不会两边不一致),主线程只负责取像素和贴回。
+   拖滑块、精算、生成成品时界面不再冻住。 */
+let cutWorker = null, cutJobId = 0;
+const cutJobs = new Map();
+function cutWorkerSrc() {
+  const src = cutoutCanvas.toString();
+  const a = src.indexOf('  const px = d.data'), b = src.indexOf('  x.putImageData(d, 0, 0);');
+  if (a < 0 || b < 0) return null;
+  return 'const clamp = (v, a, b) => Math.max(a, Math.min(b, v));\n' +
+    'onmessage = e => {\n const { id, buf, w, h, tol, oo } = e.data;\n' +
+    ' const o = Object.assign({ feather: 2, despeckle: 1, shrink: 0, keepInner: true, innerKeep: 0 }, oo || {});\n' +
+    ' const d = { data: new Uint8ClampedArray(buf) };\n' + src.slice(a, b) +
+    ' let removed = 0; for (let p2 = 0; p2 < N; p2++) if (alpha[p2] < 0.5) removed++;\n' +
+    ' postMessage({ id, buf: d.data.buffer, stat: { total: N, removed, bg: [bR, bG, bB] } }, [d.data.buffer]);\n};';
+}
+function getCutWorker() {
+  if (cutWorker !== null) return cutWorker;
+  try {
+    const src = cutWorkerSrc();
+    if (!src || typeof Worker === 'undefined') throw 0;
+    cutWorker = new Worker(URL.createObjectURL(new Blob([src], { type: 'text/javascript' })));
+    cutWorker.onmessage = e => { const j = cutJobs.get(e.data.id); if (j) { cutJobs.delete(e.data.id); j(e.data); } };
+    cutWorker.onerror = () => { cutWorker = false; cutJobs.forEach(j => j(null)); cutJobs.clear(); };
+  } catch (e) { cutWorker = false; }
+  return cutWorker;
+}
+/* 异步版 cutoutCanvas:有 Worker 就后台算,没有就退回同步 */
+function cutoutAsync(img, tol, opts) {
+  const wk = getCutWorker();
+  if (!wk) return Promise.resolve(cutoutCanvas(img, tol, opts));
+  const w = img.naturalWidth || img.width, h = img.naturalHeight || img.height;
+  if (!w || !h) return Promise.resolve(null);
+  const c = document.createElement('canvas'); c.width = w; c.height = h;
+  const x = c.getContext('2d', { willReadFrequently: true });
+  x.drawImage(img, 0, 0);
+  let d; try { d = x.getImageData(0, 0, w, h); } catch (e) { return Promise.resolve(null); }
+  const oo = {}; ['feather', 'despeckle', 'shrink', 'keepInner', 'innerKeep'].forEach(k => { if (opts && opts[k] !== undefined) oo[k] = opts[k]; });
+  const id = ++cutJobId;
+  return new Promise(res => {
+    cutJobs.set(id, r => {
+      if (!r) return res(cutoutCanvas(img, tol, opts));      // Worker 出错:退回同步
+      x.putImageData(new ImageData(new Uint8ClampedArray(r.buf), w, h), 0, 0);
+      c._cutStat = r.stat; res(c);
+    });
+    wk.postMessage({ id, buf: d.data.buffer, w, h, tol, oo }, [d.data.buffer]);
+  });
+}
+
 let _cutDraftT = null;
 function cutDraftSrc() {                 /* 拖滑块时用的小图(最长边 460px),算得快 */
   const st = cutState;
@@ -9148,10 +9602,13 @@ function cutDraftSrc() {                 /* 拖滑块时用的小图(最长边 4
 }
 function renderCutPreview(draft) {
   clearTimeout(cutT);
+  if (cutState && cutState.mode === 'ai') { cutState.mode = ''; cutState.aiMap = null; G('cb-ai') && G('cb-ai').classList.remove('act'); }
   cutT = setTimeout(() => {
     if (!cutState) return;
     const useDraft = !!draft && cutBrush.w > 520;
-    const c = cutoutCanvas(useDraft ? cutDraftSrc() : cutState.img, cutState.tol, cutState);
+    const st0 = cutState, ticket = (st0._ticket = (st0._ticket || 0) + 1);
+    cutoutAsync(useDraft ? cutDraftSrc() : st0.img, st0.tol, st0).then(c => {
+    if (cutState !== st0 || st0._ticket !== ticket) return;      /* 用户已经又动了参数,这次结果作废 */
     if (!c) { notify('无法预览（图片跨域受限）', 'err'); return; }
     let algo = c;
     if (useDraft) {                      /* 草稿放大到工作尺寸,手绘遮罩才能对齐 */
@@ -9174,6 +9631,7 @@ function renderCutPreview(draft) {
       clearTimeout(_cutDraftT);
       _cutDraftT = setTimeout(() => { if (cutState) renderCutPreview(false); }, 200);
     }
+    });
   }, draft ? 24 : 110);
 }
 /* 对比原图 / 背景切换 */
@@ -9247,7 +9705,7 @@ async function confirmCutout() {
 /* 用原图重跑算法,并把编辑时画的遮罩按比例放大后应用 */
 async function renderFullRes() {
   const st = cutState;
-  const algo = cutoutCanvas(st.fullImg, st.tol, st);
+  const algo = st.mode === 'ai' && st.aiMap ? aiComposite(st.fullImg, st.aiMap) : await cutoutAsync(st.fullImg, st.tol, st);
   if (!algo) return st.canvas || st.algoCanvas;
   const W = algo.width, H = algo.height;
   const hasMask = cutMask && cutMask.some(v => v !== 0);
@@ -10224,7 +10682,7 @@ async function mobPanelBase(box, add) {
   const lib = await libraryList('base');
   const unused = lib.filter(a => !S.bases.some(b => b.aid === a.id));
   if (unused.length) {
-    add(`<div class="m-ttl">素材库 · ${bm ? '可勾选后删除' : '点击加入'}</div>`);
+    if (bm) add('<div class="m-ttl">素材库 · 可勾选后删除</div>');
     mobThumbGrid(box, bm ? unused : unused.slice(0, 30), () => false, async a => { await addFromLibrary(a.id); haptic(); mobRenderCanvas(); mobPanel(); },
       { kind: 'base', keyOf: a => 'L:' + a.id, onLong: a => mobLibMenu(a) });
   }
@@ -10265,7 +10723,7 @@ async function mobPanelStk(box, add) {
   const lib = await libraryList('sticker');
   const unused = lib.filter(x => !S.stks.some(t => t.aid === x.id));
   if (unused.length) {
-    add(`<div class="m-ttl">素材库 · ${sm ? '可勾选后删除' : '点击加入'}</div>`);
+    if (sm) add('<div class="m-ttl">素材库 · 可勾选后删除</div>');
     mobThumbGrid(box, sm ? unused : unused.slice(0, 30), () => false, async x => {
       await addFromLibrary(x.id);
       if (S.stks.length) { S.activeStk = S.stks[S.stks.length - 1].id; autoFitSticker(); }
@@ -11374,6 +11832,8 @@ function maybeFirstRun() {   /* ⑩ 首次使用引导 */
   restructureExport();
   markAdvanced();
   applySimple();
+  initPWA(); updOnline();
+  { const ps = sidePS(); if (ps) { ps.addEventListener('scroll', () => requestAnimationFrame(sideSpy), { passive: true }); sideSpy(); } }
   updHiddenHints();
   updErrBadge();
   checkStorage(true);
