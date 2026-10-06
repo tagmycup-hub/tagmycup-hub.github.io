@@ -2845,6 +2845,38 @@ body.light #app input[type=range]::-webkit-slider-runnable-track,body.light .ov 
 /* 左侧所有上传按钮统一成虚线次要按钮 */
 #left .usec .ub .bp{width:100%;height:34px;background:transparent!important;border:1.5px dashed var(--bdhi)!important;color:var(--dim)!important;font-weight:500!important;box-shadow:none!important;}
 #left .usec .ub .bp:hover{border-color:var(--acc)!important;color:var(--acc-l)!important;background:var(--acc-d)!important;}
+
+/* ════════ 界面 2.2 ════════ */
+@media (min-width:821px) and (pointer:fine), (min-width:1025px){
+.tb-proj{display:flex;align-items:center;gap:2px;padding:2px;border-radius:var(--rs);background:var(--surf2);border:1px solid var(--bd);flex:0 0 auto;}
+#topbar .tb-proj .tb-pbtn{height:28px!important;padding:0 8px!important;border:none!important;background:transparent!important;color:var(--dim)!important;
+  font-size:12px!important;display:inline-flex;align-items:center;gap:4px;border-radius:6px!important;}
+#topbar .tb-proj .tb-pbtn:hover{background:var(--surf3)!important;color:var(--txt)!important;}
+#topbar .tb-proj .tb-pbtn svg.ic{width:14px;height:14px;}
+#topbar .tb-mid{flex:0 1 360px!important;}
+@media (max-width:1366px){ #topbar .tb-proj .tb-pbtn span{display:none;} #topbar .tb-proj .tb-pbtn{padding:0 7px!important;} .tb-status #status{display:none;} }
+}
+/* 区块 ＋ 上传 */
+.usec .uh .sec-add{width:26px!important;padding:0!important;display:inline-flex;align-items:center;justify-content:center;
+  background:var(--acc-d)!important;border:1px solid transparent!important;color:var(--acc-l)!important;}
+.usec .uh .sec-add:hover{background:var(--acc)!important;color:#fff!important;}
+.usec .uh .sec-add svg{width:13px;height:13px;}
+/* 有内容时隐藏大的上传按钮(标题栏 ＋ 和拖放都能上传);空的时候显示引导 */
+#drop-base:has(#base-grid [data-aid]) .ub > .br:first-child,
+#drop-stk:has(#stk-grid [data-aid]) .ub > .br:first-child,
+#drop-extra:has(#extra-grid [data-aid]) .ub > .br:first-child{display:none!important;}
+/* 素材页顶部 */
+.mini-grp{margin:0 0 10px;border:1px solid var(--bd);border-radius:var(--rs);background:var(--surf2);}
+.mini-grp > summary{list-style:none;cursor:pointer;padding:7px 10px;font-size:11.5px;color:var(--dim);display:flex;justify-content:space-between;}
+.mini-grp > summary::-webkit-details-marker{display:none;}
+.mini-grp > summary::after{content:'▸';transition:transform .15s;}
+.mini-grp[open] > summary::after{transform:rotate(90deg);}
+.mini-grp .init-row{margin:0!important;border:none!important;background:transparent!important;padding:0 10px 8px!important;}
+.mini-grp .ir-title{display:none;}
+#stk-ind{font-size:12.5px!important;font-weight:600;margin-bottom:6px!important;}
+/* 底部工具栏图标 */
+#prev-bar button:has(svg.ic){display:inline-flex;align-items:center;gap:5px;}   /* 不加 !important:有些按钮平时是隐藏的 */
+#prev-bar button svg.ic{width:14px;height:14px;}
 </style>
 <script>
 /* ============================================================
@@ -3318,10 +3350,6 @@ function selAddRect(r) {
     if (r.x < s.x + w / 2 && r.x + r.w > s.x - w / 2 && r.y < s.y + h / 2 && r.y + r.h > s.y - h / 2) selSet.add(s.id);
   });
   if (typeof updSelBar === 'function') updSelBar();
-  if (typeof updPhysicalReadout === 'function') updPhysicalReadout();
-  if (typeof renderCupBar === 'function') renderCupBar();
-  if (typeof syncSecHeads === 'function') syncSecHeads();
-  if (typeof updSideNav === 'function') updSideNav();
 }
 
 let dragSnapDone = false;
@@ -5830,6 +5858,11 @@ function refreshAll() {
   syncStkPanel(); syncTextPanel(); syncAdjPanel();
   if (typeof updSelBar === 'function') updSelBar(); syncLogoPanel('brand'); syncLogoPanel('ip');
   renderCanvas();
+  /* 印位列表、实际尺寸读数、区块计数、跳转条:每次全局刷新都更新 */
+  if (typeof updPhysicalReadout === 'function') updPhysicalReadout();
+  if (typeof renderCupBar === 'function') renderCupBar();
+  if (typeof syncSecHeads === 'function') syncSecHeads();
+  if (typeof updSideNav === 'function') updSideNav();
 }
 
 function drawCompareHalf(W, H) {
@@ -8160,6 +8193,9 @@ function initChrome() {
   left.appendChild(brand);
   left.appendChild(mk('span', 'tb-sep'));
   ['proj-dd'].forEach(id => G(id) && left.appendChild(G(id)));
+  const pg = mk('div', 'tb-proj');                          /* 项目常用操作常显 */
+  ['proj-new', 'proj-ren', 'proj-dup', 'proj-mgr'].forEach(id => G(id) && pg.appendChild(G(id)));
+  left.appendChild(pg);
   const st = mk('div', 'tb-status'); ['save-dot', 'status'].forEach(id => G(id) && st.appendChild(G(id))); left.appendChild(st);
   // 中:搜索功能入口
   const search = mk('button', 'tb-search', '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><span>搜索功能、素材操作…</span><kbd>F12</kbd>');
@@ -8178,7 +8214,7 @@ function initChrome() {
   const menu = mk('div', 'tb-menu'); menu.id = 'tb-menu';
   const sec = (t) => menu.appendChild(mk('div', 'tb-menu-h', t));
   sec('项目');
-  ['proj-new', 'proj-ren', 'proj-dup', 'proj-mgr', 'proj-imp', 'proj-file'].forEach(id => G(id) && menu.appendChild(G(id)));
+  ['proj-imp', 'proj-file'].forEach(id => G(id) && menu.appendChild(G(id)));
   sec('显示与导出');
   ['theme-btn', 'dens-btn', 'lang-btn'].forEach(id => G(id) && menu.appendChild(G(id)));
   const pb = G('preset-bar'); if (pb) { sec('模式（保存当前参数组合）'); pb.classList.add('in-menu'); menu.appendChild(pb); }
@@ -8188,6 +8224,7 @@ function initChrome() {
   sec('存储');
   ['store-info', 'ws-clear'].forEach(id => G(id) && menu.appendChild(G(id)));
   menu.querySelectorAll('button,a').forEach(b => b.classList.add('tb-menu-item'));
+  pg.querySelectorAll('button').forEach(b => b.classList.add('tb-pbtn'));
   more.appendChild(mb); more.appendChild(menu);
   right.appendChild(more);
   mb.onclick = e => { e.stopPropagation(); menu.classList.toggle('on'); mb.classList.toggle('on'); };
@@ -8228,6 +8265,61 @@ function applyIcons() {
     const txt = b.textContent.replace(/^[\s↩↪＋+⧉▦☁☀🗑⚠≡⤓⤒]+/u, '').trim();
     b.innerHTML = `<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ic}</svg>` + (txt ? `<span>${txt}</span>` : '');
     if (!b.title && txt) b.title = txt;
+  });
+}
+/* 素材页顶部整理:默认缩放折叠起来,操作提示放进 ? 悬停 */
+function tidyStkHead() {
+  const ir = document.querySelector('#tab-stk > .init-row');
+  if (ir && !G('init-grp')) {
+    const g = document.createElement('details'); g.id = 'init-grp'; g.className = 'mini-grp';
+    g.innerHTML = '<summary>默认缩放（新素材按这个大小加入）</summary>';
+    ir.before(g); g.appendChild(ir);
+    const dv = g.nextElementSibling; if (dv && dv.classList.contains('dv')) dv.remove();
+  }
+  const ind = G('stk-ind'), hint = ind && ind.parentNode.querySelector('#stk-sz-info + div');
+  if (hint && !hint.dataset.tidy) {
+    hint.dataset.tidy = '1'; hint.style.display = 'none';
+    ind.title = '拖拽移位 · 滚轮缩放 · 方向键微移 · 拖角/边手柄缩放拉伸';
+    const gh = G('grp-hint'); if (gh) ind.after(gh);
+  }
+}
+/* 底部工具栏:emoji 换成统一线性图标;「智能定位」换成「复用印位」 */
+function iconizeToolbar() {
+  const IC = {
+    reuseCup: '<path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/>',
+    suggestParams: '<path d="m12 3 1.9 5.8L20 10l-5 3.6 1.9 5.9L12 16l-4.9 3.5L9 13.6 4 10l6.1-1.2Z"/>',
+    openTpls: '<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/>',
+    openLibrary: '<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/>',
+    toggleSnap: '<path d="M6 3v7a6 6 0 0 0 12 0V3"/><path d="M6 7h4M14 7h4"/>',
+    toggleGrid: '<path d="M3 9h18M3 15h18M9 3v18M15 3v18"/>',
+    toggleRuler: '<path d="M3 17 17 3l4 4L7 21Z"/><path d="m7 13 2 2M10 10l2 2M13 7l2 2"/>',
+    toggleCompare: '<circle cx="12" cy="12" r="9"/><path d="M12 3v18"/>',
+    openGallery: '<rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>',
+    copyForCrossProject: '<rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>',
+    openKb: '<rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10"/>',
+    toggleTbMore: '<circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/>'
+  };
+  const bar = G('prev-bar'); if (!bar) return;
+  const af = bar.querySelector('button[onclick^="autoFitSticker"]');
+  if (af) { af.setAttribute('onclick', 'reuseCup()'); af.textContent = '复用印位'; af.title = '把选中的印花放到印位记住的位置（V）'; }
+  bar.querySelectorAll('button[onclick]').forEach(b => {
+    const fn = (b.getAttribute('onclick').match(/^\s*(\w+)/) || [])[1], ic = IC[fn];
+    if (!ic || b.querySelector('svg')) return;
+    const txt = b.textContent.replace(/^[^\u4e00-\u9fa5A-Za-z]+/u, '').trim();
+    b.innerHTML = `<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ic}</svg>${txt ? `<span>${txt}</span>` : ''}`;
+  });
+}
+/* 区块标题里的 ＋ 上传按钮 */
+function addSecUpload() {
+  [['drop-base', 'inp-base', '上传底图'], ['drop-stk', 'inp-stk', '上传素材'], ['drop-extra', 'inp-extra', '上传细节图']].forEach(([sec, inp, tip]) => {
+    const el = G(sec), uh = el && el.querySelector('.uh');
+    if (!uh || uh.querySelector('.sec-add')) return;
+    const b = document.createElement('button');
+    b.className = 'sec-add'; b.type = 'button'; b.title = tip + '（也可以直接把图片拖进来）';
+    b.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>';
+    b.onclick = e => { e.stopPropagation(); const i = G(inp) || el.querySelector('input[type=file]'); if (i) i.click(); };
+    const batch = uh.querySelector('.sb-btn');
+    if (batch) batch.after(b); else uh.appendChild(b);
   });
 }
 /* ═══ 空状态:说明 + 点一下就能上传 ═══ */
@@ -12637,7 +12729,7 @@ function maybeFirstRun() {   /* ⑩ 首次使用引导 */
   markAdvanced();
   applySimple();
   initPWA(); updOnline();
-  initChrome(); applyIcons(); applyShortcutHints(); enhanceEmpty();
+  initChrome(); applyIcons(); applyShortcutHints(); enhanceEmpty(); addSecUpload(); tidyStkHead(); iconizeToolbar();
   try { renderCupBar(); } catch (e) {}
   setTimeout(() => { try { getCutWorker(); } catch (e) {} }, 2500);   /* 空闲时预热抠图线程,第一次打开更快 */
   if (window.ResizeObserver && G('cwrap')) {         /* 画布区尺寸一变(页码条出现、侧栏折叠、窗口缩放)就重新适配 */
