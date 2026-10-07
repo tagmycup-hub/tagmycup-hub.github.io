@@ -2877,6 +2877,19 @@ body.light #app input[type=range]::-webkit-slider-runnable-track,body.light .ov 
 /* 底部工具栏图标 */
 #prev-bar button:has(svg.ic){display:inline-flex;align-items:center;gap:5px;}   /* 不加 !important:有些按钮平时是隐藏的 */
 #prev-bar button svg.ic{width:14px;height:14px;}
+
+/* 项目管理:列表自己滚动,卡片不再被挤扁(项目多时名字会被挤没) */
+#pm-ov .ov-card{display:flex!important;flex-direction:column!important;min-height:0;}
+#pm-grid{flex:1 1 auto!important;min-height:0!important;overflow-y:auto!important;align-content:start!important;
+  grid-auto-rows:max-content!important;padding:6px 4px 12px!important;}
+.pm-i{display:flex!important;flex-direction:column!important;min-height:0;}
+.pm-i .pm-th{flex:0 0 auto!important;aspect-ratio:1/1;display:flex;align-items:center;justify-content:center;overflow:hidden;border-radius:8px;}
+.pm-i .pm-th img{width:100%;height:100%;object-fit:cover;}
+.pm-i .pm-th span{color:var(--mut);font-size:12px;}
+.pm-i .pm-nm{font-size:13px!important;font-weight:600!important;color:var(--txt)!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:8px 2px 0;}
+.pm-i .pm-meta{font-size:11px!important;color:var(--mut)!important;padding:2px 2px 0;}
+.pm-i .pm-acts{display:flex!important;flex-wrap:wrap!important;gap:4px!important;margin-top:auto!important;padding-top:8px;}
+.pm-i .pm-acts button{flex:1 0 auto;}
 </style>
 <script>
 /* ============================================================
@@ -3151,7 +3164,7 @@ function renderBaseGrid() {
     ck.innerHTML = '<svg viewBox="0 0 10 10" fill="none"><path d="M1.5 5.5L4 8L8.5 2.5" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg>';
     ck.onclick = e => { e.stopPropagation(); b.checked = b.checked === false; refreshAll(); };
     d.appendChild(ck);
-    const im = new Image(); im.src = b.img.src; d.appendChild(im);
+    const im = new Image(); setThumb(im, b); d.appendChild(im);
     const del = document.createElement('button'); del.className = 'tdel'; del.textContent = '✕';
     del.onclick = e => {
       e.stopPropagation(); snapshot();
@@ -3212,7 +3225,7 @@ function renderStkGrid() {
     ck.onclick = e => { e.stopPropagation(); s.checked = !s.checked; if (!s.checked && S.activeStk === s.id) { S.activeStk = null; if (S.crop && S.crop.id === s.id) exitCropMode(true); } refreshAll(); };
     d.appendChild(ck);
     const dot = document.createElement('div'); dot.className = 'sti-dot'; d.appendChild(dot);
-    const im = new Image(); im.src = s.img.src; d.appendChild(im);
+    const im = new Image(); setThumb(im, s); d.appendChild(im);
     const del = document.createElement('button'); del.className = 'tdel2'; del.textContent = '✕';
     del.onclick = e => {
       e.stopPropagation(); snapshot();
@@ -5660,6 +5673,71 @@ function restructureExport() {
   }
 }
 
+/* ═══════════ 缩略图缓存 ═══════════
+   以前缩略图直接用原图(3000px 的图缩到 52px 显示),素材库里的还每次刷新都换新地址,浏览器只能反复解码原图。
+   现在每个素材生成一张 240px 小图,存进本机数据库,所有缩略图位置共用。 */
+const THUMB_PX = 240;
+const cssq = v => String(v).replace(/["\\]/g, '\\$&');   /* 属性选择器里的引号转义(不依赖 CSS.escape) */
+const thumbMem = new Map(), thumbPending = new Map();
+let thRun = 0; const thWait = [];
+function thSlot() { return new Promise(r => { if (thRun < 2) { thRun++; r(); } else thWait.push(r); }); }
+function thRelease() { const n = thWait.shift(); if (n) setTimeout(n, 0); else thRun--; }
+async function genThumbBlob(src) {
+  let bmp = null, w, h;
+  if (src instanceof Blob) {
+    if (!window.createImageBitmap) return null;
+    bmp = await createImageBitmap(src); w = bmp.width; h = bmp.height;
+  } else { w = src.naturalWidth || src.width; h = src.naturalHeight || src.height; }
+  if (!w || !h) return null;
+  const sc = Math.min(1, THUMB_PX / Math.max(w, h));
+  const c = document.createElement('canvas'); c.width = Math.max(1, Math.round(w * sc)); c.height = Math.max(1, Math.round(h * sc));
+  const x = c.getContext('2d'); x.imageSmoothingQuality = 'high';
+  x.drawImage(bmp || src, 0, 0, c.width, c.height);
+  if (bmp && bmp.close) bmp.close();
+  return await new Promise(r => c.toBlob(r, 'image/webp', 0.82));
+}
+/* key 有 aid 时持久化;getSrc 返回 img 或 blob */
+function ensureThumb(key, getSrc, persist) {
+  if (thumbMem.has(key)) return Promise.resolve(thumbMem.get(key));
+  if (thumbPending.has(key)) return thumbPending.get(key);
+  const p = (async () => {
+    let b = null;
+    if (persist) { try { b = await idbGet('th:' + key); } catch (e) {} }
+    if (!(b instanceof Blob) || !b.size) {
+      await thSlot();
+      try { const src = await getSrc(); b = src ? await genThumbBlob(src) : null; }
+      catch (e) { b = null; } finally { thRelease(); }
+      if (b && persist) idbPut(b, 'th:' + key).catch(() => {});
+    }
+    const u = b ? URL.createObjectURL(b) : '';
+    if (u) thumbMem.set(key, u);
+    return u;
+  })();
+  thumbPending.set(key, p);
+  p.finally(() => thumbPending.delete(key));
+  return p;
+}
+function thumbKey(o) { return o && o.aid ? o.aid : (o && o.id !== undefined ? 'o:' + o.id : null); }
+/* 给 img 设缩略图:有缓存立即用,没有就先留空,生成好后自动补上 */
+function setThumb(im, o, fallbackBlob) {
+  const k = thumbKey(o) || (fallbackBlob ? 'b:' + Math.random() : null);
+  if (!k) return;
+  im.dataset.tk = k; im.decoding = 'async';
+  const hit = thumbMem.get(k);
+  if (hit) { im.src = hit; return; }
+  ensureThumb(k, async () => (o && o.img && o.img.naturalWidth) ? o.img : (o && o.blob) || fallbackBlob || (o && o.aid ? ((await assetLoad(o.aid)) || {}).blob : null), !!(o && o.aid))
+    .then(u => { if (u) document.querySelectorAll(`img[data-tk="${cssq(k)}"]`).forEach(x => { if (x.src !== u) x.src = u; }); });
+}
+/* 背景图版本(页码条) */
+function setThumbBg(el, o) {
+  const k = thumbKey(o); if (!k) return;
+  el.dataset.tk = k;
+  const hit = thumbMem.get(k);
+  if (hit) { el.style.backgroundImage = `url(${hit})`; return; }
+  ensureThumb(k, async () => (o.img && o.img.naturalWidth) ? o.img : o.blob, !!o.aid)
+    .then(u => { if (u) document.querySelectorAll(`[data-tk="${cssq(k)}"]:not(img)`).forEach(x => x.style.backgroundImage = `url(${u})`); });
+}
+
 /* ═══════════ 底图页码条:在编辑区直接切换查看,不改变勾选 ═══════════ */
 let _psSig = '';
 const _psUrls = new Map();          // base.id → objectURL(复用,避免反复生成)
@@ -5684,11 +5762,7 @@ function renderPageStrip(force) {
     const d = document.createElement('button');
     d.className = 'ps-i' + (bi === S.activeBase ? ' act' : '');
     d.title = `${k + 1}. ${b.name}`;
-    if (b.blob) {
-      let u = _psUrls.get(b.id);
-      if (!u) { u = URL.createObjectURL(b.blob); _psUrls.set(b.id, u); }
-      d.style.backgroundImage = `url(${u})`;
-    }
+    if (b.blob || b.img) setThumbBg(d, b);
     const n = document.createElement('span'); n.textContent = k + 1; d.appendChild(n);
     d.onclick = () => gotoPage(bi);
     box.appendChild(d);
@@ -7287,7 +7361,12 @@ async function projFirstImage(name) {
       if (first.blob) blob = first.blob;
       else if (first.aid) { const a = await assetLoad(first.aid); if (a) blob = a.blob; }
     }
-    const url = blob ? await blobToDataURL(blob) : '';
+    /* 生成小图(而不是把整张原图转成文本),并存回项目,下次打开管理页直接用 */
+    let url = '';
+    if (blob) {
+      try { const sm = await genThumbBlob(blob); url = sm ? await blobToDataURL(sm) : ''; } catch (e) { url = ''; }
+      if (url && d) { try { d.thumb = url; await idbPut(d, projKey(name)); } catch (e) {} }
+    }
     prevCache[name] = url;
     return url;
   } catch (e) { return ''; }
@@ -8626,10 +8705,7 @@ async function appendLibItems(kind) {
       d.appendChild(sb);
       d.onclick = ev => sideBatchToggle(a.id, sb, ev);
       const im0 = document.createElement('img');
-      const u0 = URL.createObjectURL(a.blob);
-      stripUrls2.push(u0);
-      if (stripUrls2.length > 150) URL.revokeObjectURL(stripUrls2.shift());
-      im0.src = u0; d.appendChild(im0);
+      setThumb(im0, { aid: a.id, blob: a.blob }); d.appendChild(im0);
       g.appendChild(d);
       return;
     }
@@ -8641,10 +8717,7 @@ async function appendLibItems(kind) {
       addFromLibrary(a.id);
     };
     const im = document.createElement('img');
-    const u = URL.createObjectURL(a.blob);
-    stripUrls2.push(u);
-    if (stripUrls2.length > 150) URL.revokeObjectURL(stripUrls2.shift());
-    lazyImg(im, u); d.appendChild(im);
+    setThumb(im, { aid: a.id, blob: a.blob }); d.appendChild(im);
     g.appendChild(d);
   });
   if (kind !== 'logo') stabilizeGrid(kind);
@@ -9629,7 +9702,7 @@ function renderExtraGrid() {
     d.dataset.id = x.id; if (x.aid) d.dataset.aid = x.aid;
     d.title = `${x.name}\n${x.withStk ? '叠加素材' : '不叠素材'} · ${x.withLogo ? '叠加 Logo' : '不叠 Logo'}\n\n单击勾选 · 右键设置`;
     const im = document.createElement('img');
-    if (x.blob) { const u = URL.createObjectURL(x.blob); im.src = u; im.onload = () => setTimeout(() => URL.revokeObjectURL(u), 3000); }
+    if (x.blob || x.aid) setThumb(im, x);
     d.appendChild(im);
     const ck = document.createElement('span'); ck.className = 'xi-ck'; ck.textContent = x.checked ? '✓' : '';
     d.appendChild(ck);
@@ -10710,9 +10783,7 @@ async function renderLibrary() {
     if (usedIds.has(a.id)) { const u = document.createElement('span'); u.className = 'lib-used-b'; u.textContent = '已用'; d.appendChild(u); }
     const th = document.createElement('div'); th.className = 'lib-th';
     const im = document.createElement('img');
-    const u2 = URL.createObjectURL(a.blob);
-    lazyImg(im, u2);
-    im.onload = () => setTimeout(() => URL.revokeObjectURL(u2), 2500);
+    setThumb(im, { aid: a.id, blob: a.blob });
     th.appendChild(im); d.appendChild(th);
     const nm = document.createElement('div'); nm.className = 'lib-nm'; nm.textContent = a.name; d.appendChild(nm);
     if (a.kind !== 'base') {
@@ -11462,8 +11533,7 @@ function mobThumbGrid(box, list, isOn, onTap, opts) {
     d.dataset.nm = o.name || '';
     d.className = 'm-item' + (isOn(o) ? ' on' : ' off') + (opts.isActive && opts.isActive(o) ? ' act' : '') + (picked ? ' picked' : '');
     if (o.blob) {
-      const im = document.createElement('img'); const u = URL.createObjectURL(o.blob);
-      im.src = u; im.draggable = false; im.onload = () => setTimeout(() => URL.revokeObjectURL(u), 3000); d.appendChild(im);
+      const im = document.createElement('img'); im.draggable = false; setThumb(im, o); d.appendChild(im);
     }
     const ck = document.createElement('span');
     ck.className = batch ? 'm-bx' : 'm-ck';
@@ -12301,7 +12371,7 @@ function mobRenderPages() {
   list.forEach((bi, k) => {
     const b = S.bases[bi], d = document.createElement('button');
     d.className = 'mp-i' + (bi === S.activeBase ? ' act' : '');
-    if (b.blob) { let u = _psUrls.get(b.id); if (!u) { u = URL.createObjectURL(b.blob); _psUrls.set(b.id, u); } d.style.backgroundImage = `url(${u})`; }
+    if (b.blob || b.img) setThumbBg(d, b);
     d.textContent = k + 1;
     d.onclick = () => { haptic(6); gotoPage(bi); mobRenderPages(); if (mobCur === 'base') mobPanel(); };
     box.appendChild(d);
