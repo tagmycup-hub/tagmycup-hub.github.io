@@ -638,6 +638,71 @@ body.selmode .qrs{visibility:hidden}
   .lb-cap{font-size:15px}
 }
 
+
+/* ===================== 桌面侧边栏 =====================
+   深色竖栏框住浅色工作区：导航常驻，顶栏只剩搜索。
+   橙色在这里只代表"当前位置"和"主操作"，不做装饰。 */
+#rail{display:none}
+body.has-rail{padding-left:214px}
+body.has-rail #rail{
+  display:flex;flex-direction:column;gap:2px;
+  position:fixed;left:0;top:0;bottom:0;width:214px;z-index:90;
+  background:var(--band);border-right:1px solid rgba(255,255,255,.07);
+  padding:14px 10px 10px;overflow-y:auto;scrollbar-width:thin}
+.rail-brand{display:flex;align-items:center;gap:9px;padding:2px 8px 12px;
+  color:#fff;font-size:14.5px;font-weight:700;letter-spacing:-.01em}
+.rail-brand i{width:7px;height:20px;border-radius:3px;flex:0 0 auto;
+  background:linear-gradient(180deg,var(--accent-2),var(--accent))}
+.rail-slot{padding:0 2px 10px}
+.rail-add{width:100%;border:none;border-radius:10px;padding:10px;font-size:14px;font-weight:650;
+  background:linear-gradient(180deg,var(--accent-2),var(--accent));color:#fff;cursor:pointer;
+  box-shadow:0 2px 10px var(--accent-glow);transition:filter .15s}
+.rail-add:hover{filter:brightness(1.06)}
+.rail-nav{display:flex;flex-direction:column;gap:1px}
+.rail-foot{margin-top:auto;display:flex;flex-direction:column;gap:1px;
+  padding-top:10px;border-top:1px solid rgba(255,255,255,.08)}
+.rail-item{display:flex;align-items:center;gap:9px;width:100%;position:relative;
+  border:none;background:none;border-radius:9px;padding:9px 10px;
+  font-size:13.5px;font-weight:500;color:rgba(255,255,255,.72);
+  text-align:left;cursor:pointer;transition:background .14s,color .14s}
+.rail-item:hover{background:rgba(255,255,255,.08);color:#fff}
+.rail-item.on{background:var(--accent);color:#fff;font-weight:650;box-shadow:0 2px 10px var(--accent-glow)}
+.rail-item .pbadge{position:static;margin-left:auto;background:rgba(255,255,255,.22);
+  color:#fff;min-width:19px;height:18px;line-height:18px;border-radius:999px;font-size:10.5px}
+.rail-item.on .pbadge{background:rgba(0,0,0,.26)}
+[data-theme="dark"] body.has-rail #rail{background:#0b0e13}
+
+/* 有侧栏时顶栏瘦身：搜索为主，其余收到右侧 */
+body.has-rail header{padding-left:0}
+body.has-rail .hd-row1{padding:12px 20px 8px;gap:12px}
+body.has-rail .hd-row1 .logo{display:none}
+body.has-rail .hd-row1 .search{max-width:520px}
+body.has-rail .hd-row2{padding:0 20px 10px}
+body.has-rail .hd-row3{padding:0 20px 11px}
+body.has-rail main{padding:18px 20px 40px}
+body.has-rail .listview{max-width:none}
+body.has-rail .grid{grid-template-columns:repeat(auto-fill,minmax(186px,1fr))}
+
+
+/* 侧栏里的补充标注与状态 */
+body.has-rail #btnSet.rail-item::after{content:"设置"}
+body.has-rail #rail #syncDot{background:none;border:none;border-radius:0;padding:7px 10px;
+  font-size:11.5px;color:rgba(255,255,255,.5);cursor:default;gap:7px;box-shadow:none}
+body.has-rail #rail #syncDot:hover{background:none}
+body.has-rail #rail #syncDot b{font-weight:500}
+body.has-rail #rail #syncDot i{width:6px;height:6px;flex:0 0 auto}
+
+
+/* 有侧栏时顶栏收到两行：第一行 搜索+筛选控件，第二行 类目 */
+@media(min-width:1100px){
+  body.has-rail .hd-row1{flex-wrap:nowrap;align-items:center;padding:12px 20px 10px;gap:10px}
+  body.has-rail .hd-row1 .search{flex:1 1 300px;max-width:420px}
+  body.has-rail .hd-row3{display:none}
+  body.has-rail .hd-row2{padding:0 20px 11px}
+  body.has-rail .hd-row1 .ptabs{flex:0 0 auto}
+  body.has-rail .hd-row1 #brandSel,body.has-rail .hd-row1 #sortSel{flex:0 0 auto;max-width:132px}
+  body.has-rail .hd-row1 .count{margin-left:auto;flex:0 0 auto}
+}
 /* 拿货地点 */
 .pk-loc{border:1px solid var(--accent-line);background:var(--accent-soft);border-radius:10px;
   padding:7px 11px;flex:0 0 auto}
@@ -1001,6 +1066,13 @@ kbd{background:var(--bg-2);border:1px solid var(--line-2);border-bottom-width:2p
 </script>
 </head>
 <body>
+
+<aside id="rail" aria-label="主导航">
+  <div class="rail-brand"><i></i><span>进货价格本</span></div>
+  <div class="rail-slot" id="railAdd"></div>
+  <nav class="rail-nav" id="railNav"></nav>
+  <div class="rail-foot" id="railFoot"></div>
+</aside>
 
 <header>
   <div class="hd-row1">
@@ -4088,6 +4160,55 @@ $('ibList').addEventListener('click',async e=>{
 });
 function p0src(id){const p=products.find(x=>x.id===id);return p?(p.img||p.imgUrl||null):null;}
 
+
+/* ============ 桌面侧边栏 ============
+   不复制按钮，直接把顶栏里已有的按钮搬进侧栏 —— 事件、ID、角标全部沿用。 */
+const RAIL_NAV=['btnStats','btnRestockFilter','btnPickList','btnRev','btnHistory','btnTrips'];
+const RAIL_FOOT=['syncDot','lnkEditor','lnkDiag','btnSet'];
+const _railHome={};
+function railWide(){ try{return window.matchMedia('(min-width:1100px)').matches}catch(e){return false} }
+function layoutRail(){
+  const wide=railWide();
+  document.body.classList.toggle('has-rail',wide);
+  const put=(ids,box)=>{
+    for(const id of ids){
+      const el=$(id); if(!el)continue;
+      if(!_railHome[id])_railHome[id]={parent:el.parentNode,next:el.nextSibling,cls:el.className};
+      const was=el.classList.contains('on');
+      if(wide){
+        if(el.parentNode!==box){ box.appendChild(el); }
+        if(id==='syncDot'){ el.classList.remove('deskonly'); el.classList.add('rail-item'); }
+        else el.className='rail-item'+(was?' on':'');
+      }else if(_railHome[id].parent && el.parentNode!==_railHome[id].parent){
+        _railHome[id].parent.insertBefore(el,_railHome[id].next);
+        if(id==='syncDot'){ el.classList.remove('rail-item'); el.classList.add('deskonly'); }
+        else el.className=_railHome[id].cls+(was?' on':'');
+      }
+    }
+  };
+  put(RAIL_NAV,$('railNav'));
+  put(RAIL_FOOT,$('railFoot'));
+  // 平台/品牌/排序/计数：宽屏并进搜索行
+  const row1=document.querySelector('.hd-row1'), row3=document.querySelector('.hd-row3');
+  for(const sel of ['#ptabs','#brandSel','#sortSel','#count']){
+    const el=document.querySelector(sel); if(!el)continue;
+    const id=sel.slice(1);
+    if(!_railHome[id])_railHome[id]={parent:el.parentNode,next:el.nextSibling,cls:el.className};
+    if(wide){ if(el.parentNode!==row1)row1.appendChild(el); }
+    else if(_railHome[id].parent&&el.parentNode!==_railHome[id].parent){
+      _railHome[id].parent.insertBefore(el,_railHome[id].next);
+    }
+  }
+  const add=$('btnAdd');
+  if(add){
+    if(!_railHome.btnAdd)_railHome.btnAdd={parent:add.parentNode,next:add.nextSibling,cls:add.className};
+    if(wide){ if(add.parentNode!==$('railAdd'))$('railAdd').appendChild(add); add.className='rail-add'; }
+    else if(add.parentNode!==_railHome.btnAdd.parent){
+      _railHome.btnAdd.parent.insertBefore(add,_railHome.btnAdd.next); add.className=_railHome.btnAdd.cls; }
+  }
+  if(wide)syncPickBadge();
+}
+window.addEventListener('resize',()=>{clearTimeout(window.__railT);window.__railT=setTimeout(layoutRail,120);});
 /* ============ 快捷补货 ============ */
 function refreshOne(p){
   const el=document.querySelector(`#grid [data-id="${p.id}"]`);
@@ -4583,19 +4704,24 @@ function toast(msg,type,actLabel,actFn,ms){
 }
 
 /* ============ 云同步状态指示 ============ */
+/* 只改状态类，保留布局类（侧栏里它是 .rail-item，顶栏里是 .deskonly）*/
+function setSyncCls(el,state){
+  const keep=el.classList.contains('rail-item')?['rail-item']:['deskonly'];
+  el.className=[...keep,state].filter(Boolean).join(' ');
+}
 function syncState(){
   const el=document.getElementById('syncDot'), t=document.getElementById('syncTxt');
   if(!el||!t||!settings)return;
-  if(!cloudReady()){el.className='deskonly';t.textContent='未连接云端';return;}
-  if(!navigator.onLine){el.className='err deskonly';t.textContent='离线';return;}
+  if(!cloudReady()){setSyncCls(el,'');t.textContent='未连接云端';return;}
+  if(!navigator.onLine){setSyncCls(el,'err');t.textContent='离线';return;}
   const since=settings.lastPush||0;
   const n=products.filter(p=>(p.updatedAt||0)>since).length;
-  if(n>0){el.className='pend deskonly';t.textContent='待上传 '+n;}
-  else{el.className='ok deskonly';t.textContent='已同步';}
+  if(n>0){setSyncCls(el,'pend');t.textContent='待上传 '+n;}
+  else{setSyncCls(el,'ok');t.textContent='已同步';}
 }
 function syncBusy(txt){
   const el=document.getElementById('syncDot'), t=document.getElementById('syncTxt');
-  if(el&&t){el.className='busy deskonly';t.textContent=txt||'同步中…';}
+  if(el&&t){setSyncCls(el,'busy');t.textContent=txt||'同步中…';}
 }
 window.addEventListener('online',()=>{syncState();toast('网络已恢复','ok');});
 window.addEventListener('offline',()=>{syncState();toast('已离线，改动会先存本地','warn');});
@@ -5358,6 +5484,7 @@ function bootLog(msg,isErr){
   bootLog('4/4 渲染…');
   applyTheme();
   syncViewTog();
+  layoutRail();
   render();
   refreshInboxBadge();
   hideSplash();
