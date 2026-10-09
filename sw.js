@@ -1,38 +1,68 @@
-/* 进货价格本 · 离线缓存 */
-const CACHE='pricebook-d7e5714a';
-const ASSETS=['./','./index.html','./manifest.webmanifest'];
+/* 账期助手 Service Worker：离线应用壳 + 显示通知。
+ * 注意：没有服务端调度器时，Service Worker 不能在未来某个时间准点唤醒提醒。 */
+const CACHE = 'zqzs-v2';
+const SHELL = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
-self.addEventListener('install',e=>{
-  // 首次安装（无控制者）直接激活；已有旧版时等页面确认再激活
-  if(!self.registration.active) self.skipWaiting();
-  e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS).catch(()=>{})));
+self.addEventListener('install', (e) => {
+  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting()));
 });
-self.addEventListener('activate',e=>{
-  e.waitUntil(caches.keys().then(ks=>Promise.all(
-    ks.filter(k=>k!==CACHE).map(k=>caches.delete(k))
-  )).then(()=>self.clients.claim()));
+
+self.addEventListener('activate', (e) => {
+  e.waitUntil(
+    caches.keys().then((keys) => Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k)))).then(() => self.clients.claim()),
+  );
 });
-self.addEventListener('fetch',e=>{
-  const req=e.request;
-  if(req.method!=='GET')return;
-  const url=new URL(req.url);
-  // Supabase 等跨域请求：直连，不缓存
-  if(url.origin!==location.origin)return;
-  // 页面本体：网络优先，失败回缓存（保证更新能拿到新版）
-  if(req.mode==='navigate'||url.pathname.endsWith('index.html')){
+
+self.addEventListener('fetch', (e) => {
+  const req = e.request;
+  if (req.method !== 'GET') return;
+  const url = new URL(req.url);
+  if (url.pathname.startsWith('/api/')) return; // 识别接口不缓存
+  if (req.mode === 'navigate') {
+    // 页面：网络优先，离线回退到缓存的应用壳
     e.respondWith(
-      fetch(req).then(r=>{const cp=r.clone();caches.open(CACHE).then(c=>c.put(req,cp));return r;})
-                .catch(()=>caches.match(req).then(r=>r||caches.match('./index.html')))
+      fetch(req)
+        .then((res) => {
+          const copy = res.clone();
+          caches.open(CACHE).then((c) => c.put('./index.html', copy));
+          return res;
+        })
+        .catch(() => caches.match('./index.html')),
     );
     return;
   }
-  // 其余：缓存优先
-  e.respondWith(caches.match(req).then(r=>r||fetch(req).then(res=>{
-    const cp=res.clone();caches.open(CACHE).then(c=>c.put(req,cp));return res;
-  }).catch(()=>r)));
+  // 静态资源（含 OCR 语言包、字体）：缓存优先
+  e.respondWith(
+    caches.match(req).then(
+      (hit) =>
+        hit ||
+        fetch(req).then((res) => {
+          if (res.ok && (url.origin === location.origin || /fonts\.(googleapis|gstatic)\.com|jsdelivr|tessdata/.test(url.host))) {
+            const copy = res.clone();
+            caches.open(CACHE).then((c) => c.put(req, copy));
+          }
+          return res;
+        }),
+    ),
+  );
 });
 
-// 收到页面指令：立刻激活新版本
-self.addEventListener('message',e=>{
-  if(e.data && e.data.type==='SKIP_WAITING') self.skipWaiting();
+// 第二阶段 Web Push：服务端推送到达时显示通知
+self.addEventListener('push', (e) => {
+  let data = {};
+  try {
+    data = e.data ? e.data.json() : {};
+  } catch {}
+  e.waitUntil(self.registration.showNotification(data.title || '账期助手', { body: data.body || '', tag: data.tag, icon: 'icon.svg', data: { url: data.url || './' } }));
+});
+
+self.addEventListener('notificationclick', (e) => {
+  e.notification.close();
+  const url = (e.notification.data && e.notification.data.url) || './';
+  e.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((list) => {
+      for (const c of list) if ('focus' in c) return c.focus();
+      return self.clients.openWindow(url);
+    }),
+  );
 });
