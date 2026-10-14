@@ -192,7 +192,7 @@ main{padding:14px;max-width:1400px;margin:0 auto}
   font-weight:650;font-size:15px;display:flex;justify-content:space-between;align-items:center}
 .m-head .x{background:none;border:none;color:#fff;font-size:20px;line-height:1}
 .m-body{padding:16px;display:flex;flex-direction:column;gap:12px}
-.f-row{display:flex;gap:10px}
+.f-row{display:flex;gap:10px;align-items:flex-end}
 .f-row>*{flex:1}
 .field label{display:block;font-size:12px;color:var(--ink2);margin-bottom:5px;font-weight:600;letter-spacing:.01em}
 .field input,.field select,.field textarea{width:100%;border:1px solid var(--line);border-radius:var(--r-sm);
@@ -418,6 +418,10 @@ main{padding:14px;max-width:1400px;margin:0 auto}
   background:linear-gradient(180deg,var(--panel-a),var(--panel-b));
   font-size:11.5px;color:var(--ink2);position:sticky;top:var(--hdH,0);z-index:3}
 .lhead i{font-style:normal;opacity:.65;margin-left:3px}
+.lmain .mo{font-style:normal}
+.pk-ph.mono{font-size:26px;font-weight:800;color:var(--ink3);opacity:.3;letter-spacing:.02em;
+  text-align:center;line-height:1.1;word-break:break-all;padding:0 10px;overflow:hidden}
+.lcost .bo{font-style:normal;font-size:10px;color:var(--ink3)}
 .lhead span:nth-child(n+4){text-align:right}
 .lhead span:nth-child(3){text-align:left}
 :root{--lcols:40px minmax(150px,1fr) 44px 88px 72px 96px 96px}
@@ -741,6 +745,7 @@ body.has-rail #rail #syncDot i{width:6px;height:6px;flex:0 0 auto}
   justify-content:center;font-size:16px;color:var(--ink3);flex:0 0 auto}
 .pk-info{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
 .pk-info b{font-size:14.5px;font-weight:700;line-height:1.25;word-break:break-word;letter-spacing:-.01em}
+.pk-sec{display:block;font-style:normal}
 .pk-meta{font-size:11.5px;color:var(--ink2);line-height:1.35}
 .pk-qty{display:flex;align-items:center;gap:0;flex:0 0 auto;border:1px solid var(--line);
   border-radius:9px;overflow:hidden;background:var(--card)}
@@ -1051,6 +1056,147 @@ kbd{background:var(--bg-2);border:1px solid var(--line-2);border-bottom-width:2p
   .m-foot{position:sticky;bottom:0;background:var(--card);padding-bottom:calc(16px + env(safe-area-inset-bottom))}
   #statsPanel{font-size:12px;line-height:1.9}
 }
+
+/* ===================== 手机版 2.0 =====================
+   目标：更像一个成熟的商品管理 App —— 顶栏会收起、卡片变轻、
+   图标统一、列表不再被截断。只在 <=640px 生效，桌面不受影响。 */
+/* ===== 平板 / 小窗口（641–1099px）=====
+   这一段宽度既没有侧边栏也没有底栏，顶栏按钮以前会被挤出屏幕。 */
+@media(min-width:641px) and (max-width:1099px){
+  .hd-row1{flex-wrap:wrap;row-gap:7px}
+  .hd-row1 .search{flex:1 1 240px;min-width:200px;order:-1}
+  .logo{order:-2}
+  .hd-row3{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}
+  .hd-row3::-webkit-scrollbar{display:none}
+  .hd-row2{flex-wrap:nowrap}
+  main{padding:12px}
+}
+
+@media(max-width:640px){
+
+  /* --- ① 顶栏：App 图标 + 紧凑搜索，下滑时类目行自动收起 --- */
+  header{box-shadow:0 1px 0 var(--line)}
+  body.hd-mini header{box-shadow:0 6px 16px -14px rgba(0,0,0,.45)}
+  .hd-row1{padding:7px 10px 5px;gap:8px}
+  .logo{flex:0 0 auto}
+  .logo::before{content:"价";width:31px;height:31px;border-radius:9.5px;
+    background:linear-gradient(155deg,var(--accent-2),var(--accent));
+    box-shadow:0 2px 9px var(--accent-glow);
+    color:#fff;font-size:15px;font-weight:800;line-height:1;
+    display:flex;align-items:center;justify-content:center;letter-spacing:0}
+  .search{padding:6px 11px;border-radius:11px}
+  .search input{font-size:16px;height:22px;line-height:22px}   /* 16px：iOS 聚焦时不缩放 */
+  .search>span:first-child{font-size:14px;opacity:.6}
+  .icon-btn{padding:7px 9px}
+  #btnInbox{padding:8px 9px;font-size:15px}
+  .viewtog button{width:30px;height:30px}
+
+  /* 类目行：滑动时收起，右侧渐隐提示还能横滑 */
+  .hd-row2{padding:3px 10px 7px;gap:7px;
+    transition:max-height .22s ease,opacity .16s ease,padding .22s ease;
+    max-height:50px;overflow-y:hidden;
+    -webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 26px),transparent);
+    mask-image:linear-gradient(90deg,#000 calc(100% - 26px),transparent)}
+  body.hd-mini .hd-row2{max-height:0;opacity:0;padding-top:0;padding-bottom:0;pointer-events:none}
+  .hd-row2 .chip{padding:6px 13px;font-size:13px;font-weight:600}
+  .hd-row2 .chip.on{box-shadow:0 2px 8px var(--accent-glow)}
+
+  /* --- ② 卡片：去掉深色色块，白底 + 轻描边，一屏多看一行 --- */
+  .grid{gap:9px}
+  .card{border-radius:14px;box-shadow:0 1px 2px rgba(16,24,40,.055)}
+  .card:active{transform:scale(.985)}
+  .card .thumb{height:100px;border-bottom:none;
+    background:linear-gradient(170deg,var(--thumb-a),var(--thumb-b))}
+  .card .thumb img{padding:5px}
+  .card .noimg{font-size:26px}
+  .card .band{background:none;color:var(--ink);padding:8px 9px 0;font-size:13.5px;
+    font-weight:700;align-items:flex-start;letter-spacing:-.01em}
+  .card .band>span:first-child{line-height:1.26;max-height:2.52em;overflow:hidden;
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+  .card .brand-tag{background:var(--bg-2);border:1px solid var(--line);color:var(--ink3);
+    font-size:9px;padding:2px 5px;margin-top:1px}
+  .card .body{padding:5px 9px 9px;gap:2px}
+  .prow{font-size:12px;line-height:1.5}
+  .sellrow{border-top:1px dashed var(--line);padding-top:6px}
+  .profit-pill{border-radius:8px}
+  .profit-pill.none{background:none;border:none;padding:3px 0;opacity:.55}
+  .profit-pill.none b{font-size:11px;font-weight:500}
+
+  /* --- ③ 列表视图：型号不再被截断，副标题只留品牌 --- */
+  .lrow{padding:7px 9px}
+  .lmain b{white-space:normal;line-height:1.24;max-height:2.48em;overflow:hidden;
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;font-size:13.5px}
+  .lmain span{font-size:10.5px;letter-spacing:.01em}
+  .lmain .mo{display:none}
+  .lcost .bo{font-style:normal;font-size:9.5px;color:var(--ink3);letter-spacing:.02em}
+  .card .noimg.mono{font-size:19px;font-weight:800;letter-spacing:.02em;
+    color:var(--ink3);opacity:.34;padding:0 8px;text-align:center;line-height:1.1;
+    word-break:break-all;max-width:100%}
+  .lhead{position:sticky;top:0;z-index:2;background:var(--bg-2)}
+
+  /* --- ④ 底栏：线性图标，视觉更克制 --- */
+  #mobileBar{padding:5px 2px calc(5px + env(safe-area-inset-bottom))}
+  #mobileBar button{gap:3px;font-size:10.5px;font-weight:600;letter-spacing:.01em}
+  #mobileBar button span{font-size:0;line-height:0;display:flex}
+  #mobileBar button svg{width:23px;height:23px}
+  #mobileBar .mb-main span{width:42px;height:42px;margin-top:-16px}
+  #mobileBar .mb-main svg{width:24px;height:24px;stroke-width:2.4}
+  #mobileBar button:active{opacity:.55}
+
+  /* --- ⑤ 回顶部按钮 --- */
+  #toTop{position:fixed;right:12px;z-index:55;
+    bottom:calc(74px + env(safe-area-inset-bottom));
+    width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+    background:var(--card);color:var(--ink2);border:1px solid var(--line);box-shadow:var(--sh-2);
+    opacity:0;transform:translateY(10px) scale(.9);pointer-events:none;
+    transition:opacity .18s,transform .18s}
+  body.show-top #toTop{opacity:1;transform:none;pointer-events:auto}
+  #toTop svg{width:19px;height:19px}
+  #toTop:active{transform:scale(.92)}
+
+  /* --- ⑥ 抽屉 / 弹窗：加顶部把手，按钮更好按 --- */
+  .sheet{border-radius:20px 20px 0 0}
+  .sheet-h{position:relative;padding:18px 16px 12px}
+  .sheet-h::before{content:"";position:absolute;top:7px;left:50%;transform:translateX(-50%);
+    width:38px;height:4px;border-radius:999px;background:var(--line-2);opacity:.85}
+  .modal{border-radius:20px 20px 0 0}
+  .m-head{padding:12px 16px;font-size:14.5px}
+  .m-foot{gap:7px;padding:12px 12px}
+  .m-foot .btn{padding:11px 8px;font-size:14px}
+  .field label{font-size:11.5px;line-height:1.35;margin-bottom:4px}
+  .field input,.field select{font-size:16px;padding:10px 11px}
+  .field textarea{font-size:15px}
+
+  /* --- ⑦ 卡片再紧一点，一屏多露一行 --- */
+  .card .thumb{height:92px}
+  .card .band{padding:7px 9px 0}
+  .prow{line-height:1.45}
+
+  /* --- ⑧ 拿货单：顶部少占地方，底部按钮两行排不挤 --- */
+  #pickMask .m-body{gap:8px}
+  .pk-loc-h{padding:8px 11px;font-size:13.5px}
+  .pk-tools .seg2 button{padding:8px 6px;font-size:13px}
+  .pk-tools2{-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 22px),transparent);
+    mask-image:linear-gradient(90deg,#000 calc(100% - 22px),transparent)}
+  .pk-tools2 .chip{font-size:12px;padding:6px 10px}
+  #pickTotal{padding:8px 11px;font-size:12.5px;gap:8px;flex-wrap:nowrap}
+  #pickTotal>*{min-width:0}
+  #pickTotal b{font-size:16.5px;white-space:nowrap}
+  #pickMask .m-foot{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;padding:10px 12px
+    calc(10px + env(safe-area-inset-bottom))}
+  #pickMask .m-foot .btn{padding:10px 4px;font-size:12.5px;white-space:nowrap;
+    overflow:hidden;text-overflow:ellipsis}
+  #btnPickSave{order:1;grid-column:span 2;font-size:14px !important;font-weight:700}
+  #btnPickCopy{order:2;font-size:14px !important}
+  #btnPickClear{order:3} #btnPickPrint{order:4} #btnPickShare{order:5}
+  /* 顶部那几条工具栏压扁，把高度让给货品 */
+  .pk-loc{padding:6px 10px}
+  .pk-loc-h{line-height:1.25}
+  .pk-tools .seg2 button{padding:7px 6px}
+  .seg2{padding:2px}
+  .pk-sec{display:none}                      /* 已经按地点/品牌分组了，行内不必重复 */
+  .pk-meta{font-size:11px;line-height:1.35}
+}
 </style>
 <script>
 /* 尽早套用主题，避免刷新时闪屏 */
@@ -1172,12 +1318,13 @@ kbd{background:var(--bg-2);border:1px solid var(--line-2);border-bottom-width:2p
 </div>
 <div id="toasts"></div>
 <nav id="mobileBar">
-  <button data-mb="filter"><span>🔎</span>筛选</button>
-  <button data-mb="rev"><span>💰</span>收益</button>
-  <button data-mb="add" class="mb-main"><span>＋</span>新增</button>
-  <button data-mb="pick"><span>📋</span>拿货单</button>
-  <button data-mb="more"><span>⋯</span>更多</button>
+  <button data-mb="filter"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5h18M6.5 12h11M10 19h4"/></svg></span>筛选</button>
+  <button data-mb="rev"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l5.5-5.5 3.5 3.5L21 6"/><path d="M15 6h6v6"/></svg></span>收益</button>
+  <button data-mb="add" class="mb-main"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></span>新增</button>
+  <button data-mb="pick"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4" width="14" height="17" rx="2.2"/><path d="M9 3.2h6v2.6H9z" fill="currentColor" stroke="none"/><path d="M8.6 11h6.8M8.6 15h4.6"/></svg></span>拿货单</button>
+  <button data-mb="more"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.6" y="3.6" width="7" height="7" rx="2"/><rect x="13.4" y="3.6" width="7" height="7" rx="2"/><rect x="3.6" y="13.4" width="7" height="7" rx="2"/><rect x="13.4" y="13.4" width="7" height="7" rx="2"/></svg></span>更多</button>
 </nav>
+<button id="toTop" aria-label="回到顶部"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V6M6 11.5L12 5.5l6 6"/></svg></button>
 
 <!-- 手机筛选抽屉 -->
 <div class="mask" id="sheetMask">
@@ -1835,17 +1982,25 @@ function rowHTML(p){
     ${u?`<img src="${u}" loading="lazy">`:`<span class="lph">📦</span>`}
     <div class="lmain">
       <b>${esc(p.model)}</b>
-      <span>${esc(p.brand||'')}${p.brand&&p.category?' · ':''}${esc(p.category||'')}${p.moq?` · 起订 ${p.moq}`:''}</span>
+      <span>${esc(p.brand||p.category||'')}<i class="mo">${p.brand&&p.category?' · '+esc(p.category):''}${p.moq?` · 起订 ${p.moq}`:''}</i></span>
     </div>
     ${qrsBtn(p)}
-    <div class="lcost">
-      <b class="num" data-qe="fSmall">${fmt(n(p.small))}</b>
-      <i class="num" data-qe="fBulk">${fmt(n(p.bulk))}</i>
-    </div>
+    <div class="lcost">${ n(p.small)!=null
+      ? `<b class="num" data-qe="fSmall">${fmt(n(p.small))}</b>${n(p.bulk)!=null?`<i class="num" data-qe="fBulk">${fmt(n(p.bulk))}</i>`:''}`
+      : `<b class="num" data-qe="fBulk">${fmt(n(p.bulk))}</b>${n(p.bulk)!=null?'<i class="bo">大</i>':''}` }</div>
     <div class="lsell num">${fmt(sell)}</div>
     <div class="lnet">${pf(ps)}</div>
     <div class="lnet dimcol">${pf(pb)}</div>
   </div>`;
+}
+/* 无图商品的占位：取型号里最有辨识度的一小段 */
+function monogram(m){
+  m=(m||'').trim(); if(!m)return '?';
+  const tok=m.split(/[\s\-_/]+/).filter(Boolean);
+  const head=tok[0]||m;
+  if(/^[A-Za-z]{1,4}$/.test(head)&&tok[1]&&/\d/.test(tok[1])) return (head+tok[1]).slice(0,6).toUpperCase();
+  if(/[A-Za-z0-9]/.test(head)) return head.slice(0,6).toUpperCase();
+  return m.slice(0,3);
 }
 function cardHTML(p){
     const d=diffOf(p),pr=profitOf(p,settings.activePlatform);
@@ -1854,7 +2009,7 @@ function cardHTML(p){
     return `<div class="card${selected.has(p.id)?' sel':''}" data-id="${p.id}">
       <div class="thumb">
         <span class="tick">✓</span>
-        ${u?`<img src="${u}" loading="lazy">`:`<span class="noimg">📦</span>`}
+        ${u?`<img src="${u}" loading="lazy">`:`<span class="noimg mono">${esc(monogram(p.model))}</span>`}
         <span class="cat-tag">${p.category||'未分类'}</span>
         ${p.moq?`<span class="moq-tag num">起订 ${p.moq}</span>`:''}
         ${qrsBtn(p)}
@@ -1870,7 +2025,7 @@ function cardHTML(p){
           ${(()=>{
             const _pf=settings.activePlatform;
             const ps=profitOf(p,_pf,'small'), pb=profitOf(p,_pf,'bulk');
-            if(!ps&&!pb)return `<div class="profit-pill none"><span>净利</span><b>缺售价或进货价</b></div>`;
+            if(!ps&&!pb)return `<div class="profit-pill none" title="缺售价或进货价"><span>净利</span><b>缺售价</b></div>`;
             const cls=r=>r.net<0?'lose':(r.margin*100<settings.targetMargin?'low':'win');
             const one=(r,lb)=>`<div class="profit-pill ${cls(r)}"><span>${lb}</span><b class="num">${fmt(r.net)} · ${(r.margin*100).toFixed(1)}%</b></div>`;
             if(ps&&pb)return `<div class="pf2">${one(ps,'少量')}${one(pb,'大量')}</div>`;
@@ -2360,7 +2515,7 @@ function renderPickList(){
       if(pkView==='grid'){
         return `<div class="pk-cell${done?' done':''}" data-pkid="${p.id}">
           <div class="pkc-img">
-            ${u?`<img src="${u}" alt="" data-pkimg>`:'<span class="pk-ph">📦</span>'}
+            ${u?`<img src="${u}" alt="" data-pkimg>`:`<span class="pk-ph mono">${esc(monogram(p.model))}</span>`}
             <span class="pkc-qty num">${p.restock}</span>
             <button type="button" class="pk-tick${done?' on':''}" data-pktick title="拿到了就打勾">${done?'✓':''}</button>
             ${low?'<span class="pkc-warn">低于起订</span>':''}
@@ -2382,7 +2537,7 @@ function renderPickList(){
         ${u?`<img src="${u}" alt="" data-pkimg>`:'<span class="pk-ph">📦</span>'}
         <div class="pk-info">
           <b>${esc(p.model)}</b>
-          <span class="pk-meta">${price!=null?'@ R$ '+fmt(price):'⚠ 无进价'}${p.moq?' · 起订 '+p.moq:''}${low?' · <b style="color:var(--warn)">低于起订量</b>':''}${sec?'<br>'+esc(sec):''}</span>
+          <span class="pk-meta">${price!=null?'@ R$ '+fmt(price):'⚠ 无进价'}${p.moq?' · 起订 '+p.moq:''}${low?' · <b style="color:var(--warn)">低于起订量</b>':''}${sec?'<i class="pk-sec">'+esc(sec)+'</i>':''}</span>
         </div>
         <div class="pk-qty">
           <button type="button" data-pkstep="-1">−</button>
@@ -2635,6 +2790,41 @@ function syncPickBadge(){
     b.textContent=n0>99?'99+':n0;
   }
 }
+/* ===== 手机：下滑收起类目行 + 回顶部按钮 =====
+   只在窄屏生效；用阈值而不是每像素跟手，避免抖动。 */
+(function(){
+  let last=0, acc=0, lockT=0, mini=false, top=false;
+  const isM=()=>{ try{return window.matchMedia('(max-width:640px)').matches}catch(e){return innerWidth<=640} };
+  function onScroll(){
+    const y=Math.max(0,window.scrollY||document.documentElement.scrollTop||0);
+    if(!isM()){ if(mini){document.body.classList.remove('hd-mini');mini=false}
+                if(top){document.body.classList.remove('show-top');top=false} last=y; return; }
+    const want=y>640;
+    if(want!==top){ document.body.classList.toggle('show-top',want); top=want; }
+    // 累计位移再判断：无限滚动追加内容时坐标会抖几像素，不能一抖就收起
+    const d=y-last; last=y;
+    if(y<90){ if(mini){document.body.classList.remove('hd-mini');mini=false} acc=0; return; }
+    if(Date.now()-lockT<320) return;            // 刚切过，等布局稳一下
+    if(d===0) return;
+    if((d>0)!==(acc>0)) acc=0;
+    acc+=d;
+    if(acc>30&&!mini){ document.body.classList.add('hd-mini'); mini=true; acc=0; lockT=Date.now(); }
+    else if(acc<-26&&mini){ document.body.classList.remove('hd-mini'); mini=false; acc=0; lockT=Date.now(); }
+  }
+  addEventListener('scroll',onScroll,{passive:true});
+  addEventListener('resize',onScroll);
+  // 搜索聚焦时一定要能看见类目/最近搜索
+  document.addEventListener('focusin',e=>{
+    if(e.target&&e.target.id==='q'&&mini){ document.body.classList.remove('hd-mini'); mini=false; acc=0; }
+  });
+  const tt=document.getElementById('toTop');
+  if(tt)tt.addEventListener('click',()=>{
+    window.scrollTo({top:0,behavior:'smooth'});
+    document.body.classList.remove('hd-mini'); mini=false; last=0; acc=0; lockT=0;
+    try{haptic(6)}catch(e){}
+  });
+})();
+
 function syncMobileBar(){
   syncPickBadge();
   const r=document.querySelector('#mobileBar [data-mb=restock]');

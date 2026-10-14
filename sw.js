@@ -1,5 +1,5 @@
 /* 进货价格本 · 离线缓存 */
-const CACHE='pricebook-d7e5714a';
+const CACHE='pricebook-a131387a';
 const ASSETS=['./','./index.html','./manifest.webmanifest'];
 
 self.addEventListener('install',e=>{
